@@ -57,11 +57,7 @@ run_integration_test: docker_build
 		-v $(PWD):/src \
 		-v ~/.m2:/root/.m2 \
 		-w /src \
-		-e AWS_SECRET_KEY=secret \
-		-e AWS_ACCESS_KEY=access \
 		-e APP_NAME=haystack-trends \
-		-e EXPEDIA_ENVIRONMENT=docker \
-		-e AWS_CBOR_DISABLE=1 \
 		maven:alpine \
 		mvn test -P integration-tests
 
