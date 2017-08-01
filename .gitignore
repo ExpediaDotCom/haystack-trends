@@ -8,3 +8,4 @@ target/
 lib/
 logs/
 **/.idea/
+haystack-trends.iml

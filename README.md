@@ -45,7 +45,7 @@ make integration_test
 ####Debugging
 
 1. Open Makefile
-2. Add the following arguments to docker run step in `create_integration_test_env` trigger :
+2. Add the following arguments to docker run step in `run_integration_test` trigger :
    ```-e SERVICE_DEBUG_ON=true -P 5005:5005```
 3. fire `create_integration_test_env`
 4. attach a remote debugger on port 5005

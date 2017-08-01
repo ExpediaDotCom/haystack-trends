@@ -5,54 +5,61 @@ default: all
 clean:
 	mvn clean
 
+# cleanup docker workspace
+.PHONY: clean_docker
+RUNNING_DOCKER_CONTAINERS = $(shell docker ps -a -q)
+ifneq ("$(RUNNING_DOCKER_CONTAINERS)", "")
+clean_docker:
+	docker stop $(RUNNING_DOCKER_CONTAINERS)
+	docker container prune -f
+	docker volume prune -f
+else
+clean_docker:
+	docker container prune -f
+	docker volume prune -f
+endif
+
 # build executable
 .PHONY: build
 build:
 	mvn clean package
 
 # build docker image
-DOCKER_IMAGE_TAG := kinesis-span-collector
+DOCKER_IMAGE_TAG := haystack-trends
 .PHONY: docker_build
 docker_build:
-	docker build -t $(DOCKER_IMAGE_TAG) .
+	docker build -t $(DOCKER_IMAGE_TAG) -f build/Dockerfile .
 
 # prepare environment for running integration tests
 .PHONY: create_integration_test_env
-create_integration_test_env: docker_build
-	# run dependent services : zk, kafka, kinesis and dynamo
-	docker-compose -p sandbox up -d
+create_integration_test_env: clean_docker
+	# run dependecy services : zk, kafka, kinesis and dynamo
+	docker-compose -f build/docker-compose.yml -p sandbox up -d
 	sleep 10
 
-	# setup before running service : create stream in kinesis and create tabe in dyanmo
-	export AWS_CBOR_DISABLE=1
-	npm install  --prefix ./scripts/ ./scripts/
-	node scripts/create-kinesis-stream.js
-	node scripts/create-dynamo-table.js
-
-	# run service : run kinesis-span-collector and join network of dependent services
+PWD := $(shell pwd)
+# run integration test against existing environment
+.PHONY: run_integration_test
+run_integration_test: docker_build
+	# run service : run kinesis-span-collector and join network of dependecy services
 	docker run \
 		-d \
 		--network=sandbox_default \
 		-e AWS_SECRET_KEY=secret \
 		-e AWS_ACCESS_KEY=access \
-		-e APP_NAME=kinesis-span-collector \
-		-e EXPEDIA_ENVIRONMENT=docker \
-		-e AWS_CBOR_DISABLE=1 \
+		-e APP_NAME=haystack-trends \
 		$(DOCKER_IMAGE_TAG)
 
-PWD := $(shell pwd)
-run_integration_test:
 	# integration tests: running tests in a separate container
 	docker run \
 		-it \
 		--network=sandbox_default \
 		-v $(PWD):/src \
 		-v ~/.m2:/root/.m2 \
-		-v /Users/vsen/Applications/kafka_2.11-0.11.0.0:/kafka \
 		-w /src \
 		-e AWS_SECRET_KEY=secret \
 		-e AWS_ACCESS_KEY=access \
-		-e APP_NAME=kinesis-span-collector \
+		-e APP_NAME=haystack-trends \
 		-e EXPEDIA_ENVIRONMENT=docker \
 		-e AWS_CBOR_DISABLE=1 \
 		maven:alpine \
@@ -68,7 +75,7 @@ all: build integration_test
 
 # build all and release
 .PHONY: release
-REPO := lib/kinesis-span-collector
+REPO := lib/haystack-trends
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 ifeq ($(BRANCH), master)
 release: all
