@@ -33,7 +33,7 @@ docker_build:
 # prepare environment for running integration tests
 .PHONY: create_integration_test_env
 create_integration_test_env: clean_docker
-	# run dependecy services : zk, kafka, kinesis and dynamo
+	# run dependecy services : zk
 	docker-compose -f build/docker-compose.yml -p sandbox up -d
 	sleep 10
 
@@ -41,7 +41,7 @@ PWD := $(shell pwd)
 # run integration test against existing environment
 .PHONY: run_integration_test
 run_integration_test: docker_build
-	# run service : run kinesis-span-collector and join network of dependecy services
+	# run service : run haystack-trends and join network of dependecy services
 	docker run \
 		-d \
 		--network=sandbox_default \
