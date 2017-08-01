@@ -1,2 +1,11 @@
 *.class
 *.log
+*.ipr
+*.iws
+.classpath
+.project
+target/
+lib/
+logs/
+**/.idea/
+haystack-trends.iml
