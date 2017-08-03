@@ -1,4 +1,3 @@
-*.class
 *.log
 *.ipr
 *.iws
@@ -9,3 +8,4 @@ lib/
 logs/
 **/.idea/
 haystack-trends.iml
+/src/main/generated-sources/
