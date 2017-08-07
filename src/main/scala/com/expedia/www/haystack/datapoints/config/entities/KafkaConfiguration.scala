@@ -14,29 +14,18 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.entities
+package com.expedia.www.haystack.datapoints.config.entities
 
-import com.expedia.www.haystack.datapoints.entities.MetricType.MetricType
+import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
-
-case class DataPoint(metric: String,`type`:MetricType, tags: Map[String, String], value: Long, timestamp: Long) {
-  def getDataPointKey: String = {
-    tags.foldLeft(s"$metric-")((tag, tuple) => {
-      tag + s"${tuple._1}->${tuple._2}|"
-    })
-  }
-}
-
-object MetricType extends Enumeration {
-  type MetricType = Value
-  val Metric, Histogram, Aggregate = Value
-}
-
-
-object TagKeys {
-  val OPERATION_NAME_KEY = "operationName"
-  val SERVICE_NAME_KEY = "serviceName"
-}
-
-
-
+/**
+  * @param streamsConfig config object to be used for initializing KafkaStreams
+  * @param produceTopic producer topic
+  * @param consumeTopic consumer topic
+  * @param autoOffsetReset auto offset reset policy
+  */
+case class KafkaConfiguration(streamsConfig: StreamsConfig,
+                              produceTopic: String,
+                              consumeTopic: String,
+                              autoOffsetReset: AutoOffsetReset)

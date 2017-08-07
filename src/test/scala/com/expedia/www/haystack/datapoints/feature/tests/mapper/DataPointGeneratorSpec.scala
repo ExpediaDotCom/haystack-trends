@@ -1,23 +1,24 @@
 /*
- *  Copyright 2017 Expedia, Inc.
  *
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ *     Copyright 2017 Expedia, Inc.
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests
+package com.expedia.www.haystack.datapoints.feature.tests.mapper
 
 import com.expedia.open.tracing.{Span, Tag}
-import com.expedia.www.haystack.datapoints.entities.TagKeys
+import com.expedia.www.haystack.datapoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.datapoints.entities.exceptions.DataPointCreationException
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
 import com.expedia.www.haystack.datapoints.mapper.{DataPointGenerator, DataPointMapper}
@@ -26,7 +27,7 @@ import com.expedia.www.haystack.datapoints.mapper.{DataPointGenerator, DataPoint
 class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
 
 
-  private def getdatapointMappers() = {
+  private def getDataPointMappers = {
     val ref = classOf[DataPointGenerator].getInterfaces.count(interface => interface.getInterfaces.headOption.contains(classOf[DataPointMapper]))
     ref
   }
@@ -46,7 +47,7 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
 
       Then("the number of datapoints returned should be equal to the number of datapoint mappers")
       datapoints should not be empty
-      val datapointMappers = getdatapointMappers()
+      val datapointMappers = getDataPointMappers
       datapoints.size shouldEqual datapointMappers
       var datapointIds = Set[String]()
 
@@ -60,7 +61,11 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
       datapoints.foreach(datapoint => {
         datapoint.timestamp shouldEqual span.getStartTime
       })
-      datapointIds.size shouldEqual datapointMappers
+
+      Then("each datapoint should have the metric type as Metric")
+      datapoints.foreach(datapoint => {
+        datapoint.`type` shouldEqual MetricType.Metric
+      })
 
     }
 

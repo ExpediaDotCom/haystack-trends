@@ -25,7 +25,7 @@ build:
 	mvn clean package
 
 # build docker image
-DOCKER_IMAGE_TAG := haystack-trends
+DOCKER_IMAGE_TAG := haystack-span-timeseries-mapper
 .PHONY: docker_build
 docker_build:
 	docker build -t $(DOCKER_IMAGE_TAG) -f build/Dockerfile .
@@ -41,13 +41,13 @@ PWD := $(shell pwd)
 # run integration test against existing environment
 .PHONY: run_integration_test
 run_integration_test: docker_build
-	# run service : run haystack-trends and join network of dependecy services
+	# run service : run haystack-span-timeseries-mapper and join network of dependecy services
 	docker run \
 		-d \
 		--network=sandbox_default \
 		-e AWS_SECRET_KEY=secret \
 		-e AWS_ACCESS_KEY=access \
-		-e APP_NAME=haystack-trends \
+		-e APP_NAME=haystack-span-timeseries-mapper \
 		$(DOCKER_IMAGE_TAG)
 
 	# integration tests: running tests in a separate container
@@ -57,7 +57,7 @@ run_integration_test: docker_build
 		-v $(PWD):/src \
 		-v ~/.m2:/root/.m2 \
 		-w /src \
-		-e APP_NAME=haystack-trends \
+		-e APP_NAME=haystack-span-timeseries-mapper \
 		maven:alpine \
 		mvn test -P integration-tests
 
@@ -71,7 +71,7 @@ all: build integration_test
 
 # build all and release
 .PHONY: release
-REPO := lib/haystack-trends
+REPO := lib/haystack-span-timeseries-mapper
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 ifeq ($(BRANCH), master)
 release: all

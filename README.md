@@ -1,10 +1,10 @@
-# Haystack Trends
-haystack-trends is the module which aggregates individual spans and creates trends such as mean/median/percentile span duration, error count, span rate etc
+# Haystack Span Timeseries Mapper
+haystack-span-timeseries-mapper is the module which reads spans and converts them to timeseries datapoints
 
 
 ##Required Reading
  
-In order to understand the haystack-trends one must be familiar with the [haystack](https://github.com/ExpediaDotCom/haystack) project. Its written in kafka-streams(http://docs.confluent.io/current/streams/index.html) 
+In order to understand the haystack-span-timeseries-mapper one must be familiar with the [haystack](https://github.com/ExpediaDotCom/haystack) project. Its written in kafka-streams(http://docs.confluent.io/current/streams/index.html) 
 and hence some prior knowledge of kafka-streams would be useful.
  
 

@@ -17,7 +17,7 @@
 package com.expedia.www.haystack.datapoints.mapper
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.datapoints.entities.{DataPoint, TagKeys}
+import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
 
 trait TotalCountDataPointMapper extends DataPointMapper {
   val TOTAL_METRIC_NAME = "total-spans"
@@ -26,7 +26,7 @@ trait TotalCountDataPointMapper extends DataPointMapper {
     val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
       TagKeys.SERVICE_NAME_KEY -> getServiceName(span)
     )
-    DataPoint(TOTAL_METRIC_NAME, keys, 1, span.getStartTime) :: super.mapSpan(span)
+    DataPoint(TOTAL_METRIC_NAME, MetricType.Metric, keys, 1, span.getStartTime) :: super.mapSpan(span)
   }
 
 }

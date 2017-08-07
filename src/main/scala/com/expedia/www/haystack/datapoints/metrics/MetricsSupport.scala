@@ -14,29 +14,14 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.entities
+package com.expedia.www.haystack.datapoints.metrics
 
-import com.expedia.www.haystack.datapoints.entities.MetricType.MetricType
+import com.codahale.metrics.MetricRegistry
 
-
-case class DataPoint(metric: String,`type`:MetricType, tags: Map[String, String], value: Long, timestamp: Long) {
-  def getDataPointKey: String = {
-    tags.foldLeft(s"$metric-")((tag, tuple) => {
-      tag + s"${tuple._1}->${tuple._2}|"
-    })
-  }
+trait MetricsSupport {
+  val metricRegistry: MetricRegistry = MetricsRegistries.metricRegistry
 }
 
-object MetricType extends Enumeration {
-  type MetricType = Value
-  val Metric, Histogram, Aggregate = Value
+object MetricsRegistries {
+  val metricRegistry = new MetricRegistry()
 }
-
-
-object TagKeys {
-  val OPERATION_NAME_KEY = "operationName"
-  val SERVICE_NAME_KEY = "serviceName"
-}
-
-
-

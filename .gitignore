@@ -7,5 +7,5 @@ target/
 lib/
 logs/
 **/.idea/
-haystack-trends.iml
 /src/main/generated-sources/
+haystack-span-timeseries-mapper.iml

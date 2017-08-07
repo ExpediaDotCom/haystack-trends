@@ -1,20 +1,21 @@
 /*
- *  Copyright 2017 Expedia, Inc.
  *
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ *     Copyright 2017 Expedia, Inc.
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests
+package com.expedia.www.haystack.datapoints.feature.tests.mapper
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.datapoints.entities.TagKeys
@@ -45,7 +46,7 @@ class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPoi
       dataPoints.head.value shouldEqual 1
 
       Then("metric name should be success-spans")
-      dataPoints.head.name shouldEqual SUCCESS_METRIC_NAME
+      dataPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
     }
 
     scenario("should have a failure-spans datapoint given span  which is erroneous") {
@@ -69,7 +70,7 @@ class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPoi
 
 
       Then("metric name should be failure-spans")
-      dataPoints.head.name shouldEqual FAILURE_METRIC_NAME
+      dataPoints.head.metric shouldEqual FAILURE_METRIC_NAME
 
 
     }

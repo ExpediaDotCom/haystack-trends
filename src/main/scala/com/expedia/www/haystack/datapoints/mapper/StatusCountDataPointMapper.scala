@@ -17,7 +17,7 @@
 package com.expedia.www.haystack.datapoints.mapper
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.datapoints.entities.{DataPoint, TagKeys}
+import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
 
@@ -31,9 +31,10 @@ trait StatusCountDataPointMapper extends DataPointMapper {
       case Some(errorValue) =>
         val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
           TagKeys.SERVICE_NAME_KEY -> getServiceName(span))
-        errorValue match {
-          case true => DataPoint(FAILURE_METRIC_NAME, tags, 1, span.getStartTime) :: super.mapSpan(span)
-          case false => DataPoint(SUCCESS_METRIC_NAME, tags, 1, span.getStartTime) :: super.mapSpan(span)
+        if (errorValue) {
+          DataPoint(FAILURE_METRIC_NAME, MetricType.Metric, tags, 1, span.getStartTime) :: super.mapSpan(span)
+        } else {
+          DataPoint(SUCCESS_METRIC_NAME, MetricType.Metric, tags, 1, span.getStartTime) :: super.mapSpan(span)
         }
 
       case None => super.mapSpan(span)
