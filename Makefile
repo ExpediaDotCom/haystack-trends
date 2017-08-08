@@ -58,7 +58,7 @@ run_integration_test: docker_build
 		-v ~/.m2:/root/.m2 \
 		-w /src \
 		-e APP_NAME=haystack-span-timeseries-transformers \
-		maven:alpine \
+		maven:latest \
 		mvn test -P integration-tests
 
 # integration testing
