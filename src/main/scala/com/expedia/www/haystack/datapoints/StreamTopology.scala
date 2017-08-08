@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.datapoints.serde.SpanDeserializer
+import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.processor.TopologyBuilder
@@ -33,6 +35,9 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private var streams: KafkaStreams = _
   private val running = new AtomicBoolean(false)
+  private val TOPOLOGY_SOURCE_NAME = "span-source"
+  private val TOPOLOGY_SINK_NAME = "datapoint-sink"
+  private val TOPOLOGY_PROCESSOR_NAME = "datapoint-transformer-process"
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
@@ -52,6 +57,20 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
 
   private def topology(): TopologyBuilder = {
     val builder = new TopologyBuilder()
+    builder.addSource(
+      kafkaConfig.autoOffsetReset,
+      TOPOLOGY_SOURCE_NAME,
+      kafkaConfig.timestampExtractor,
+      new StringDeserializer,
+      new SpanDeserializer(),
+      kafkaConfig.consumeTopic)
+
+    builder.addSink(
+      TOPOLOGY_SINK_NAME,
+      kafkaConfig.produceTopic,
+      new StringSerializer,
+      new StringSerializer,
+      TOPOLOGY_SOURCE_NAME)
     builder
   }
 

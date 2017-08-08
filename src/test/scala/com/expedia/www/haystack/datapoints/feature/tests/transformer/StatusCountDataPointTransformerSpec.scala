@@ -15,16 +15,16 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests.mapper
+package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.datapoints.entities.TagKeys
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
-import com.expedia.www.haystack.datapoints.mapper.StatusCountDataPointMapper
+import com.expedia.www.haystack.datapoints.transformer.StatusCountDataPointTransformer
 
-class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPointMapper {
+class StatusCountDataPointTransformerSpec extends FeatureSpec with StatusCountDataPointTransformer {
 
-  feature("datapoint mapper for creating status count datapoint") {
+  feature("datapoint transformer for creating status count datapoint") {
 
     scenario("should have a success-spans datapoint given span which is successful") {
 
@@ -36,7 +36,7 @@ class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPoi
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
         addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).build()
 
-      When("datapoint is created using the mapper")
+      When("datapoint is created using the transformer")
       val dataPoints = mapSpan(span)
 
       Then("should only have 1 datapoint")
@@ -59,7 +59,7 @@ class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPoi
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
         addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(true)).build()
 
-      When("datapoint is created using mapper")
+      When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
 
       Then("should only have 1 datapoint")
@@ -84,7 +84,7 @@ class StatusCountDataPointMapperSpec extends FeatureSpec with StatusCountDataPoi
       val span = Span.newBuilder().setDuration(duration).setOperationName(operationName).
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).build()
 
-      When("datapoint is created using mapper")
+      When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
 
       Then("should not return datapoints")

@@ -15,16 +15,16 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests.mapper
+package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.datapoints.entities.TagKeys
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
-import com.expedia.www.haystack.datapoints.mapper.TotalCountDataPointMapper
+import com.expedia.www.haystack.datapoints.transformer.TotalCountDataPointTransformer
 
-class TotalCountDataPointMapperSpec extends FeatureSpec with TotalCountDataPointMapper {
+class TotalCountDataPointTransformerSpec extends FeatureSpec with TotalCountDataPointTransformer {
 
-  feature("datapoint mapper for creating total count datapoint") {
+  feature("datapoint transformer for creating total count datapoint") {
     scenario("should have a total-count datapoint given span which is successful") {
 
       Given("a successful span object")
@@ -35,7 +35,7 @@ class TotalCountDataPointMapperSpec extends FeatureSpec with TotalCountDataPoint
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
         addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).build()
 
-      When("datapoint is created using mapper")
+      When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
 
       Then("should only have 1 datapoint")
@@ -57,7 +57,7 @@ class TotalCountDataPointMapperSpec extends FeatureSpec with TotalCountDataPoint
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
         addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(true)).build()
 
-      When("datapoint is created using mapper")
+      When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
 
       Then("should only have 1 datapoint")

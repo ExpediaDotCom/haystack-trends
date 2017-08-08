@@ -15,16 +15,16 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests.mapper
+package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.datapoints.entities.TagKeys
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
-import com.expedia.www.haystack.datapoints.mapper.DurationDataPointMapper
+import com.expedia.www.haystack.datapoints.transformer.DurationDataPointTransformer
 
-class DurationDataPointMapperSpec extends FeatureSpec with DurationDataPointMapper {
+class DurationDataPointTransformerSpec extends FeatureSpec with DurationDataPointTransformer {
 
-  feature("datapoint mapper for creating duration datapoint") {
+  feature("datapoint transformer for creating duration datapoint") {
     scenario("should have duration value in datapoint for given duration in span") {
 
       Given("a valid span object")
@@ -34,7 +34,7 @@ class DurationDataPointMapperSpec extends FeatureSpec with DurationDataPointMapp
       val span = Span.newBuilder().setDuration(duration).setOperationName(operationName).
         addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).build()
 
-      When("datapoint is created using mapper")
+      When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
 
       Then("should only have 1 datapoint")
