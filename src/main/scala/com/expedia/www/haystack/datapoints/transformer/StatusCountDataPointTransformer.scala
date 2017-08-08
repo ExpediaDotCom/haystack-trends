@@ -14,14 +14,14 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.mapper
+package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
 
-trait StatusCountDataPointMapper extends DataPointMapper {
+trait StatusCountDataPointTransformer extends DataPointTransformer {
 
   val SUCCESS_METRIC_NAME = "success-spans"
   val FAILURE_METRIC_NAME = "failure-spans"

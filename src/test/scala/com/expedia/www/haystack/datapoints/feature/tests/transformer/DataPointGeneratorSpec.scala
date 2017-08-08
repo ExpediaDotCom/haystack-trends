@@ -15,20 +15,20 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.feature.tests.mapper
+package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.datapoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.datapoints.entities.exceptions.DataPointCreationException
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
-import com.expedia.www.haystack.datapoints.mapper.{DataPointGenerator, DataPointMapper}
+import com.expedia.www.haystack.datapoints.transformer.{DataPointGenerator, DataPointTransformer}
 
 
 class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
 
 
-  private def getDataPointMappers = {
-    val ref = classOf[DataPointGenerator].getInterfaces.count(interface => interface.getInterfaces.headOption.contains(classOf[DataPointMapper]))
+  private def getDataPointTransformers = {
+    val ref = classOf[DataPointGenerator].getInterfaces.count(interface => interface.getInterfaces.headOption.contains(classOf[DataPointTransformer]))
     ref
   }
 
@@ -45,17 +45,17 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
       When("its asked to map to datapoints")
       val datapoints = mapSpans(span).getOrElse(List())
 
-      Then("the number of datapoints returned should be equal to the number of datapoint mappers")
+      Then("the number of datapoints returned should be equal to the number of datapoint transformers")
       datapoints should not be empty
-      val datapointMappers = getDataPointMappers
-      datapoints.size shouldEqual datapointMappers
+      val datapointTransformers = getDataPointTransformers
+      datapoints.size shouldEqual datapointTransformers
       var datapointIds = Set[String]()
 
       Then("each datapoint should have a unique combination of keys")
       datapoints.foreach(datapoint => {
         datapointIds += datapoint.getDataPointKey
       })
-      datapointIds.size shouldEqual datapointMappers
+      datapointIds.size shouldEqual datapointTransformers
 
       Then("each datapoint should have the timestamps which is equal to the span timestamp")
       datapoints.foreach(datapoint => {

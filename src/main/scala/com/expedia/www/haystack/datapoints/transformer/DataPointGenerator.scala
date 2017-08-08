@@ -14,7 +14,7 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.mapper
+package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.entities.DataPoint
@@ -22,7 +22,7 @@ import com.expedia.www.haystack.datapoints.entities.exceptions.DataPointCreation
 
 import scala.util.{Failure, Success, Try}
 
-trait DataPointGenerator extends DurationDataPointMapper with TotalCountDataPointMapper with StatusCountDataPointMapper {
+trait DataPointGenerator extends DurationDataPointTransformer with TotalCountDataPointTransformer with StatusCountDataPointTransformer {
 
   def mapSpans(span: Span): Try[List[DataPoint]] = {
 

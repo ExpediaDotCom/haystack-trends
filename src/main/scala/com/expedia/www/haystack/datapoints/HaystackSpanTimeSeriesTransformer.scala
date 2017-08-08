@@ -23,7 +23,7 @@ import com.expedia.www.haystack.datapoints.config.ProjectConfiguration._
 import com.expedia.www.haystack.datapoints.metrics.MetricsSupport
 
 
-object HaystackSpanTimeSeriesMapper extends MetricsSupport {
+object HaystackSpanTimeSeriesTransformer extends MetricsSupport {
 
   private var jmxReporter: JmxReporter = _
 

@@ -14,14 +14,14 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.mapper
+package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, TagKeys}
 
 import scala.collection.JavaConverters._
 
-trait DataPointMapper {
+trait DataPointTransformer {
   val ERROR_KEY = "error"
 
   def mapSpan(span: Span): List[DataPoint] = List()

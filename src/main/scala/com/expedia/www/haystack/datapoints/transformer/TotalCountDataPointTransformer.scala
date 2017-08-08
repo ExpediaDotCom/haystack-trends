@@ -14,12 +14,12 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.mapper
+package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
 
-trait TotalCountDataPointMapper extends DataPointMapper {
+trait TotalCountDataPointTransformer extends DataPointTransformer {
   val TOTAL_METRIC_NAME = "total-spans"
 
   override def mapSpan(span: Span): List[DataPoint] = {

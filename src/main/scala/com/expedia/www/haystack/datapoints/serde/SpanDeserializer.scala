@@ -23,7 +23,7 @@ import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.Deserializer
 
-object SpanDeserializer extends Deserializer[Span] with MetricsSupport {
+class SpanDeserializer extends Deserializer[Span] with MetricsSupport {
 
   private val spanDeserMeter = metricRegistry.meter("span.deseri.failure")
 

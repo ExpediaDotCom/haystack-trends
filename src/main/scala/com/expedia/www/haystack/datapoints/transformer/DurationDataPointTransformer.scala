@@ -1,4 +1,4 @@
-package com.expedia.www.haystack.datapoints.mapper
+package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
@@ -6,7 +6,7 @@ import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagK
 /**
   * Created by krastogi on 04/08/17.
   */
-trait DurationDataPointMapper extends DataPointMapper {
+trait DurationDataPointTransformer extends DataPointTransformer {
   val DURATION_METRIC_NAME = "duration"
 
   override def mapSpan(span: Span): List[DataPoint] = {
