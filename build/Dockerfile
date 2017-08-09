@@ -1,7 +1,7 @@
 FROM openjdk:8-jre
 MAINTAINER Haystack <haystack@expedia.com>
 
-ENV APP_NAME haystack-span-stitcher
+ENV APP_NAME haystack-span-timeseries-transformer
 ENV APP_HOME /app/bin
 
 RUN mkdir -p ${APP_HOME}
