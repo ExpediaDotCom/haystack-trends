@@ -8,4 +8,4 @@ lib/
 logs/
 **/.idea/
 /src/main/generated-sources/
-haystack-span-timeseries-mapper.iml
+haystack-span-timeseries-transformer.iml
