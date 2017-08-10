@@ -44,12 +44,13 @@
 
         <pegdown.version>1.6.0</pegdown.version>
         <scalatest.version>3.0.3</scalatest.version>
-        <jackson.version>2.8.9</jackson.version>
+        <json4s.version>3.5.3</json4s.version>
         <slf4j.version>1.7.25</slf4j.version>
-        <kstreams.version>0.11.0.0</kstreams.version>
+        <kafka.version>0.11.0.0</kafka.version>
         <typesafe-config.version>1.3.1</typesafe-config.version>
         <logback.version>1.2.3</logback.version>
         <metrics-core.version>3.0.2</metrics-core.version>
+        <junit.version>4.12</junit.version>
 
         <!--Compiler Properties -->
         <project.jdk.version>1.8</project.jdk.version>
@@ -82,7 +83,6 @@
 
     </properties>
 
-
     <dependencies>
 
         <dependency>
@@ -108,7 +108,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
-            <version>${kstreams.version}</version>
+            <version>${kafka.version}</version>
         </dependency>
 
         <dependency>
@@ -118,10 +118,16 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.major.minor.version}</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_${scala.major.minor.version}</artifactId>
+            <version>${json4s.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
+            <version>${json4s.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -138,6 +144,56 @@
         </dependency>
 
         <!-- test dependencies -->
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+            <version>${kafka.version}</version>
+            <classifier>test</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.version}</version>
+            <classifier>test</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${scala.major.minor.version}</artifactId>
+            <version>${kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka_${scala.major.minor.version}</artifactId>
+            <version>${kafka.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+            <classifier>test</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -275,6 +331,7 @@
                     <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
                     <filereports>TestSuite.txt</filereports>
                     <testFailureIgnore>false</testFailureIgnore>
+                    <wildcardSuites>com.expedia.www.haystack.datapoints.feature.tests</wildcardSuites>
                 </configuration>
                 <executions>
                     <execution>
@@ -321,4 +378,25 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>integration-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scalatest</groupId>
+                        <artifactId>scalatest-maven-plugin</artifactId>
+                        <configuration>
+                            <wildcardSuites>com.expedia.www.haystack.datapoints.integration.tests</wildcardSuites>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

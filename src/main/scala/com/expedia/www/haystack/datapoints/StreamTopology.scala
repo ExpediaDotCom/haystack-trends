@@ -22,8 +22,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.datapoints.serde.DataPointSerde
+import org.apache.kafka.common.serialization.Serdes.StringSerde
+import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KafkaStreams.StateListener
+import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.streams.processor.TopologyBuilder
 import org.slf4j.LoggerFactory
 
@@ -33,6 +37,9 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private var streams: KafkaStreams = _
   private val running = new AtomicBoolean(false)
+  private val TOPOLOGY_SOURCE_NAME = "datapoint-source"
+  private val TOPOLOGY_SINK_NAME = "datapoint-aggegated-sink"
+  private val TOPOLOGY_PROCESSOR_NAME = "datapoint-aggregator-process"
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
@@ -51,8 +58,28 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   }
 
   private def topology(): TopologyBuilder = {
+
+    val builder = new KStreamBuilder()
+    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde(), DataPointSerde, kafkaConfig.consumeTopic).to(new StringSerde(), DataPointSerde, kafkaConfig.produceTopic)
+    /*
     val builder = new TopologyBuilder()
+    builder.addSource(
+      kafkaConfig.autoOffsetReset,
+      TOPOLOGY_SOURCE_NAME,
+      kafkaConfig.timestampExtractor,
+      new StringDeserializer,
+      new DataPointDeserializer(),
+      kafkaConfig.consumeTopic)
+
+    builder.addSink(
+      TOPOLOGY_SINK_NAME,
+      kafkaConfig.produceTopic,
+      new StringSerializer,
+      new StringSerializer,
+      TOPOLOGY_SOURCE_NAME)
+      */
     builder
+
   }
 
   /**
