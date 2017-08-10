@@ -21,7 +21,8 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFutur
 import java.util.{Properties, UUID}
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.datapoints.serde.SpanDeserializer
+import com.expedia.www.haystack.datapoints.entities.TagKeys
+import com.expedia.www.haystack.datapoints.serde.{DataPointSerde, SpanSerde}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -71,13 +72,13 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
     PRODUCER_CONFIG.put(ProducerConfig.RETRIES_CONFIG, "0")
     PRODUCER_CONFIG.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, SpanSerde.serializer().getClass)
 
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.GROUP_ID_CONFIG, APP_ID + "-result-consumer")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer])
-    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[SpanDeserializer])
+    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DataPointSerde.deserializer().getClass)
 
     STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
@@ -104,6 +105,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       .setParentSpanId(UUID.randomUUID().toString)
       .setSpanId(spanId)
       .setOperationName("some-op")
+      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr("some-service"))
       .setStartTime(startTime)
       .build()
   }

@@ -44,7 +44,7 @@
 
         <pegdown.version>1.6.0</pegdown.version>
         <scalatest.version>3.0.3</scalatest.version>
-        <jackson.version>2.8.9</jackson.version>
+        <json4s.version>3.5.3</json4s.version>
         <slf4j.version>1.7.25</slf4j.version>
         <kafka.version>0.11.0.0</kafka.version>
         <junit.version>4.12</junit.version>
@@ -125,9 +125,14 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.major.minor.version}</artifactId>
-            <version>${jackson.version}</version>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-jackson_${scala.major.minor.version}</artifactId>
+            <version>${json4s.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
+            <version>${json4s.version}</version>
         </dependency>
 
         <dependency>
@@ -416,7 +421,9 @@
                         <groupId>org.scalatest</groupId>
                         <artifactId>scalatest-maven-plugin</artifactId>
                         <configuration>
-                            <wildcardSuites>com.expedia.www.haystack.datapoints.integration.tests.TimeSeriesTransformerTopologySpec</wildcardSuites>
+                            <wildcardSuites>
+                                com.expedia.www.haystack.datapoints.integration.tests.TimeSeriesTransformerTopologySpec
+                            </wildcardSuites>
                         </configuration>
                     </plugin>
                 </plugins>
