@@ -15,8 +15,12 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.entities.exceptions
 
-class DataPointReadingException extends RuntimeException {
+package com.expedia.www.haystack.datapoints.feature.tests.aggregation.rules
+
+import com.expedia.www.haystack.datapoints.feature.FeatureSpec
+
+class RuleMatcherSpec extends FeatureSpec {
+
 
 }

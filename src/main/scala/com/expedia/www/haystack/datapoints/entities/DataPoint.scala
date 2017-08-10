@@ -19,8 +19,16 @@ package com.expedia.www.haystack.datapoints.entities
 
 import com.expedia.www.haystack.datapoints.entities.MetricType.MetricType
 
+object DataPoint {
 
-case class DataPoint(metric: String,`type`:MetricType, tags: Map[String, String], value: Long, timestamp: Long) {
+}
+
+case class DataPoint(metric: String,
+                     `type`: MetricType,
+                     tags: Map[String, String],
+                     value: Long,
+                     timestamp: Long) {
+
   def getDataPointKey: String = {
     tags.foldLeft(s"$metric-")((tag, tuple) => {
       tag + s"${tuple._1}->${tuple._2}|"
@@ -28,9 +36,11 @@ case class DataPoint(metric: String,`type`:MetricType, tags: Map[String, String]
   }
 }
 
+
 object MetricType extends Enumeration {
   type MetricType = Value
   val Metric, Histogram, Aggregate = Value
+
 }
 
 

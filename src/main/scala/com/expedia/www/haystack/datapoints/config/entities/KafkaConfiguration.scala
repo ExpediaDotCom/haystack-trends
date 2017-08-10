@@ -18,15 +18,18 @@
 package com.expedia.www.haystack.datapoints.config.entities
 
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.processor.TimestampExtractor
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 /**
-  * @param streamsConfig config object to be used for initializing KafkaStreams
-  * @param produceTopic producer topic
-  * @param consumeTopic consumer topic
-  * @param autoOffsetReset auto offset reset policy
+  * @param streamsConfig      config object to be used for initializing KafkaStreams
+  * @param produceTopic       producer topic
+  * @param consumeTopic       consumer topic
+  * @param autoOffsetReset    auto offset reset policy
+  * @param timestampExtractor timestamp extractor
   */
 case class KafkaConfiguration(streamsConfig: StreamsConfig,
                               produceTopic: String,
                               consumeTopic: String,
-                              autoOffsetReset: AutoOffsetReset)
+                              autoOffsetReset: AutoOffsetReset,
+                              timestampExtractor: TimestampExtractor)
