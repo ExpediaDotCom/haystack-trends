@@ -27,6 +27,7 @@ import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
+import scala.collection.JavaConverters._
 
 import scala.concurrent.duration._
 
@@ -50,7 +51,9 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec {
       Then("we should write transformed datapoints to the 'output' topic")
       val result: JList[KeyValue[String, DataPoint]] =
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000)
-      result.get(0).value.`type` shouldEqual MetricType.Metric
+      result.asScala.map(result => {
+        result.value.`type` shouldEqual MetricType.Metric
+      })
     }
   }
 

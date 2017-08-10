@@ -21,16 +21,23 @@ package com.expedia.www.haystack.datapoints
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
-import com.expedia.www.haystack.datapoints.serde.SpanDeserializer
-import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.apache.kafka.streams.KafkaStreams
+import com.expedia.www.haystack.datapoints.entities.DataPoint
+import com.expedia.www.haystack.datapoints.serde.{DataPointSerde, SpanSerde}
+import com.expedia.www.haystack.datapoints.transformer.DataPointGenerator
+import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
+import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.streams.processor.TopologyBuilder
+import org.apache.kafka.streams.processor.internals.DefaultStreamPartitioner
+import org.apache.kafka.streams.{KafkaStreams, KeyValue}
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConverters._
+
 class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
-  with Thread.UncaughtExceptionHandler {
+  with Thread.UncaughtExceptionHandler with DataPointGenerator {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private var streams: KafkaStreams = _
@@ -56,21 +63,16 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   }
 
   private def topology(): TopologyBuilder = {
-    val builder = new TopologyBuilder()
-    builder.addSource(
-      kafkaConfig.autoOffsetReset,
-      TOPOLOGY_SOURCE_NAME,
-      kafkaConfig.timestampExtractor,
-      new StringDeserializer,
-      new SpanDeserializer(),
-      kafkaConfig.consumeTopic)
+    val builder = new KStreamBuilder()
+    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
+      .flatMap[String, DataPoint] {
+      (_: String, span: Span) => {
+        mapSpans(span).getOrElse(List()).map(datapoint => {
+          new KeyValue[String, DataPoint](datapoint.getDataPointKey, datapoint)
+        }).asJava
+      }
+    }.to(new StringSerde, DataPointSerde, kafkaConfig.produceTopic)
 
-    builder.addSink(
-      TOPOLOGY_SINK_NAME,
-      kafkaConfig.produceTopic,
-      new StringSerializer,
-      new StringSerializer,
-      TOPOLOGY_SOURCE_NAME)
     builder
   }
 
