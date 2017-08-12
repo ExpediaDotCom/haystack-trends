@@ -30,7 +30,6 @@ import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.streams.processor.TopologyBuilder
-import org.apache.kafka.streams.processor.internals.DefaultStreamPartitioner
 import org.apache.kafka.streams.{KafkaStreams, KeyValue}
 import org.slf4j.LoggerFactory
 

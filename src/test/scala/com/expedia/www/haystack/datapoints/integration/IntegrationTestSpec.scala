@@ -132,4 +132,15 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
 
+  protected def produceSpan(span: Span): Unit = {
+
+    val spanKeyValue = List(new KeyValue[String, Span](span.getTraceId, span)).asJava
+
+    IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
+      INPUT_TOPIC,
+      spanKeyValue,
+      PRODUCER_CONFIG,
+      System.currentTimeMillis())
+  }
+
 }
