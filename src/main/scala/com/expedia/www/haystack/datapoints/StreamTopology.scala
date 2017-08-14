@@ -41,9 +41,6 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private var streams: KafkaStreams = _
   private val running = new AtomicBoolean(false)
-  private val TOPOLOGY_SOURCE_NAME = "span-source"
-  private val TOPOLOGY_SINK_NAME = "datapoint-sink"
-  private val TOPOLOGY_PROCESSOR_NAME = "datapoint-transformer-process"
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
@@ -65,14 +62,16 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     val builder = new KStreamBuilder()
     builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
       .flatMap[String, DataPoint] {
-      (_: String, span: Span) => {
-        mapSpans(span).getOrElse(List()).map(datapoint => {
-          new KeyValue[String, DataPoint](datapoint.getDataPointKey, datapoint)
-        }).asJava
-      }
+      (_: String, span: Span) => mapToTuples(span)
     }.to(new StringSerde, DataPointSerde, kafkaConfig.produceTopic)
 
     builder
+  }
+
+  private def mapToTuples(span: Span): java.util.List[KeyValue[String, DataPoint]] = {
+    mapSpans(span).getOrElse(List()).map(datapoint => {
+      new KeyValue[String, DataPoint](datapoint.getDataPointKey, datapoint)
+    }).asJava
   }
 
   /**
