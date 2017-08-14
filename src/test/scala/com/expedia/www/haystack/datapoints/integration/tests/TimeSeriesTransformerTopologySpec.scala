@@ -20,11 +20,13 @@ package com.expedia.www.haystack.datapoints.integration.tests
 import java.util.{UUID, List => JList}
 
 import com.expedia.open.tracing.{Process, Span}
+
 import com.expedia.www.haystack.datapoints.StreamTopology
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
-import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType}
 import com.expedia.www.haystack.datapoints.integration.IntegrationTestSpec
 import com.expedia.www.haystack.datapoints.transformer.DataPointGenerator
+import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
@@ -82,6 +84,15 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with DataPoi
 
       keySetTransformer.size shouldEqual (keySetKafka.size)
       diffSetKey.isEmpty shouldEqual (true)
+
+      Then("no other intermediate partitions are created after as a result of topology")
+      val adminClient: AdminClient = AdminClient.create(STREAMS_CONFIG)
+      val topicNames: Iterable[String] = adminClient.listTopics.listings().get().asScala
+        .map(topicListing => topicListing.name)
+
+      topicNames.size shouldEqual(2)
+      topicNames.toSet.contains(INPUT_TOPIC) shouldEqual (true)
+      topicNames.toSet.contains(OUTPUT_TOPIC) shouldEqual (true)
 
     }
   }
