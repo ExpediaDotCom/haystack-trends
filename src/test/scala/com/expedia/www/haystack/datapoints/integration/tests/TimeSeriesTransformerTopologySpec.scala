@@ -19,7 +19,7 @@ package com.expedia.www.haystack.datapoints.integration.tests
 
 import java.util.{UUID, List => JList}
 
-import com.expedia.open.tracing.Span
+import com.expedia.open.tracing.{Process, Span}
 import com.expedia.www.haystack.datapoints.StreamTopology
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType, TagKeys}
@@ -89,6 +89,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with DataPoi
   private def generateSpan(traceId: String, spanId: String, duration: Int, errorFlag: Boolean): Span = {
 
     val currentTime = System.currentTimeMillis()
+    val process = Process.newBuilder().setServiceName("some-service")
     val span = Span.newBuilder()
       .setTraceId(traceId)
       .setParentSpanId(UUID.randomUUID().toString)
@@ -96,8 +97,8 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with DataPoi
       .setOperationName("some-op")
       .setStartTime(currentTime)
       .setDuration(duration)
-      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr("some-service"))
-      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(ERROR_KEY).setVStr("some-service"))
+      .setProcess(process)
+      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(ERROR_KEY).setVStr("some-error"))
       .build()
     span
   }

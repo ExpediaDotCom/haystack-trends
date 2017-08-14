@@ -25,7 +25,7 @@ trait DurationDataPointTransformer extends DataPointTransformer {
   override def mapSpan(span: Span): List[DataPoint] = {
 
     val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> getServiceName(span))
+      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
     DataPoint(DURATION_METRIC_NAME,MetricType.Metric, keys, span.getDuration, span.getStartTime) :: super.mapSpan(span)
   }
 
