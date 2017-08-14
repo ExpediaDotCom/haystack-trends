@@ -17,17 +17,10 @@
 package com.expedia.www.haystack.datapoints.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.datapoints.entities.{DataPoint, TagKeys}
-
-import scala.collection.JavaConverters._
+import com.expedia.www.haystack.datapoints.entities.DataPoint
 
 trait DataPointTransformer {
   val ERROR_KEY = "error"
 
   def mapSpan(span: Span): List[DataPoint] = List()
-
-  protected def getServiceName(span: Span): String = {
-    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.SERVICE_NAME_KEY)).map(_.getVStr).getOrElse("")
-  }
-
 }

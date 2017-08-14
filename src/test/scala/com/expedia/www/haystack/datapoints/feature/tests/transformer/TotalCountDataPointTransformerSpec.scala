@@ -17,8 +17,7 @@
  */
 package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Span, Tag}
-import com.expedia.www.haystack.datapoints.entities.TagKeys
+import com.expedia.open.tracing.{Process, Span, Tag}
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
 import com.expedia.www.haystack.datapoints.transformer.TotalCountDataPointTransformer
 
@@ -31,9 +30,13 @@ class TotalCountDataPointTransformerSpec extends FeatureSpec with TotalCountData
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val span = Span.newBuilder().setDuration(duration).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .build()
 
       When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)
@@ -53,9 +56,13 @@ class TotalCountDataPointTransformerSpec extends FeatureSpec with TotalCountData
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val span = Span.newBuilder().setDuration(duration).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(true)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(true))
+        .build()
 
       When("datapoint is created using transformer")
       val dataPoints = mapSpan(span)

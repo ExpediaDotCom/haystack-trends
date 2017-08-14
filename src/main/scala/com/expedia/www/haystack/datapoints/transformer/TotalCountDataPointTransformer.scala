@@ -24,7 +24,7 @@ trait TotalCountDataPointTransformer extends DataPointTransformer {
 
   override def mapSpan(span: Span): List[DataPoint] = {
     val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> getServiceName(span)
+      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName
     )
     DataPoint(TOTAL_METRIC_NAME, MetricType.Metric, keys, 1, span.getStartTime) :: super.mapSpan(span)
   }

@@ -20,7 +20,7 @@ package com.expedia.www.haystack.datapoints.integration
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 import java.util.{Properties, UUID}
 
-import com.expedia.open.tracing.Span
+import com.expedia.open.tracing.{Process, Span}
 import com.expedia.www.haystack.datapoints.entities.TagKeys
 import com.expedia.www.haystack.datapoints.serde.{DataPointSerde, SpanSerde}
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -100,12 +100,14 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   def randomSpan(traceId: String,
                  spanId: String = UUID.randomUUID().toString,
                  startTime: Long = System.currentTimeMillis()): Span = {
+    val serviceName = "some-service"
+    val process = Process.newBuilder().setServiceName(serviceName)
     Span.newBuilder()
       .setTraceId(traceId)
       .setParentSpanId(UUID.randomUUID().toString)
       .setSpanId(spanId)
       .setOperationName("some-op")
-      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr("some-service"))
+      .setProcess(process)
       .setStartTime(startTime)
       .build()
   }

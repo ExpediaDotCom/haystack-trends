@@ -30,7 +30,7 @@ trait DataPointGenerator extends DurationDataPointTransformer with TotalCountDat
   }
 
   private def validate(span: Span): Try[Span] = {
-    if (getServiceName(span).isEmpty || span.getOperationName.isEmpty) {
+    if (span.getProcess.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       Failure(new DataPointCreationException)
     } else {
       Success(span)

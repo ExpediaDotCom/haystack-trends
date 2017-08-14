@@ -30,7 +30,7 @@ trait StatusCountDataPointTransformer extends DataPointTransformer {
     getErrorField(span) match {
       case Some(errorValue) =>
         val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-          TagKeys.SERVICE_NAME_KEY -> getServiceName(span))
+          TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
         if (errorValue) {
           DataPoint(FAILURE_METRIC_NAME, MetricType.Metric, tags, 1, span.getStartTime) :: super.mapSpan(span)
         } else {

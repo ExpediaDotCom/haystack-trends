@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.datapoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Span, Tag}
+import com.expedia.open.tracing.{Span, Tag, Process}
 import com.expedia.www.haystack.datapoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.datapoints.entities.exceptions.DataPointCreationException
 import com.expedia.www.haystack.datapoints.feature.FeatureSpec
@@ -39,9 +39,13 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
       val operationName = "testSpan"
       val serviceName = "testService"
       Given("a valid span")
-      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .build()
       When("its asked to map to datapoints")
       val datapoints = mapSpans(span).getOrElse(List())
 
@@ -73,9 +77,13 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
       val operationName = ""
       val serviceName = ""
       Given("an invalid span")
-      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .build()
 
       When("its asked to map to datapoints")
       val datapoints = mapSpans(span)
@@ -91,9 +99,13 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
       val serviceName = "testService"
 
       Given("a valid span")
-      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .build()
 
       When("its asked to map to datapoints")
       val datapoints = mapSpans(span).getOrElse(List())
@@ -108,10 +120,15 @@ class DataPointGeneratorSpec extends FeatureSpec with DataPointGenerator {
     scenario("a span object with a valid service Name") {
       val operationName = "testSpan"
       val serviceName = "testService"
+
       Given("a valid span")
-      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName(operationName).
-        addTags(Tag.newBuilder().setKey(TagKeys.SERVICE_NAME_KEY).setVStr(serviceName)).
-        addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false)).build()
+      val process = Process.newBuilder().setServiceName(serviceName)
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setProcess(process)
+        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .build()
 
       When("its asked to map to datapoints")
       val datapoints = mapSpans(span).get
