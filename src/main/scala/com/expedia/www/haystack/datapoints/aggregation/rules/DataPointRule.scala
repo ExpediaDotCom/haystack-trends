@@ -18,11 +18,10 @@
 
 package com.expedia.www.haystack.datapoints.aggregation.rules
 
-import com.expedia.www.haystack.datapoints.entities.DataPoint
+import com.expedia.www.haystack.datapoints.entities.MetricType.MetricType
+import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType}
 
 trait DataPointRule {
-
-  def isMatched(dataPoint: DataPoint): Boolean
-
-  def aggregator: (DataPoint, DataPoint)
+  def isMatched(dataPoint: DataPoint): MetricType = MetricType.Metric
 }
+

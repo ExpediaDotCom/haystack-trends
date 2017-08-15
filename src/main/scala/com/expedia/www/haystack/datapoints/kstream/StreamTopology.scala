@@ -16,19 +16,19 @@
  *
  */
 
-package com.expedia.www.haystack.datapoints
+package com.expedia.www.haystack.datapoints.kstream
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
-import com.expedia.www.haystack.datapoints.serde.DataPointSerde
-import org.apache.kafka.common.serialization.Serdes.StringSerde
+import com.expedia.www.haystack.datapoints.kstream.processor.TrendMetricAggregator
+import com.expedia.www.haystack.datapoints.kstream.serde.{DataPointSerde, TrendMetricSerde, TrendSerde}
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KafkaStreams.StateListener
-import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.streams.processor.TopologyBuilder
+import org.apache.kafka.streams.state.Stores
 import org.slf4j.LoggerFactory
 
 class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
@@ -39,7 +39,9 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val running = new AtomicBoolean(false)
   private val TOPOLOGY_SOURCE_NAME = "datapoint-source"
   private val TOPOLOGY_SINK_NAME = "datapoint-aggegated-sink"
-  private val TOPOLOGY_PROCESSOR_NAME = "datapoint-aggregator-process"
+  private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "datapoint-aggregator-process"
+  private val TOPOLOGY_AGGREGATOR_COMPUTED_METRICS_STORE_NAME = "computed-metrics-store"
+  private val TOPOLOGY_AGGREGATOR_TREND_STORE_NAME = "trend-store"
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
@@ -59,27 +61,46 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
 
   private def topology(): TopologyBuilder = {
 
-    val builder = new KStreamBuilder()
-    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde(), DataPointSerde, kafkaConfig.consumeTopic).to(new StringSerde(), DataPointSerde, kafkaConfig.produceTopic)
-    /*
     val builder = new TopologyBuilder()
+
     builder.addSource(
       kafkaConfig.autoOffsetReset,
       TOPOLOGY_SOURCE_NAME,
       kafkaConfig.timestampExtractor,
       new StringDeserializer,
-      new DataPointDeserializer(),
+      DataPointSerde.deserializer(),
       kafkaConfig.consumeTopic)
+
+    val computedMetricsStore = Stores.create(TOPOLOGY_AGGREGATOR_COMPUTED_METRICS_STORE_NAME)
+      .withStringKeys()
+      .withValues(TrendMetricSerde)
+      .inMemory()
+      .disableLogging()
+      .build()
+
+    val trendsStore = Stores.create(TOPOLOGY_AGGREGATOR_TREND_STORE_NAME)
+      .withStringKeys
+      .withValues(TrendSerde)
+      .inMemory()
+      .build()
+
+    builder.addProcessor(
+      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
+      new TrendMetricAggregator(TOPOLOGY_AGGREGATOR_COMPUTED_METRICS_STORE_NAME, TOPOLOGY_AGGREGATOR_TREND_STORE_NAME),
+      TOPOLOGY_SOURCE_NAME)
+
+
+    builder.addStateStore(computedMetricsStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    builder.addStateStore(trendsStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     builder.addSink(
       TOPOLOGY_SINK_NAME,
       kafkaConfig.produceTopic,
       new StringSerializer,
-      new StringSerializer,
-      TOPOLOGY_SOURCE_NAME)
-      */
-    builder
+      DataPointSerde.serializer(),
+      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
+    builder
   }
 
   /**
@@ -99,7 +120,9 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     * @param e throwable object
     */
   override def uncaughtException(t: Thread, e: Throwable): Unit = {
-    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
+    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${
+      t.getName
+    }", e)
     // it may happen that uncaught exception gets called by multiple threads at the same time,
     // so we let one of them close the kafka streams and restart it
     if (closeKafkaStreams()) {

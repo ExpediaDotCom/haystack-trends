@@ -19,10 +19,10 @@ package com.expedia.www.haystack.datapoints.integration.tests
 
 import java.util.{List => JList}
 
-import com.expedia.www.haystack.datapoints.StreamTopology
 import com.expedia.www.haystack.datapoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.datapoints.entities.DataPoint
 import com.expedia.www.haystack.datapoints.integration.IntegrationTestSpec
+import com.expedia.www.haystack.datapoints.kstream.StreamTopology
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
@@ -43,12 +43,12 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor)
 
       When("datapoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceDataPointsAsync(MAX_DATAPOINTS, 2.milli, metricName)
+      produceDataPointsAsync(MAX_DATAPOINTS, 1000.milli, metricName)
       new StreamTopology(kafkaConfig).start()
 
       Then("we should read one aggregated datapoint from 'output' topic")
       val result: JList[KeyValue[String, DataPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000)
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 5, 15000)
       validateAggregatedDataPoints(result)
     }
   }

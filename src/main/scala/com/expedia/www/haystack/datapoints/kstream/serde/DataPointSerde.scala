@@ -15,7 +15,7 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.datapoints.serde
+package com.expedia.www.haystack.datapoints.kstream.serde
 
 import java.util
 
@@ -23,7 +23,7 @@ import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType}
 import com.expedia.www.haystack.datapoints.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.json4s.jackson.Serialization.{read, write}
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
 import org.json4s.ext.EnumNameSerializer
 
 
@@ -31,7 +31,7 @@ object DataPointSerde extends Serde[DataPoint] with MetricsSupport {
 
   private val datapointDeserMeter = metricRegistry.meter("deseri.failure")
 
-  implicit val formats = DefaultFormats + new EnumNameSerializer(MetricType)
+  implicit val formats: Formats = DefaultFormats + new EnumNameSerializer(MetricType)
 
 
   override def close(): Unit = ()
@@ -53,7 +53,7 @@ object DataPointSerde extends Serde[DataPoint] with MetricsSupport {
           read[DataPoint](new String(data))
         } catch {
           case ex: Exception =>
-            /* may be log and add metric */
+            println(ex)
             datapointDeserMeter.mark()
             null
         }

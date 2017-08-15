@@ -21,6 +21,7 @@ package com.expedia.www.haystack.datapoints
 import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.datapoints.metrics.MetricsSupport
 import com.expedia.www.haystack.datapoints.config.ProjectConfiguration._
+import com.expedia.www.haystack.datapoints.kstream.StreamTopology
 
 
 object HaystackTimeSeriesAggregator extends MetricsSupport {

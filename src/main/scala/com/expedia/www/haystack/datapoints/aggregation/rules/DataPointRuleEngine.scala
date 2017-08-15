@@ -19,12 +19,12 @@
 package com.expedia.www.haystack.datapoints.aggregation.rules
 
 import com.expedia.www.haystack.datapoints.entities.DataPoint
+import com.expedia.www.haystack.datapoints.entities.MetricType.MetricType
 
-trait RuleMatcher extends DataPointRule {
+trait DataPointRuleEngine extends CountDataPointRule with HistogramDataPointRule {
 
-
-  def matchedRules(dataPoint: DataPoint): List[DataPointRule] = {
-    List()
+  def findMatchingMetric(dataPoint: DataPoint): MetricType = {
+    isMatched(dataPoint)
   }
 
 
