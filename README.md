@@ -1,5 +1,5 @@
 # Haystack Span Timeseries Transformer
-haystack-span-timeseries-transformer is the module which reads spans and converts them to timeseries datapoints
+haystack-span-timeseries-transformer is the module which reads spans and converts them to timeseries metricPoints
 
 
 ## Required Reading
@@ -10,10 +10,10 @@ and hence some prior knowledge of kafka-streams would be useful.
 
 
 ## Technical Details
-This specific module reads the spans from kafka and converts them to timeseries datapoints based on transformers and writes out the time-series datapoints back to kafka.
-The timeseries datapoints are opentsdb complient and can be directly consumed by opentsdb kafka [plugin](https://github.com/OpenTSDB/opentsdb-rpc-kafka)
+This specific module reads the spans from kafka and converts them to timeseries metricPoints based on transformers and writes out the time-series metricPoints back to kafka.
+The timeseries metricPoints are opentsdb complient and can be directly consumed by opentsdb kafka [plugin](https://github.com/OpenTSDB/opentsdb-rpc-kafka)
 
-Sample Datapoint : 
+Sample MetricPoint : 
 ```json
 {
 	"type": "Metric",
@@ -27,7 +27,7 @@ Sample Datapoint :
 }
 ```
 
-Haystack's has another app [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-timeseries-aggregator) which consumes these datapoints 
+Haystack's has another app [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-timeseries-aggregator) which consumes these metricPoints 
 and aggregates them based on predefined rules which can be visualized on the [haystack ui](https://github.com/ExpediaDotCom/haystack-ui)
 
 This is a simple public static void main application which is written in scala and uses kafka-streams. This is designed to be deployed as a docker container in the expedia ecosystem.
