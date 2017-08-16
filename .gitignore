@@ -1,0 +1,11 @@
+*.log
+*.ipr
+*.iws
+.classpath
+.project
+target/
+lib/
+logs/
+**/.idea/
+/src/main/generated-sources/
+haystack-span-timeseries-transformer.iml
