@@ -29,7 +29,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>haystack-timeseries-aggregator</name>
-    <description>scala module which aggregates timeseries datapoints based on predefined rules</description>
+    <description>scala module which aggregates timeseries metricpoints based on predefined rules</description>
 
     <licenses>
         <license>
@@ -338,7 +338,7 @@
                     <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
                     <filereports>TestSuite.txt</filereports>
                     <testFailureIgnore>false</testFailureIgnore>
-                    <wildcardSuites>com.expedia.www.haystack.datapoints.feature.tests</wildcardSuites>
+                    <wildcardSuites>com.expedia.www.haystack.metricpoints.feature.tests</wildcardSuites>
                 </configuration>
                 <executions>
                     <execution>
@@ -398,7 +398,7 @@
                         <groupId>org.scalatest</groupId>
                         <artifactId>scalatest-maven-plugin</artifactId>
                         <configuration>
-                            <wildcardSuites>com.expedia.www.haystack.datapoints.integration.tests</wildcardSuites>
+                            <wildcardSuites>com.expedia.www.haystack.metricpoints.integration.tests</wildcardSuites>
                         </configuration>
                     </plugin>
                 </plugins>
