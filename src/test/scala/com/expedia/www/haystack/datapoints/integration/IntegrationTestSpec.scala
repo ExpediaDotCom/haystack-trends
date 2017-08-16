@@ -21,7 +21,7 @@ import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.expedia.www.haystack.datapoints.entities.{DataPoint, MetricType}
-import com.expedia.www.haystack.datapoints.serde.DataPointSerde
+import com.expedia.www.haystack.datapoints.kstream.serde.DataPointSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -104,19 +104,22 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
   protected def produceDataPointsAsync(maxDataPoints: Int,
                                        produceInterval: FiniteDuration,
-                                       metricName: String): Unit = {
-    var currentTime = System.currentTimeMillis()
+                                       metricName: String,
+                                       startTimestamp: Long = 0L): Unit = {
+    var currentTime = startTimestamp
     var idx = 0
     scheduler.scheduleWithFixedDelay(() => {
-
-      currentTime = currentTime + ((idx * PUNCTUATE_INTERVAL_MS) / (maxDataPoints - 1))
-      val dataPoint = randomDataPoint(metricName)
-      val keyValue = List(new KeyValue[String, DataPoint](dataPoint.getDataPointKey, dataPoint)).asJava
-      IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
-        INPUT_TOPIC,
-        keyValue,
-        PRODUCER_CONFIG,
-        currentTime)
+      if (idx < maxDataPoints) {
+        val dataPoint = randomDataPoint(metricName)
+        val keyValue = List(new KeyValue[String, DataPoint](dataPoint.getDataPointKey, dataPoint)).asJava
+        IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
+          INPUT_TOPIC,
+          keyValue,
+          PRODUCER_CONFIG,
+          currentTime)
+        currentTime = currentTime + (PUNCTUATE_INTERVAL_MS / (maxDataPoints - 1))
+      }
+      idx = idx + 1
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
 

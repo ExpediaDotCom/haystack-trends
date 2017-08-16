@@ -51,6 +51,7 @@
         <logback.version>1.2.3</logback.version>
         <metrics-core.version>3.0.2</metrics-core.version>
         <junit.version>4.12</junit.version>
+        <hdrhistogram.version>1.2.1</hdrhistogram.version>
 
         <!--Compiler Properties -->
         <project.jdk.version>1.8</project.jdk.version>
@@ -109,6 +110,12 @@
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-streams</artifactId>
             <version>${kafka.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hdrhistogram</groupId>
+            <artifactId>HdrHistogram</artifactId>
+            <version>${hdrhistogram.version}</version>
         </dependency>
 
         <dependency>
