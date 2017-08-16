@@ -19,9 +19,10 @@ In order to understand the haystack-trends one must be familiar with the [haysta
 and hence some prior knowledge of kafka-streams would be useful.
  
 ## Technical Details
+![High Level Block Diagram](documents/diagrams/haystack_trends.png)
 
-Haystack trends is a collection of modules which reads spans and pushes aggregated metric points to kafka, each module  
-runs as individual apps and talk to each other via kafka.
+
+Haystack trends is a collection of modules which reads spans and pushes aggregated metric points to kafka, each module runs as individual apps and talk to each other via kafka.
     
 * [span-timeseries-transformer](https://github.com/ExpediaDotCom/haystack-trends/tree/master/span-timeseries-transformer) - this app is responsible 
 for reading spans, converting them to metric points and pushing raw metric points to kafka partitioned by metric-key
