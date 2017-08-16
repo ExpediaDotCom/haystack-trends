@@ -1,1 +1,1 @@
-# haystack-timeseries-aggregator
+# haystack-trends
