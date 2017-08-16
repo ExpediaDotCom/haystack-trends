@@ -1,36 +1,11 @@
 # Haystack Span Timeseries Transformer
-haystack-span-timeseries-transformer is the module which reads spans and converts them to timeseries metricPoints
 
+Haystack-span-timeseries-transformer is the module  which reads the spans from kafka and converts them to timeseries metricPoints based on transformers and writes out the time-series metricPoints back to kafka.
 
-## Required Reading
- 
-In order to understand the haystack-span-timeseries-transformers one must be familiar with the [haystack](https://github.com/ExpediaDotCom/haystack) project. Its written in kafka-streams(http://docs.confluent.io/current/streams/index.html) 
-and hence some prior knowledge of kafka-streams would be useful.
- 
-
-
-## Technical Details
-This specific module reads the spans from kafka and converts them to timeseries metricPoints based on transformers and writes out the time-series metricPoints back to kafka.
-The timeseries metricPoints are opentsdb complient and can be directly consumed by opentsdb kafka [plugin](https://github.com/OpenTSDB/opentsdb-rpc-kafka)
-
-Sample MetricPoint : 
-```json
-{
-	"type": "Metric",
-	"metric": "duration",
-	"tags": {
-		"client": "expweb",
-		"operationName": "getOffers"
-	},
-	"timestamp": 1492641000,
-	"value": 420
-}
-```
-
-Haystack's has another app [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-timeseries-aggregator) which consumes these metricPoints 
+Haystack's has another app [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator) which consumes these metric points 
 and aggregates them based on predefined rules which can be visualized on the [haystack ui](https://github.com/ExpediaDotCom/haystack-ui)
 
-This is a simple public static void main application which is written in scala and uses kafka-streams. This is designed to be deployed as a docker container in the expedia ecosystem.
+This is a simple public static void main application which is written in scala and uses kafka-streams. This is designed to be deployed as a docker containers.
 
 
 ## Building
