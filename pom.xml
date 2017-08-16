@@ -29,7 +29,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>haystack-span-timeseries-transformer</name>
-    <description>scala module which creates timeseries datapoints for spans</description>
+    <description>scala module which creates timeseries metricpoints for spans</description>
 
     <licenses>
         <license>
@@ -360,7 +360,7 @@
                     <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
                     <filereports>TestSuite.txt</filereports>
                     <testFailureIgnore>false</testFailureIgnore>
-                    <wildcardSuites>com.expedia.www.haystack.datapoints.feature.tests</wildcardSuites>
+                    <wildcardSuites>com.expedia.www.haystack.metricpoints.feature.tests</wildcardSuites>
                 </configuration>
                 <executions>
                     <execution>
@@ -422,7 +422,7 @@
                         <artifactId>scalatest-maven-plugin</artifactId>
                         <configuration>
                             <wildcardSuites>
-                                com.expedia.www.haystack.datapoints.integration.tests.TimeSeriesTransformerTopologySpec
+                                com.expedia.www.haystack.metricpoints.integration.tests.TimeSeriesTransformerTopologySpec
                             </wildcardSuites>
                         </configuration>
                     </plugin>
