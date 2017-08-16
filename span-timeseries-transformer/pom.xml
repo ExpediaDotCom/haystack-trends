@@ -272,10 +272,10 @@
                         </goals>
                         <configuration>
                             <includeDirectories>
-                                <include>haystack-idl/proto</include>
+                                <include>${project.basedir}/../haystack-idl/proto</include>
                             </includeDirectories>
                             <inputDirectories>
-                                <include>haystack-idl/proto</include>
+                                <include>${project.basedir}/../haystack-idl/proto</include>
                             </inputDirectories>
                             <outputDirectory>${project.basedir}/target/generated-sources</outputDirectory>
                         </configuration>
