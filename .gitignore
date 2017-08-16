@@ -1,0 +1,10 @@
+*.log
+*.ipr
+*.iws
+.classpath
+.project
+target/
+lib/
+logs/
+**/.idea/
+haystack-timeseries-aggregator.iml
