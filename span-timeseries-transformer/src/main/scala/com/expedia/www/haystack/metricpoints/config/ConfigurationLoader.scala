@@ -16,6 +16,8 @@
  */
 package com.expedia.www.haystack.metricpoints.config
 
+import java.io.File
+
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.collection.JavaConverters._
@@ -34,7 +36,7 @@ object ConfigurationLoader {
     val baseConfig = ConfigFactory.load("config/base.conf")
 
     sys.env.get("OVERRIDES_CONFIG_PATH") match {
-      case Some(path) => ConfigFactory.load(path).withFallback(baseConfig)
+      case Some(path) => ConfigFactory.parseFile(new File(path)).withFallback(baseConfig)
       case _ => loadFromEnvVars().withFallback(baseConfig)
     }
   }

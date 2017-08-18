@@ -57,7 +57,7 @@ object SpanSerde extends Serde[Span] with MetricsSupport {
         */
       private def performDeserialize(data: Array[Byte]): Span = {
         try {
-          Span.parseFrom(data)
+          if(data == null || data.length == 0) null else Span.parseFrom(data)
         } catch {
           case _: Exception =>
             /* may be log and add metric */
