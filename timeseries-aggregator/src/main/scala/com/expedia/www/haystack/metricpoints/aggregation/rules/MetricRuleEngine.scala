@@ -21,11 +21,9 @@ package com.expedia.www.haystack.metricpoints.aggregation.rules
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 
-trait MetricRuleEngine extends CountMetricRule with HistogramMetricRule {
+trait MetricRuleEngine extends HistogramMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
 
   def findMatchingMetric(metricPoint: MetricPoint): MetricType = {
     isMatched(metricPoint)
   }
-
-
 }

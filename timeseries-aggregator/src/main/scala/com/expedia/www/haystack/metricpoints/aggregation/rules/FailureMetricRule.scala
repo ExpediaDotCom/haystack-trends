@@ -16,11 +16,17 @@
  *
  */
 
-package com.expedia.www.haystack.metricpoints.feature.tests.aggregation.rules
+package com.expedia.www.haystack.metricpoints.aggregation.rules
 
-import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
+import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
-class RuleMatcherSpec extends FeatureSpec {
-
-
+trait FailureMetricRule extends MetricRule {
+  override def isMatched(metricPoint: MetricPoint): MetricType = {
+    if (metricPoint.metric.toLowerCase.contains("failure-spans") && metricPoint.`type`.equals(MetricType.Metric)) {
+      MetricType.Aggregate
+    } else {
+      super.isMatched(metricPoint)
+    }
+  }
 }
