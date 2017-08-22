@@ -38,8 +38,8 @@ object MetricType extends Enumeration {
   val Metric, Histogram, Aggregate = Value
 }
 
-object HistogramType extends Enumeration {
-  type HistogramType = Value
+object HistogramStats extends Enumeration {
+  type HistogramStats = Value
 
   val MEAN = Value("mean")
   val MAX = Value("max")

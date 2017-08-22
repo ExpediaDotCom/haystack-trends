@@ -19,14 +19,14 @@
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.HistogramMetric._
-import com.expedia.www.haystack.metricpoints.entities.HistogramType.HistogramType
+import com.expedia.www.haystack.metricpoints.entities.HistogramStats.HistogramStats
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.{HistogramType, MetricPoint, MetricType}
+import com.expedia.www.haystack.metricpoints.entities.{HistogramStats, MetricPoint, MetricType}
 import org.HdrHistogram.IntHistogram
 
 
 object HistogramMetric {
-  def getMetricName(metricPoint: MetricPoint, interval: Interval, histogramType: HistogramType): String = {
+  def getMetricName(metricPoint: MetricPoint, interval: Interval, histogramType: HistogramStats): String = {
     s"${metricPoint.metric}.${interval.name}.${histogramType}"
   }
 }
@@ -37,16 +37,15 @@ class HistogramMetric(interval: Interval) extends Metric(interval) {
   var histogram: IntHistogram = new IntHistogram(1000, 0)
 
   override def mapToMetricPoints(windowEndTimestamp: Long): List[MetricPoint] = {
-    HistogramType
     latestMetricPoint.map {
       metricPoint => {
         List(
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.MEAN), MetricType.Histogram, metricPoint.tags, histogram.getMean.toLong, windowEndTimestamp),
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.MAX), MetricType.Histogram, metricPoint.tags, histogram.getMaxValue, windowEndTimestamp),
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.MIN), MetricType.Histogram, metricPoint.tags, histogram.getMinValue, windowEndTimestamp),
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.PERCENTILE_99), MetricType.Histogram, metricPoint.tags, histogram.getValueAtPercentile(99), windowEndTimestamp),
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.STDDEV), MetricType.Histogram, metricPoint.tags, histogram.getStdDeviation.toLong, windowEndTimestamp),
-          MetricPoint(getMetricName(metricPoint, interval, HistogramType.MEDIAN), MetricType.Histogram, metricPoint.tags, histogram.getValueAtPercentile(50), windowEndTimestamp)
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.MEAN), MetricType.Histogram, metricPoint.tags, histogram.getMean.toLong, windowEndTimestamp),
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.MAX), MetricType.Histogram, metricPoint.tags, histogram.getMaxValue, windowEndTimestamp),
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.MIN), MetricType.Histogram, metricPoint.tags, histogram.getMinValue, windowEndTimestamp),
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.PERCENTILE_99), MetricType.Histogram, metricPoint.tags, histogram.getValueAtPercentile(99), windowEndTimestamp),
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.STDDEV), MetricType.Histogram, metricPoint.tags, histogram.getStdDeviation.toLong, windowEndTimestamp),
+          MetricPoint(getMetricName(metricPoint, interval, HistogramStats.MEDIAN), MetricType.Histogram, metricPoint.tags, histogram.getValueAtPercentile(50), windowEndTimestamp)
         )
       }
     }.getOrElse(List())
