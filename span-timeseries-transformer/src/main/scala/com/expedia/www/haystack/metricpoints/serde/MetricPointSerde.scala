@@ -25,6 +25,7 @@ import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.json4s.DefaultFormats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.jackson.Serialization.{read, write}
+import org.msgpack.MessagePack
 
 
 object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
@@ -32,7 +33,7 @@ object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
   private val metricPointDeserMeter = metricRegistry.meter("deseri.failure")
 
   implicit val formats = DefaultFormats + new EnumNameSerializer(MetricType)
-
+  val msgPack = new MessagePack()
 
   override def close(): Unit = ()
 
@@ -50,7 +51,7 @@ object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
         */
       override def deserialize(topic: String, data: Array[Byte]): MetricPoint = {
         try {
-          read[MetricPoint](new String(data))
+          read[MetricPoint](msgPack.read(data, classOf[String]))
         } catch {
           case ex: Exception =>
             /* may be log and add metric */
@@ -66,7 +67,7 @@ object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
       override def serialize(topic: String, metricPoint: MetricPoint): Array[Byte] = {
-        write(metricPoint).getBytes
+        msgPack.write(write(metricPoint))
       }
 
       override def close(): Unit = ()
