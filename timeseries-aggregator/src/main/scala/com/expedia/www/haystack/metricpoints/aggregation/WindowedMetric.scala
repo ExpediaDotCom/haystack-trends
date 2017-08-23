@@ -28,7 +28,7 @@ import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class WindowedMetric(private val metricType: MetricType, private val intervals: List[Interval], metricPoint: MetricPoint) extends MetricsSupport {
+class WindowedMetric(private val metricType: MetricType, private val intervals: List[Interval], firstMetricPoint: MetricPoint) extends MetricsSupport {
 
 
   val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
@@ -38,33 +38,33 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
 
   val computedMetrics: ListBuffer[Metric] = mutable.ListBuffer[Metric]()
 
-  val windowedMetricsMap: mutable.Map[TimeWindow, Metric] = createWindowedMetrics(metricPoint)
+  val windowedMetricsMap: mutable.Map[TimeWindow, Metric] = createWindowedMetrics(firstMetricPoint)
 
-  compute()
+  compute(firstMetricPoint)
 
 
-  def compute(): Unit = {
+  def compute(incomingMetricPoint: MetricPoint): Unit = {
     windowedMetricsMap.foreach(metricTimeWindowTuple => {
       val currentTimeWindow = metricTimeWindowTuple._1
       val currentMetric = metricTimeWindowTuple._2
 
-      val metricPointTimeWindow = TimeWindow.apply(metricPoint.timestamp, currentMetric.getMetricInterval)
+      val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.timestamp, currentMetric.getMetricInterval)
 
-      compareAndAddMetric(currentTimeWindow, metricPointTimeWindow, currentMetric)
+      compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
     })
   }
 
-  def compareAndAddMetric(currentTimeWindow: TimeWindow, incomingMetricTimeWindow: TimeWindow, currentMetric: Metric) = {
+  def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
 
-    currentTimeWindow.compare(incomingMetricTimeWindow) match {
+    currentTimeWindow.compare(incomingMetricPointTimeWindow) match {
 
       // compute to existing metric since in current window
-      case number if number == 0 => currentMetric.compute(metricPoint)
+      case number if number == 0 => currentMetric.compute(incomingMetricPoint)
 
       // belongs to next window, lets flush this one to computedMetrics and create a new window
       case number if number < 0 =>
         windowedMetricsMap.remove(currentTimeWindow)
-        windowedMetricsMap.put(incomingMetricTimeWindow, MetricFactory.getMetric(metricType, currentMetric.getMetricInterval).get)
+        windowedMetricsMap.put(incomingMetricPointTimeWindow, MetricFactory.getMetric(metricType, currentMetric.getMetricInterval).get)
         computedMetrics += currentMetric
 
       // window already closed and we don't support water marking yet
