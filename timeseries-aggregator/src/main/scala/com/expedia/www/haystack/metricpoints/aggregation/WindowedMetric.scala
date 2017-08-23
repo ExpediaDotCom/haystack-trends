@@ -19,10 +19,10 @@
 package com.expedia.www.haystack.metricpoints.aggregation
 
 import com.codahale.metrics.Meter
-import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.{Metric, MetricFactory}
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TimeWindow}
+import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TimeWindow}
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 
 import scala.collection.mutable
@@ -54,7 +54,7 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
     })
   }
 
-  def compareAndAddMetric (currentTimeWindow: TimeWindow, incomingMetricTimeWindow: TimeWindow, currentMetric: Metric) = {
+  def compareAndAddMetric(currentTimeWindow: TimeWindow, incomingMetricTimeWindow: TimeWindow, currentMetric: Metric) = {
 
     currentTimeWindow.compare(incomingMetricTimeWindow) match {
 
