@@ -7,6 +7,6 @@ target/
 lib/
 logs/
 **/.idea/
-haystack-timeseries-aggregator.iml
-
+/timeseries-aggregator/haystack-timeseries-aggregator.iml
+/haystack-idl/java/haystack-idl.iml
 span-timeseries-transformer/haystack-span-timeseries-transformer.iml

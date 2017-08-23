@@ -20,7 +20,6 @@ package com.expedia.www.haystack.metricpoints.integration.tests
 import java.util.{UUID, List => JList}
 
 import com.expedia.open.tracing.{Process, Span}
-
 import com.expedia.www.haystack.metricpoints.StreamTopology
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
@@ -35,12 +34,6 @@ import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import scala.collection.JavaConverters._
 
 class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricPointGenerator {
-
-  private val MAX_METRICPOINTS = 5
-  APP_ID = "haystack-topology-test"
-  private val TRACE_ID = "unique-trace-id"
-  private val SPAN_ID_PREFIX = "span-id"
-
 
   "TimeSeries Transformer Topology" should {
 
@@ -90,10 +83,9 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val topicNames: Iterable[String] = adminClient.listTopics.listings().get().asScala
         .map(topicListing => topicListing.name)
 
-      topicNames.size shouldEqual(2)
+      topicNames.size shouldEqual (2)
       topicNames.toSet.contains(INPUT_TOPIC) shouldEqual (true)
       topicNames.toSet.contains(OUTPUT_TOPIC) shouldEqual (true)
-
     }
   }
 
