@@ -39,30 +39,38 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
   val computedMetrics: ListBuffer[Metric] = mutable.ListBuffer[Metric]()
 
   val windowedMetricsMap: mutable.Map[TimeWindow, Metric] = createWindowedMetrics(metricPoint)
-  compute(metricPoint)
+
+  compute()
 
 
-  def compute(metricPoint: MetricPoint): Unit = {
+  def compute(): Unit = {
     windowedMetricsMap.foreach(metricTimeWindowTuple => {
-      val metricTimeWindow = metricTimeWindowTuple._1
-      val metric = metricTimeWindowTuple._2
+      val currentTimeWindow = metricTimeWindowTuple._1
+      val currentMetric = metricTimeWindowTuple._2
 
-      val metricWindow = TimeWindow.apply(metricPoint.timestamp, metric.getMetricInterval)
+      val metricPointTimeWindow = TimeWindow.apply(metricPoint.timestamp, currentMetric.getMetricInterval)
 
-      metricTimeWindow.compare(metricWindow) match {
-
-        case number if number == 0 => metric.compute(metricPoint)
-
-        case number if number < 0 =>
-          windowedMetricsMap.remove(metricTimeWindow)
-          windowedMetricsMap.put(metricWindow, MetricFactory.getMetric(metricType, metric.getMetricInterval).get)
-          computedMetrics += metric
-
-        case _ => disorderedMetricPoints.mark()
-      }
+      compareAndAddMetric(currentTimeWindow, metricPointTimeWindow, currentMetric)
     })
   }
 
+  def compareAndAddMetric (currentTimeWindow: TimeWindow, incomingMetricTimeWindow: TimeWindow, currentMetric: Metric) = {
+
+    currentTimeWindow.compare(incomingMetricTimeWindow) match {
+
+      // compute to existing metric since in current window
+      case number if number == 0 => currentMetric.compute(metricPoint)
+
+      // belongs to next window, lets flush this one to computedMetrics and create a new window
+      case number if number < 0 =>
+        windowedMetricsMap.remove(currentTimeWindow)
+        windowedMetricsMap.put(incomingMetricTimeWindow, MetricFactory.getMetric(metricType, currentMetric.getMetricInterval).get)
+        computedMetrics += currentMetric
+
+      // window already closed and we don't support water marking yet
+      case _ => disorderedMetricPoints.mark()
+    }
+  }
 
   def getComputedMetricPoints: List[MetricPoint] = {
     val metricPoint = computedMetrics.toList.flatMap(metric => {
