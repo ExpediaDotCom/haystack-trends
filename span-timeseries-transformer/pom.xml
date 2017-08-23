@@ -53,6 +53,7 @@
         <metrics-core.version>3.0.2</metrics-core.version>
         <protobuf.version>3.3.1</protobuf.version>
         <protobuf-maven-plugin.version>3.3.0.1</protobuf-maven-plugin.version>
+        <msgpack.version>0.6.12</msgpack.version>
 
         <!--Compiler Properties -->
         <project.jdk.version>1.8</project.jdk.version>
@@ -63,25 +64,17 @@
         <scala-library.version>${scala.major.minor.version}.${scala.maintenance.version}</scala-library.version>
 
         <!--Plugin Properties -->
-        <scala-maven-plugin.version>3.2.0</scala-maven-plugin.version>
-        <scalatest-maven-plugin.version>1.0</scalatest-maven-plugin.version>
+        <maven-scala-plugin.version>3.2.1</maven-scala-plugin.version>
+        <maven-scalatest-plugin.version>1.0</maven-scalatest-plugin.version>
         <maven.scalatest.debug>false</maven.scalatest.debug>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
-        <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
         <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+        <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
         <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
         <maven-enforcer-plugin.version>1.0</maven-enforcer-plugin.version>
         <maven-scalastyle-plugin.version>0.9.0</maven-scalastyle-plugin.version>
-        <project.sourceEncoding>UTF-8</project.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <mainClass>com.expedia.www.haystack.metricpoints.HaystackSpanTimeSeriesTransformer</mainClass>
 
-
-        <!-- Following properties are for release. -->
-        <buildType>sandbox</buildType>
-        <buildNumber>0</buildNumber>
-        <buildBranch>local</buildBranch>
-        <changeNumber>local</changeNumber>
-        <buildTime>${maven.build.timestamp}</buildTime>
 
     </properties>
 
@@ -133,6 +126,12 @@
             <groupId>org.json4s</groupId>
             <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
             <version>${json4s.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.msgpack</groupId>
+            <artifactId>msgpack</artifactId>
+            <version>${msgpack.version}</version>
         </dependency>
 
         <dependency>
@@ -221,23 +220,56 @@
     </dependencies>
 
     <build>
-
+        <finalName>haystack-span-timeseries-transformer</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven-shade-plugin.version}</version>
                 <configuration>
-                    <encoding>${project.sourceEncoding}</encoding>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.expedia.www.haystack.metricpoints.HaystackSpanTimeSeriesTransformer</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
+
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
+                <version>3.0.2</version>
                 <configuration>
-                    <useDefaultManifestFile>true</useDefaultManifestFile>
-
                     <archive>
                         <index>true</index>
                         <manifest>
@@ -246,15 +278,10 @@
                         <manifestEntries>
                             <Application-Name>${project.name}</Application-Name>
                             <Application-Version>${project.version}</Application-Version>
-                            <Application-Description>${project.description}</Application-Description>
                             <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Version>${changeNumber}</Implementation-Version>
                             <Implementation-Vendor>Expedia</Implementation-Vendor>
-                            <Built-By>${user.name}</Built-By>
                             <Build-Jdk>${java.version}</Build-Jdk>
-                            <Build-Time>${buildTime}</Build-Time>
-                            <Build>${buildType}</Build>
-                            <Branch>${buildBranch}</Branch>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -285,34 +312,6 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>enforce-versions</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireMavenVersion>
-                                    <message>
-                                        .
-
-                                        *** ERROR: Detected Maven version ${maven.version}, We need Maven 3.3.3 or
-                                        higher ***
-
-                                        .
-                                    </message>
-                                    <version>[3.3.3,)</version>
-                                </requireMavenVersion>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <source>${project.jdk.version}</source>
@@ -322,11 +321,6 @@
                 <version>${maven-compiler-plugin.version}</version>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin.version}</version>
-            </plugin>
             <plugin>
                 <groupId>org.scalastyle</groupId>
                 <artifactId>scalastyle-maven-plugin</artifactId>
@@ -354,7 +348,7 @@
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
-                <version>${scalatest-maven-plugin.version}</version>
+                <version>${maven-scalatest-plugin.version}</version>
                 <configuration>
                     <junitxml>.</junitxml>
                     <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
@@ -381,7 +375,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>${scala-maven-plugin.version}</version>
+                <version>${maven-scala-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>scala-compile-first</id>
@@ -399,12 +393,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <jvmArgs>
-                        <jvmArg>-Xms512m</jvmArg>
-                        <jvmArg>-Xmx2048m</jvmArg>
-                    </jvmArgs>
-                </configuration>
             </plugin>
         </plugins>
     </build>
