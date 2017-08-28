@@ -44,7 +44,6 @@
 
         <pegdown.version>1.6.0</pegdown.version>
         <scalatest.version>3.0.3</scalatest.version>
-        <json4s.version>3.5.3</json4s.version>
         <slf4j.version>1.7.25</slf4j.version>
         <kafka.version>0.11.0.0</kafka.version>
         <junit.version>4.12</junit.version>
@@ -115,17 +114,6 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
             <version>${scala-library.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
         </dependency>
 
         <dependency>

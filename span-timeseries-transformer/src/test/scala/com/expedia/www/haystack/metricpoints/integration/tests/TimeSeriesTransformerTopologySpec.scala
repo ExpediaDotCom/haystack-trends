@@ -55,7 +55,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val metricPointKVList: JList[KeyValue[String, MetricPoint]] =
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000) // get metricPoints from Kafka's output topic
       metricPointKVList.asScala.map(metricPointKV => {
-        metricPointKV.value.`type` shouldEqual MetricType.Metric
+        metricPointKV.value.`type` shouldEqual MetricType.Gauge
       })
 
       Then("same metricPoints should be created as that from transformers")

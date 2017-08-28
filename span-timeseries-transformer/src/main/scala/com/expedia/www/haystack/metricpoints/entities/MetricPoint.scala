@@ -29,7 +29,9 @@ case class MetricPoint(metric: String, `type`:MetricType, tags: Map[String, Stri
 
 object MetricType extends Enumeration {
   type MetricType = Value
-  val Metric, Histogram, Aggregate = Value
+  val Gauge = Value("gauge")
+  val Count = Value("count")
+  val Rate = Value("rate")
 }
 
 

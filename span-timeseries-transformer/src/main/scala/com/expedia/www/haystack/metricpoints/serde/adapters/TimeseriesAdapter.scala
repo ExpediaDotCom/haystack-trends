@@ -14,19 +14,14 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.metricpoints.transformer
+package com.expedia.www.haystack.metricpoints.serde.adapters
 
-import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 
-trait DurationMetricPointTransformer extends MetricPointTransformer {
-  val DURATION_METRIC_NAME = "duration"
+trait TimeseriesAdapter {
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
+  def serializeToTimeSeriesFormat(metricPoint: MetricPoint): Array[Byte]
 
-    val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
-    MetricPoint(DURATION_METRIC_NAME,MetricType.Gauge, keys, span.getDuration, span.getStartTime) :: super.mapSpan(span)
-  }
+  def deserialize(data: Array[Byte]): MetricPoint
 
 }

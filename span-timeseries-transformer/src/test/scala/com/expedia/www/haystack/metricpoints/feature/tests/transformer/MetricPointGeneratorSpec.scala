@@ -17,9 +17,10 @@
  */
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Span, Tag, Process}
-import com.expedia.www.haystack.metricpoints.entities.{MetricType, TagKeys}
+import com.expedia.open.tracing.{Process, Span, Tag}
+import com.expedia.www.haystack.metricpoints.serde.adapters.MetricTankAdapter
 import com.expedia.www.haystack.metricpoints.entities.exceptions.MetricPointCreationException
+import com.expedia.www.haystack.metricpoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 import com.expedia.www.haystack.metricpoints.transformer.{MetricPointGenerator, MetricPointTransformer}
 
@@ -68,7 +69,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
 
       Then("each metricPoint should have the metric type as Metric")
       metricPoints.foreach(metricPoint => {
-        metricPoint.`type` shouldEqual MetricType.Metric
+        metricPoint.`type` shouldEqual MetricType.Gauge
       })
 
     }

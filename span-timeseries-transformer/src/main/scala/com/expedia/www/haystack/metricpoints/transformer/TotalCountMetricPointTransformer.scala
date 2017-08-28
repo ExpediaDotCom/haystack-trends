@@ -26,7 +26,7 @@ trait TotalCountMetricPointTransformer extends MetricPointTransformer {
     val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
       TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName
     )
-    MetricPoint(TOTAL_METRIC_NAME, MetricType.Metric, keys, 1, span.getStartTime) :: super.mapSpan(span)
+    MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 1, span.getStartTime) :: super.mapSpan(span)
   }
 
 }
