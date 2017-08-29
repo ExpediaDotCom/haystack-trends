@@ -14,17 +14,14 @@
  *     limitations under the License.
  *
  */
-package com.expedia.www.haystack.metricpoints.transformer
+package com.expedia.www.haystack.metricpoints.serde.adapters
 
-import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 
-trait MetricPointTransformer {
-  val ERROR_KEY = "error"
+trait TimeseriesAdapter {
 
-  def mapSpan(span: Span): List[MetricPoint] = List()
+  def serializeToTimeSeriesFormat(metricPoint: MetricPoint): Array[Byte]
 
-  def getDataPointTimestamp(span: Span): Long = {
-    span.getStartTime / 1000
-  }
+  def deserialize(data: Array[Byte]): MetricPoint
+
 }

@@ -18,24 +18,37 @@ package com.expedia.www.haystack.metricpoints.entities
 
 import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 
+/*
+The metricpoint object adheres to the metrics 2.0 specifications
+ */
 
-case class MetricPoint(metric: String, `type`:MetricType, tags: Map[String, String], value: Long, timestamp: Long) {
+case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
   def getMetricPointKey: String = {
-    tags.foldLeft(s"$metric-")((tag, tuple) => {
-      tag + s"${tuple._1}->${tuple._2}|"
-    })
+    tags.foldLeft("")((tag, tuple) => {
+      tag + s"${tuple._1}:${tuple._2}."
+    }) + metric
   }
 }
 
+/*
+The Metric types are according to metrics 2.0 specifications see http://metrics20.org/spec/#tag-keys
+ */
 object MetricType extends Enumeration {
   type MetricType = Value
-  val Metric, Histogram, Aggregate = Value
+  val Gauge = Value("gauge")
+  val Count = Value("count")
+  val Rate = Value("rate")
 }
 
 
+/*
+The Tag keys are according to metrics 2.0 specifications see http://metrics20.org/spec/#tag-keys
+ */
 object TagKeys {
-  val OPERATION_NAME_KEY = "operationName"
-  val SERVICE_NAME_KEY = "serviceName"
+  val OPERATION_NAME_KEY = "what"
+  val SERVICE_NAME_KEY = "host"
+  val RESULT_KEY = "result"
+  val STATS_KEY = "stat"
 }
 
 

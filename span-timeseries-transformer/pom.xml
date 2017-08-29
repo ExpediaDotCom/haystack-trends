@@ -44,7 +44,6 @@
 
         <pegdown.version>1.6.0</pegdown.version>
         <scalatest.version>3.0.3</scalatest.version>
-        <json4s.version>3.5.3</json4s.version>
         <slf4j.version>1.7.25</slf4j.version>
         <kafka.version>0.11.0.0</kafka.version>
         <junit.version>4.12</junit.version>
@@ -53,7 +52,7 @@
         <metrics-core.version>3.0.2</metrics-core.version>
         <protobuf.version>3.3.1</protobuf.version>
         <protobuf-maven-plugin.version>3.3.0.1</protobuf-maven-plugin.version>
-        <msgpack.version>0.6.12</msgpack.version>
+        <msgpack.version>0.8.13</msgpack.version>
 
         <!--Compiler Properties -->
         <project.jdk.version>1.8</project.jdk.version>
@@ -118,19 +117,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.msgpack</groupId>
-            <artifactId>msgpack</artifactId>
+            <artifactId>msgpack-core</artifactId>
             <version>${msgpack.version}</version>
         </dependency>
 
