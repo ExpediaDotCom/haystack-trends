@@ -52,7 +52,7 @@
         <metrics-core.version>3.0.2</metrics-core.version>
         <protobuf.version>3.3.1</protobuf.version>
         <protobuf-maven-plugin.version>3.3.0.1</protobuf-maven-plugin.version>
-        <msgpack.version>0.6.12</msgpack.version>
+        <msgpack.version>0.8.13</msgpack.version>
 
         <!--Compiler Properties -->
         <project.jdk.version>1.8</project.jdk.version>
@@ -118,7 +118,7 @@
 
         <dependency>
             <groupId>org.msgpack</groupId>
-            <artifactId>msgpack</artifactId>
+            <artifactId>msgpack-core</artifactId>
             <version>${msgpack.version}</version>
         </dependency>
 

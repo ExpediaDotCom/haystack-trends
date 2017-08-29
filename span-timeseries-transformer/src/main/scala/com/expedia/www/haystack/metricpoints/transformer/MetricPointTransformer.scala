@@ -23,4 +23,8 @@ trait MetricPointTransformer {
   val ERROR_KEY = "error"
 
   def mapSpan(span: Span): List[MetricPoint] = List()
+
+  def getDataPointTimestamp(span: Span): Long = {
+    span.getStartTime / 1000
+  }
 }

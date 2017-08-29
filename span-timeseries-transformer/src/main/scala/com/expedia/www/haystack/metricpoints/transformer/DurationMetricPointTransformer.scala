@@ -24,9 +24,9 @@ trait DurationMetricPointTransformer extends MetricPointTransformer {
 
   override def mapSpan(span: Span): List[MetricPoint] = {
 
-    val keys = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
+    val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
       TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
-    MetricPoint(DURATION_METRIC_NAME,MetricType.Gauge, keys, span.getDuration, span.getStartTime) :: super.mapSpan(span)
+    MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, tags, span.getDuration, getDataPointTimestamp(span)) :: super.mapSpan(span)
   }
 
 }

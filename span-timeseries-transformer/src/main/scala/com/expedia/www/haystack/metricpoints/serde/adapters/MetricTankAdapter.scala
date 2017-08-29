@@ -16,26 +16,27 @@
  */
 package com.expedia.www.haystack.metricpoints.serde.adapters
 
-import java.util
+import java.nio.ByteBuffer
 
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
-import org.msgpack.MessagePack
-import org.msgpack.`type`.{Value, ValueFactory}
+import org.msgpack.core.MessagePack.Code
+import org.msgpack.core.{MessagePack, MessagePacker}
+import org.msgpack.value.impl.ImmutableLongValueImpl
+import org.msgpack.value.{ImmutableStringValue, Value, ValueFactory}
 
-import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 class MetricTankAdapter extends TimeseriesAdapter {
 
-  private val msgPack = new MessagePack()
 
-  def convertTagArrayToMap(tags: Array[String]): Map[String, String] = {
+  def convertTagArrayToMap(tags: Iterator[Value]): Map[String, String] = {
     tags.collect {
-      case tag if tag.split(":").length == 2 => tag.split(":").apply(0) -> tag.split(":").apply(1)
+      case tag if tag.asStringValue().toString.split(":").length == 2 => tag.asStringValue().toString.split(":").apply(0) -> tag.asStringValue().toString.split(":").apply(1)
     }.toMap
   }
 
-  def convertTagMapToArray(tags: Map[String, String]): Array[Value] = {
-    tags.map(tuple => ValueFactory.createRawValue(s"${tuple._1}:${tuple._2}")).toArray
+  def convertTagMapToArray(tags: Map[String, String]): List[ImmutableStringValue] = {
+    tags.map(tuple => ValueFactory.newString(s"${tuple._1}:${tuple._2}")).toList
   }
 
   private val idKey = "Id"
@@ -48,38 +49,55 @@ class MetricTankAdapter extends TimeseriesAdapter {
   private val tagsKey = "Tags"
   private val intervalKey = "Interval"
 
+  private val DEFAULT_ORG_ID = 1
+  private val DEFAULT_INTERVAL = -1
+
+
   override def serializeToTimeSeriesFormat(metricPoint: MetricPoint): Array[Byte] = {
-    val metricData = List[Value](
-      ValueFactory.createRawValue(nameKey),
-      ValueFactory.createRawValue(metricPoint.metric),
-      ValueFactory.createRawValue(orgIdKey),
-      ValueFactory.createIntegerValue(1),
-      ValueFactory.createRawValue(intervalKey),
-      ValueFactory.createIntegerValue(1),
-      ValueFactory.createRawValue(metricKey),
-      ValueFactory.createRawValue(metricPoint.metric),
-      ValueFactory.createRawValue(valueKey),
-      ValueFactory.createFloatValue(metricPoint.value),
-      ValueFactory.createRawValue(timeKey),
-      ValueFactory.createIntegerValue(metricPoint.timestamp),
-      ValueFactory.createRawValue(typeKey),
-      ValueFactory.createRawValue(metricPoint.`type`.toString),
-      ValueFactory.createRawValue(tagsKey),
-      ValueFactory.createArrayValue(convertTagMapToArray(metricPoint.tags))
+    val packer = MessagePack.newDefaultBufferPacker()
+
+    val metricData = Map[Value, Value](
+      ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
+      ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
+      ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
+      ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
+      ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
+      ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
+      ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
+      ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString),
+      ValueFactory.newString(tagsKey) -> ValueFactory.newArray(convertTagMapToArray(metricPoint.tags).asJava)
+
     )
-
-
-    msgPack.write(ValueFactory.createMapValue(metricData.toArray))
+    packer.packValue(ValueFactory.newMap(metricData.asJava))
+    packer.toByteArray
   }
 
   override def deserialize(data: Array[Byte]): MetricPoint = {
-    val metricData = msgPack.read(data).asMapValue
-    MetricPoint(metricData.get(ValueFactory.createRawValue(nameKey)).asRawValue().getString,
-      MetricType.withName(metricData.get(ValueFactory.createRawValue(typeKey)).asRawValue().getString),
-      convertTagArrayToMap(metricData.get(ValueFactory.createRawValue(tagsKey)).asArrayValue().getElementArray.map(_.asRawValue().getString)),
-      metricData.get(ValueFactory.createRawValue(valueKey)).asFloatValue().getDouble.toLong,
-      metricData.get(ValueFactory.createRawValue(timeKey)).asIntegerValue().getLong
-    )
+
+    val unpacker = MessagePack.newDefaultUnpacker(data)
+
+    val metricData = unpacker.unpackValue().asMapValue().map()
+    MetricPoint(
+      metric = metricData.get(ValueFactory.newString(metricKey)).asStringValue().toString,
+      `type` = MetricType.withName(metricData.get(ValueFactory.newString(typeKey)).asStringValue().toString),
+      value = metricData.get(ValueFactory.newString(valueKey)).asFloatValue().toFloat,
+      epochTimeInSeconds = metricData.get(ValueFactory.newString(timeKey)).asIntegerValue().toLong,
+      tags = convertTagArrayToMap(metricData.get(ValueFactory.newString(tagsKey)).asArrayValue().iterator().asScala))
   }
+
+
+  class ImmutableSignedLongValueImpl(long: Long) extends ImmutableLongValueImpl(long) {
+
+    override def writeTo(pk: MessagePacker) {
+      val buffer = ByteBuffer.allocate(java.lang.Long.BYTES + 1)
+      buffer.put(Code.INT64)
+      buffer.putLong(long)
+      pk.addPayload(buffer.array())
+    }
+  }
+
 }
+
+
+
 
