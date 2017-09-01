@@ -17,68 +17,39 @@
  */
 package com.expedia.www.haystack.metricpoints.entities
 
-import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 
-case class MetricPoint(metric: String,
-                       `type`: MetricType,
-                       tags: Map[String, String],
-                       value: Long,
-                       timestamp: Long) {
+/*
+The metricpoint object adheres to the metrics 2.0 specifications
+ */
 
+case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
   def getMetricPointKey: String = {
-    tags.foldLeft(s"$metric-")((tag, tuple) => {
-      tag + s"${tuple._1}->${tuple._2}|"
-    })
+    tags.foldLeft("")((tag, tuple) => {
+      tag + s"${tuple._1}:${tuple._2}."
+    }) + metric
   }
 }
 
+/*
+The Metric types are according to metrics 2.0 specifications see http://metrics20.org/spec/#tag-keys
+ */
 object MetricType extends Enumeration {
   type MetricType = Value
-  val Metric, Histogram, Aggregate = Value
+  val Gauge = Value("gauge")
+  val Count = Value("count")
+  val Rate = Value("rate")
 }
 
-object HistogramStats extends Enumeration {
-  type HistogramStats = Value
 
-  val MEAN = Value("mean")
-  val MAX = Value("max")
-  val MIN = Value("min")
-  val PERCENTILE_99 = Value("max")
-  val STDDEV = Value("stddev")
-  val MEDIAN = Value("median")
+/*
+The Tag keys are according to metrics 2.0 specifications see http://metrics20.org/spec/#tag-keys
+ */
+object TagKeys {
+  val OPERATION_NAME_KEY = "operationName"
+  val SERVICE_NAME_KEY = "host"
+  val RESULT_KEY = "result"
+  val STATS_KEY = "stat"
+  val INTERVAL_KEY = "interval"
 }
 
-object Interval extends Enumeration {
-  type Interval = IntervalVal
-
-  def all: List[Interval] = {
-    List(ONE_MINUTE, FIVE_MINUTE, FIFTEEN_MINUTE, ONE_HOUR)
-  }
-
-  sealed case class IntervalVal(name: String, timeInMs: Long) extends Val(name) {
-  }
-
-  val ONE_MINUTE = IntervalVal("OneMinute", 60000)
-  val FIVE_MINUTE = IntervalVal("FiveMinute", 300000)
-  val FIFTEEN_MINUTE = IntervalVal("FifteenMinute", 1500000)
-  val ONE_HOUR = IntervalVal("OneHour", 6000000)
-}
-
-case class TimeWindow(startTime: Long, endTime: Long) extends Ordered[TimeWindow] {
-
-
-  override def compare(that: TimeWindow): Int = {
-    this.startTime.compare(that.startTime)
-  }
-}
-
-object TimeWindow {
-
-  def apply(timestamp: Long, interval: Interval): TimeWindow = {
-    val intervalTimeInMs = interval.timeInMs
-    val windowStart = (timestamp / intervalTimeInMs) * intervalTimeInMs
-    val windowEnd = windowStart + intervalTimeInMs
-    TimeWindow(windowStart, windowEnd)
-  }
-}

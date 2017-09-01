@@ -18,10 +18,11 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.rules
 
-import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 
 trait MetricRule {
-  def isMatched(metricPoint: MetricPoint): MetricType = MetricType.Metric
+  def isMatched(metricPoint: MetricPoint): AggregationType = AggregationType.None
 }
 

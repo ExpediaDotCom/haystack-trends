@@ -45,7 +45,7 @@ object MetricType extends Enumeration {
 The Tag keys are according to metrics 2.0 specifications see http://metrics20.org/spec/#tag-keys
  */
 object TagKeys {
-  val OPERATION_NAME_KEY = "what"
+  val OPERATION_NAME_KEY = "operationName"
   val SERVICE_NAME_KEY = "host"
   val RESULT_KEY = "result"
   val STATS_KEY = "stat"

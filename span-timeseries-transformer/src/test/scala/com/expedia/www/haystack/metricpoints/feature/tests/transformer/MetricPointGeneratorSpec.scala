@@ -64,7 +64,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
 
       Then("each metricPoint should have the timestamps which is equal to the span timestamp")
       metricPoints.foreach(metricPoint => {
-        metricPoint.timestamp shouldEqual span.getStartTime
+        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime
       })
 
       Then("each metricPoint should have the metric type as Metric")

@@ -19,16 +19,16 @@
 package com.expedia.www.haystack.metricpoints.aggregation
 
 import com.codahale.metrics.Meter
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.{Metric, MetricFactory}
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TimeWindow}
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class WindowedMetric(private val metricType: MetricType, private val intervals: List[Interval], firstMetricPoint: MetricPoint) extends MetricsSupport {
+class WindowedMetric(private val aggregationType: AggregationType, private val intervals: List[Interval], firstMetricPoint: MetricPoint) extends MetricsSupport {
 
 
   val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
@@ -48,13 +48,13 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
       val currentTimeWindow = metricTimeWindowTuple._1
       val currentMetric = metricTimeWindowTuple._2
 
-      val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.timestamp, currentMetric.getMetricInterval)
+      val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, currentMetric.getMetricInterval)
 
       compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
     })
   }
 
-  def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
+  private def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
 
     currentTimeWindow.compare(incomingMetricPointTimeWindow) match {
 
@@ -64,7 +64,7 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
       // belongs to next window, lets flush this one to computedMetrics and create a new window
       case number if number < 0 =>
         windowedMetricsMap.remove(currentTimeWindow)
-        windowedMetricsMap.put(incomingMetricPointTimeWindow, MetricFactory.getMetric(metricType, currentMetric.getMetricInterval).get)
+        windowedMetricsMap.put(incomingMetricPointTimeWindow, MetricFactory.getMetric(aggregationType, currentMetric.getMetricInterval).get)
         computedMetrics += currentMetric
 
       // window already closed and we don't support water marking yet
@@ -84,7 +84,7 @@ class WindowedMetric(private val metricType: MetricType, private val intervals: 
   private def createWindowedMetrics(metricPoint: MetricPoint): mutable.Map[TimeWindow, Metric] = {
     val metrics = mutable.Map[TimeWindow, Metric]()
     intervals.foreach(interval => {
-      metrics.put(TimeWindow.apply(metricPoint.timestamp, interval), MetricFactory.getMetric(metricType, interval).get)
+      metrics.put(TimeWindow.apply(metricPoint.epochTimeInSeconds, interval), MetricFactory.getMetric(aggregationType, interval).get)
     })
     metrics
   }
