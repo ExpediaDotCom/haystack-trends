@@ -18,12 +18,14 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.CountMetric._
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.metricpoints.entities.StatValue.StatValue
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue, TagKeys}
 
 object CountMetric {
-  def getMetricName(metricPoint: MetricPoint, interval: Interval): String = {
-    s"${metricPoint.metric}.${interval.name}.count"
+  def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
+    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
   }
 }
 
@@ -32,17 +34,16 @@ class CountMetric(interval: Interval) extends Metric(interval) {
   var latestMetricPoint: Option[MetricPoint] = None
   var currentCount: Long = 0
 
-  override def mapToMetricPoints(windowEndTimestamp: Long = latestMetricPoint.map(_.timestamp).getOrElse(System.currentTimeMillis())): List[MetricPoint] = {
+  override def mapToMetricPoints(windowEndTimestamp: Long = latestMetricPoint.map(_.epochTimeInSeconds).getOrElse(System.currentTimeMillis())): List[MetricPoint] = {
     latestMetricPoint.map { metricPoint =>
-      val metricName = CountMetric.getMetricName(metricPoint, interval)
       List(
-        MetricPoint(metricName, MetricType.Aggregate, metricPoint.tags, currentCount, windowEndTimestamp)
+        MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, windowEndTimestamp)
       )
     }.getOrElse(List())
   }
 
   override def compute(metricPoint: MetricPoint): CountMetric = {
-    currentCount += 1
+    currentCount += metricPoint.value.toLong
     latestMetricPoint = Some(metricPoint)
     this
   }

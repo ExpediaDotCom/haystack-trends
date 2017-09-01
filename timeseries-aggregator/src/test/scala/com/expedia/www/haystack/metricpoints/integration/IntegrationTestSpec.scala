@@ -50,7 +50,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val STREAMS_CONFIG = new Properties()
   protected val scheduledJobFuture: ScheduledFuture[_] = null
 
-  protected var APP_ID = ""
+  protected var APP_ID = "haystack-trends"
   protected var CHANGELOG_TOPIC = ""
   protected val INPUT_TOPIC = "metricpoints"
   protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
@@ -99,7 +99,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   def randomMetricPoint(metricName: String,
                       value: Long = Random.nextLong(),
                       timestamp: Long = System.currentTimeMillis()): MetricPoint = {
-    MetricPoint(metricName, MetricType.Metric, Map[String, String](), value, timestamp)
+    MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
   }
 
   protected def produceMetricPointsAsync(maxMetricPoints: Int,

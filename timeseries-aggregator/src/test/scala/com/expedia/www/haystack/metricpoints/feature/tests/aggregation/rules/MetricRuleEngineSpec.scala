@@ -18,8 +18,9 @@
 
 package com.expedia.www.haystack.metricpoints.feature.tests.aggregation.rules
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.aggregation.rules.MetricRuleEngine
-import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 
@@ -39,7 +40,7 @@ class MetricRuleEngineSpec extends FeatureSpec with MetricRuleEngine {
   }
 
   feature("MetricRuleEngine for identifying MetricRule") {
-    scenario("should get Histogram MetricType for duration MetricPoint") {
+    scenario("should get Histogram AggregationType for duration MetricPoint") {
 
       Given("a duration MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
@@ -47,77 +48,77 @@ class MetricRuleEngineSpec extends FeatureSpec with MetricRuleEngine {
       val duration = 10
       val startTime = System.currentTimeMillis
 
-      val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Metric, keys, duration, startTime)
+      val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, startTime)
 
-      When("trying to find matching MetricType")
-      val metricType: MetricType = findMatchingMetric(metricPoint)
+      When("trying to find matching AggregationType")
+      val aggregationType: AggregationType = findMatchingMetric(metricPoint)
 
-      Then("should get Histogram MetricType")
-      metricType shouldEqual (MetricType.Histogram)
+      Then("should get Gauge AggregationType")
+      aggregationType shouldEqual AggregationType.Histogram
     }
 
-    scenario("should get Aggregate MetricType for Success MetricPoint") {
+    scenario("should get Aggregate AggregationType for Success MetricPoint") {
 
       Given("a success MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = System.currentTimeMillis
 
-      val metricPoint = MetricPoint(SUCCESS_METRIC_NAME, MetricType.Metric, keys, 1, startTime)
+      val metricPoint = MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
 
-      When("trying to find matching MetricType")
-      val metricType: MetricType = findMatchingMetric(metricPoint)
+      When("trying to find matching AggregationType")
+      val aggregationType: AggregationType = findMatchingMetric(metricPoint)
 
-      Then("should get Aggregate MetricType")
-      metricType shouldEqual (MetricType.Aggregate)
+      Then("should get Aggregate AggregationType")
+      aggregationType shouldEqual AggregationType.Count
     }
 
-    scenario("should get Aggregate MetricType for Failure MetricPoint") {
+    scenario("should get Aggregate AggregationType for Failure MetricPoint") {
 
       Given("a failure MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = System.currentTimeMillis
 
-      val metricPoint = MetricPoint(FAILURE_METRIC_NAME, MetricType.Metric, keys, 1, startTime)
+      val metricPoint = MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
 
-      When("trying to find matching MetricType")
-      val metricType: MetricType = findMatchingMetric(metricPoint)
+      When("trying to find matching AggregationType")
+      val aggregationType: AggregationType = findMatchingMetric(metricPoint)
 
-      Then("should get Aggregate MetricType")
-      metricType shouldEqual (MetricType.Aggregate)
+      Then("should get Aggregate AggregationType")
+      aggregationType shouldEqual AggregationType.Count
     }
 
-    scenario("should get Aggregate MetricType for Total MetricPoint") {
+    scenario("should get Aggregate AggregationType for Total MetricPoint") {
 
       Given("a Total MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = System.currentTimeMillis
 
-      val metricPoint = MetricPoint(TOTAL_METRIC_NAME, MetricType.Metric, keys, 1, startTime)
+      val metricPoint = MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
 
-      When("trying to find matching MetricType")
-      val metricType: MetricType = findMatchingMetric(metricPoint)
+      When("trying to find matching AggregationType")
+      val aggregationType: AggregationType = findMatchingMetric(metricPoint)
 
-      Then("should get Aggregate MetricType")
-      metricType shouldEqual (MetricType.Aggregate)
+      Then("should get Aggregate AggregationType")
+      aggregationType shouldEqual AggregationType.Count
     }
 
-    scenario("should get MetricType as Metric for invalid MetricPoint") {
+    scenario("should get AggregationType as Metric for invalid MetricPoint") {
 
       Given("an invalid MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = System.currentTimeMillis
 
-      val metricPoint = MetricPoint(INVALID_METRIC_NAME, MetricType.Metric, keys, 1, startTime)
+      val metricPoint = MetricPoint(INVALID_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
 
-      When("trying to find matching MetricType")
-      val metricType: MetricType = findMatchingMetric(metricPoint)
+      When("trying to find matching AggregationType")
+      val aggregationType: AggregationType = findMatchingMetric(metricPoint)
 
-      Then("should get Metric MetricType")
-      metricType shouldEqual (MetricType.Metric)
+      Then("should get None AggregationType")
+      aggregationType shouldEqual AggregationType.None
     }
   }
 }

@@ -18,12 +18,12 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.rules
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
-import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 
-trait MetricRuleEngine extends HistogramMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
+trait MetricRuleEngine extends DurationMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
 
-  def findMatchingMetric(metricPoint: MetricPoint): MetricType = {
+  def findMatchingMetric(metricPoint: MetricPoint): AggregationType = {
     isMatched(metricPoint)
   }
 }
