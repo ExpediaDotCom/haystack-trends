@@ -34,10 +34,10 @@ class CountMetric(interval: Interval) extends Metric(interval) {
   var latestMetricPoint: Option[MetricPoint] = None
   var currentCount: Long = 0
 
-  override def mapToMetricPoints(windowEndTimestamp: Long = latestMetricPoint.map(_.epochTimeInSeconds).getOrElse(System.currentTimeMillis())): List[MetricPoint] = {
+  override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
     latestMetricPoint.map { metricPoint =>
       List(
-        MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, windowEndTimestamp)
+        MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, publishingTimestamp)
       )
     }.getOrElse(List())
   }

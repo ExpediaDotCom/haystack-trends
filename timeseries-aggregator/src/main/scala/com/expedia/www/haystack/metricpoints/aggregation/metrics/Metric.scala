@@ -30,7 +30,7 @@ abstract class Metric(interval: Interval) {
     interval
   }
 
-  def mapToMetricPoints(publishingTimestamp: Long = System.currentTimeMillis()): List[MetricPoint]
+  def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint]
 
 }
 

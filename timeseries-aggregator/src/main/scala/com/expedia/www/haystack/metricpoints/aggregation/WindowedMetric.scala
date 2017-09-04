@@ -26,7 +26,6 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TimeWindow}
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 class WindowedMetric(private val aggregationType: AggregationType, private val intervals: List[Interval], firstMetricPoint: MetricPoint) extends MetricsSupport {
 
@@ -36,7 +35,7 @@ class WindowedMetric(private val aggregationType: AggregationType, private val i
   //Todo: Have to add support for watermarking
   val numberOfWatermarkedWindows = 1
 
-  val computedMetrics: ListBuffer[Metric] = mutable.ListBuffer[Metric]()
+  val computedMetrics: mutable.Map[Long, Metric] = mutable.Map[Long, Metric]()
 
   val windowedMetricsMap: mutable.Map[TimeWindow, Metric] = createWindowedMetrics(firstMetricPoint)
 
@@ -65,7 +64,7 @@ class WindowedMetric(private val aggregationType: AggregationType, private val i
       case number if number < 0 =>
         windowedMetricsMap.remove(currentTimeWindow)
         windowedMetricsMap.put(incomingMetricPointTimeWindow, MetricFactory.getMetric(aggregationType, currentMetric.getMetricInterval).get)
-        computedMetrics += currentMetric
+        computedMetrics += currentTimeWindow.endTime -> currentMetric
 
       // window already closed and we don't support water marking yet
       case _ => disorderedMetricPoints.mark()
@@ -74,7 +73,7 @@ class WindowedMetric(private val aggregationType: AggregationType, private val i
 
   def getComputedMetricPoints: List[MetricPoint] = {
     val metricPoint = computedMetrics.toList.flatMap(metric => {
-      metric.mapToMetricPoints()
+      metric._2.mapToMetricPoints(metric._1)
     })
     computedMetrics.clear()
     metricPoint
