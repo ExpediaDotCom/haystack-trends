@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.kstream.processor.MetricAggProcessorSupplier
-import com.expedia.www.haystack.metricpoints.kstream.serde.{MetricPointSerde, WindowedMetricSerde}
+import com.expedia.www.haystack.metricpoints.kstream.serde.WindowedMetricSerde
+import com.expedia.www.haystack.metricpoints.kstream.serde.metricpoint.MetricTankSerde
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KafkaStreams.StateListener
@@ -67,7 +68,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       TOPOLOGY_SOURCE_NAME,
       kafkaConfig.timestampExtractor,
       new StringDeserializer,
-      MetricPointSerde.deserializer(),
+      MetricTankSerde.deserializer(),
       kafkaConfig.consumeTopic)
 
     val windowedMetricStore = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
@@ -88,7 +89,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       TOPOLOGY_SINK_NAME,
       kafkaConfig.produceTopic,
       new StringSerializer,
-      MetricPointSerde.serializer(),
+      MetricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     builder

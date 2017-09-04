@@ -9,7 +9,7 @@ build:  clean
 	mvn package
 
 docker_build:
-	docker build -t $(DOCKER_IMAGE_TAG) -f build/Dockerfile .
+	docker build -t $(DOCKER_IMAGE_TAG) -f build/docker/Dockerfile .
 
 .PHONY: integration_test
 integration_test:

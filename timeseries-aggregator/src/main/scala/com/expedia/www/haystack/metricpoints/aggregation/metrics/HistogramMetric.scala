@@ -36,16 +36,16 @@ class HistogramMetric(interval: Interval) extends Metric(interval) {
   var latestMetricPoint: Option[MetricPoint] = None
   var histogram: IntHistogram = new IntHistogram(1000, 0)
 
-  override def mapToMetricPoints(windowEndTimestamp: Long): List[MetricPoint] = {
+  override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
     latestMetricPoint.map {
       metricPoint => {
         List(
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEAN), histogram.getMean.toLong, windowEndTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MAX), histogram.getMaxValue, windowEndTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MIN), histogram.getMinValue, windowEndTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.PERCENTILE_99), histogram.getValueAtPercentile(99), windowEndTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.STDDEV), histogram.getStdDeviation.toLong, windowEndTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEDIAN), histogram.getValueAtPercentile(50), windowEndTimestamp)
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEAN), histogram.getMean.toLong, publishingTimestamp),
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MAX), histogram.getMaxValue, publishingTimestamp),
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MIN), histogram.getMinValue, publishingTimestamp),
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.PERCENTILE_99), histogram.getValueAtPercentile(99), publishingTimestamp),
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.STDDEV), histogram.getStdDeviation.toLong, publishingTimestamp),
+          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEDIAN), histogram.getValueAtPercentile(50), publishingTimestamp)
         )
       }
     }.getOrElse(List())

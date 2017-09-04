@@ -15,21 +15,24 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.metricpoints.kstream.serde
+package com.expedia.www.haystack.metricpoints.kstream.serde.metricpoint
 
 import java.util
 
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
-import com.expedia.www.haystack.metricpoints.kstream.serde.adapters.MetricTankAdapter
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 
 
-object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
+abstract class AbstractMetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
 
   private val metricPointDeserMeter = metricRegistry.meter("deseri.failure")
 
-  val metricTankAdapter = new MetricTankAdapter
+  def deserializeMetricPoint(data:Array[Byte]):MetricPoint = ???
+
+  def serializeMetricPoint(point:MetricPoint):Array[Byte] = ???
+
+
 
   override def close(): Unit = ()
 
@@ -47,7 +50,7 @@ object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
         */
       override def deserialize(topic: String, data: Array[Byte]): MetricPoint = {
         try {
-          metricTankAdapter.deserialize(data)
+          deserializeMetricPoint(data)
         } catch {
           case ex: Exception =>
             /* may be log and add metric */
@@ -63,7 +66,7 @@ object MetricPointSerde extends Serde[MetricPoint] with MetricsSupport {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
       override def serialize(topic: String, metricPoint: MetricPoint): Array[Byte] = {
-        metricTankAdapter.serializeToTimeSeriesFormat(metricPoint)
+        serializeMetricPoint(metricPoint)
       }
 
       override def close(): Unit = ()
