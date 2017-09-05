@@ -18,16 +18,9 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.CountMetric._
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.StatValue.StatValue
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue, TagKeys}
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue}
 
-object CountMetric {
-  def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
-    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
-  }
-}
 
 class CountMetric(interval: Interval) extends Metric(interval) {
 
@@ -35,11 +28,13 @@ class CountMetric(interval: Interval) extends Metric(interval) {
   var currentCount: Long = 0
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
-    latestMetricPoint.map { metricPoint =>
-      List(
-        MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, publishingTimestamp)
-      )
-    }.getOrElse(List())
+    latestMetricPoint match {
+      case Some(metricPoint) =>
+        List(
+          MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, publishingTimestamp)
+        )
+      case None => List()
+    }
   }
 
   override def compute(metricPoint: MetricPoint): CountMetric = {
@@ -47,4 +42,8 @@ class CountMetric(interval: Interval) extends Metric(interval) {
     latestMetricPoint = Some(metricPoint)
     this
   }
+}
+
+object CountMetricFactory extends MetricFactory {
+  override def createMetric(interval: Interval): Metric = new CountMetric(interval)
 }

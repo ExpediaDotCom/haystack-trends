@@ -19,13 +19,11 @@
 package com.expedia.www.haystack.metricpoints.feature.tests.aggregation
 
 import com.expedia.www.haystack.metricpoints.aggregation.WindowedMetric
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.{AggregationType, HistogramMetric}
-import com.expedia.www.haystack.metricpoints.aggregation.rules.MetricRuleEngine
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.{HistogramMetric, HistogramMetricFactory}
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
-import com.expedia.www.haystack.metricpoints.entities.{Interval, MetricPoint, MetricType, StatValue}
+import com.expedia.www.haystack.metricpoints.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
-import org.HdrHistogram.IntHistogram
+import com.expedia.www.haystack.metricpoints.kstream.serde.metric.HistogramMetricSerde
 
 class WindowedMetricSpec extends FeatureSpec {
 
@@ -34,14 +32,13 @@ class WindowedMetricSpec extends FeatureSpec {
   val INVALID_METRIC_NAME = "invalid_metric"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
+  val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
+    TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
 
   object TagKeys {
     val OPERATION_NAME_KEY = "operationName"
     val SERVICE_NAME_KEY = "serviceName"
   }
-
-  val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
-    TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
 
   feature("Creating a WindowedMetric") {
 
@@ -51,10 +48,10 @@ class WindowedMetricSpec extends FeatureSpec {
       val durations: List[Long] = List(10, 140)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, System.currentTimeMillis))
+      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Histogram")
-      val windowedMetric: WindowedMetric = new WindowedMetric(AggregationType.Histogram, intervals, metricPoints.head)
+      val windowedMetric: WindowedMetric = new WindowedMetric(intervals, metricPoints.head, HistogramMetricFactory, HistogramMetricSerde)
 
 
       metricPoints.indices.foreach(i => if (i > 0) {
@@ -69,7 +66,7 @@ class WindowedMetricSpec extends FeatureSpec {
       aggregatedMetricPointsBefore.size shouldBe 0
 
       When("adding a MetricPoint outside of first Interval")
-      val newMetricPointAfterFirstInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, System.currentTimeMillis + intervals.head.timeInSeconds)
+      val newMetricPointAfterFirstInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals.head.timeInSeconds)
 
       windowedMetric.compute(newMetricPointAfterFirstInterval)
 
@@ -82,7 +79,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
       When("adding a MetricPoint outside of second interval now")
       expectedMetric.compute(newMetricPointAfterFirstInterval)
-      val newMetricPointAfterSecondInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, System.currentTimeMillis + intervals(1).timeInSeconds)
+      val newMetricPointAfterSecondInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals(1).timeInSeconds)
       windowedMetric.compute(newMetricPointAfterSecondInterval)
       val aggregatedMetricPointsAfterSecondInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
 
@@ -96,11 +93,11 @@ class WindowedMetricSpec extends FeatureSpec {
       val durations: List[Long] = List(10, 140, 250)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE, Interval.ONE_HOUR)
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, System.currentTimeMillis))
+      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
 
       When("creating a WindowedMetric and passing some MetricPoints")
-      val windowedMetric: WindowedMetric = new WindowedMetric(AggregationType.Histogram, intervals, metricPoints.head)
+      val windowedMetric: WindowedMetric = new WindowedMetric(intervals, metricPoints.head, HistogramMetricFactory, HistogramMetricSerde)
 
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
@@ -109,7 +106,7 @@ class WindowedMetricSpec extends FeatureSpec {
       When("adding a MetricPoint outside of max Interval")
 
 
-      val newMetricPointAfterMaxInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, System.currentTimeMillis + intervals.last.timeInSeconds)
+      val newMetricPointAfterMaxInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals.last.timeInSeconds)
       windowedMetric.compute(newMetricPointAfterMaxInterval)
       val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
 

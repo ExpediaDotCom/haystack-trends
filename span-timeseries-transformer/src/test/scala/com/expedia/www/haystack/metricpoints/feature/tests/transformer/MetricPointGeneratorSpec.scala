@@ -18,7 +18,6 @@
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Process, Span, Tag}
-import com.expedia.www.haystack.metricpoints.serde.adapters.MetricTankAdapter
 import com.expedia.www.haystack.metricpoints.entities.exceptions.MetricPointCreationException
 import com.expedia.www.haystack.metricpoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec

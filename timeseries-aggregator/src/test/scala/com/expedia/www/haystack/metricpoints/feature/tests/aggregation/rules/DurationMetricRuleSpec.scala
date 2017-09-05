@@ -19,8 +19,7 @@
 package com.expedia.www.haystack.metricpoints.feature.tests.aggregation.rules
 
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.metricpoints.aggregation.rules.{DurationMetricRule, MetricRuleEngine}
+import com.expedia.www.haystack.metricpoints.aggregation.rules.DurationMetricRule
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 
@@ -43,15 +42,15 @@ class DurationMetricRuleSpec extends FeatureSpec with DurationMetricRule {
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val duration = 10
-      val startTime = System.currentTimeMillis
+      val startTime = currentTimeInSecs
 
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, startTime)
 
       When("trying to find matching AggregationType")
-      val aggregationType: AggregationType = isMatched(metricPoint)
+      val aggregationType = isMatched(metricPoint)
 
       Then("should get Histogram AggregationType")
-      aggregationType shouldEqual AggregationType.Histogram
+      aggregationType shouldEqual Some(AggregationType.Histogram)
     }
   }
 }

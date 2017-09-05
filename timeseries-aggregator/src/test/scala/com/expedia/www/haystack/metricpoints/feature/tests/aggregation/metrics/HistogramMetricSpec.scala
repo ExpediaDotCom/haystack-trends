@@ -42,7 +42,7 @@ class HistogramMetricSpec extends FeatureSpec {
       val durations = List(10, 140)
       val interval: Interval = Interval.ONE_MINUTE
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, System.currentTimeMillis() / 1000))
+      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
       val metric = new HistogramMetric(interval)
@@ -75,7 +75,7 @@ class HistogramMetricSpec extends FeatureSpec {
       })
 
       Then("should return valid values for all stats types")
-      val expectedHistogram: IntHistogram = new IntHistogram(1000, 0)
+      val expectedHistogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
       metricPoints.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.value.toLong))
       verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
     }

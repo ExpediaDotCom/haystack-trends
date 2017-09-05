@@ -23,9 +23,9 @@ import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
 trait SuccessMetricRule extends MetricRule {
-  override def isMatched(metricPoint: MetricPoint): AggregationType = {
+  override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
     if (metricPoint.metric.toLowerCase.contains("success-spans") && metricPoint.`type`.equals(MetricType.Gauge)) {
-      AggregationType.Count
+      Some(AggregationType.Count)
     } else {
       super.isMatched(metricPoint)
     }

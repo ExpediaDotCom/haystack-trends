@@ -36,14 +36,41 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   with Thread.UncaughtExceptionHandler {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
-  private var streams: KafkaStreams = _
   private val running = new AtomicBoolean(false)
   private val TOPOLOGY_SOURCE_NAME = "metricpoint-source"
   private val TOPOLOGY_SINK_NAME = "metricpoint-aggegated-sink"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
   private val TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME = "windowed-metric-store"
+  private var streams: KafkaStreams = _
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
+
+  /**
+    * on change event of kafka streams
+    *
+    * @param newState new state of kafka streams
+    * @param oldState old state of kafka streams
+    */
+  override def onChange(newState: KafkaStreams.State, oldState: KafkaStreams.State): Unit = {
+    LOGGER.info(s"State change event called with newState=$newState and oldState=$oldState")
+  }
+
+  /**
+    * handle the uncaught exception by closing the current streams and rerunning it
+    *
+    * @param t thread which raises the exception
+    * @param e throwable object
+    */
+  override def uncaughtException(t: Thread, e: Throwable): Unit = {
+    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${
+      t.getName
+    }", e)
+    // it may happen that uncaught exception gets called by multiple threads at the same time,
+    // so we let one of them close the kafka streams and restart it
+    if (closeKafkaStreams()) {
+      start() // start all over again
+    }
+  }
 
   /**
     * builds the topology and start kstreams
@@ -93,33 +120,6 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     builder
-  }
-
-  /**
-    * on change event of kafka streams
-    *
-    * @param newState new state of kafka streams
-    * @param oldState old state of kafka streams
-    */
-  override def onChange(newState: KafkaStreams.State, oldState: KafkaStreams.State): Unit = {
-    LOGGER.info(s"State change event called with newState=$newState and oldState=$oldState")
-  }
-
-  /**
-    * handle the uncaught exception by closing the current streams and rerunning it
-    *
-    * @param t thread which raises the exception
-    * @param e throwable object
-    */
-  override def uncaughtException(t: Thread, e: Throwable): Unit = {
-    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${
-      t.getName
-    }", e)
-    // it may happen that uncaught exception gets called by multiple threads at the same time,
-    // so we let one of them close the kafka streams and restart it
-    if (closeKafkaStreams()) {
-      start() // start all over again
-    }
   }
 
   private def closeKafkaStreams(): Boolean = {

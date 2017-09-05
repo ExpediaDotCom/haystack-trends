@@ -1,5 +1,5 @@
 <configuration>
-    <jmxConfigurator />
+    <jmxConfigurator/>
 
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
 
@@ -16,6 +16,6 @@
     </appender>
 
     <root level="${HAYSTACK_LOG_LEVEL:-INFO}">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

@@ -24,7 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
-import com.expedia.www.haystack.metricpoints.serde.{MetricPointSerde, SpanSerde}
+import com.expedia.www.haystack.metricpoints.serde.SpanSerde
+import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.metricpoints.transformer.MetricPointGenerator
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
@@ -39,40 +40,10 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   with Thread.UncaughtExceptionHandler with MetricPointGenerator {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
-  private var streams: KafkaStreams = _
   private val running = new AtomicBoolean(false)
+  private var streams: KafkaStreams = _
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
-
-  /**
-    * builds the topology and start kstreams
-    */
-  def start(): Unit = {
-    LOGGER.info("Starting the kafka stream topology.")
-
-    streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
-    streams.setStateListener(this)
-    streams.setUncaughtExceptionHandler(this)
-    streams.cleanUp()
-    streams.start()
-    running.set(true)
-  }
-
-  private def topology(): TopologyBuilder = {
-    val builder = new KStreamBuilder()
-    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
-      .flatMap[String, MetricPoint] {
-      (_: String, span: Span) => mapToTuples(span)
-    }.to(new StringSerde, MetricPointSerde, kafkaConfig.produceTopic)
-
-    builder
-  }
-
-  private def mapToTuples(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
-    mapSpans(span).getOrElse(List()).map(metricPoint => {
-      new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)
-    }).asJava
-  }
 
   /**
     * on change event of kafka streams
@@ -97,6 +68,36 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     if (closeKafkaStreams()) {
       start() // start all over again
     }
+  }
+
+  /**
+    * builds the topology and start kstreams
+    */
+  def start(): Unit = {
+    LOGGER.info("Starting the kafka stream topology.")
+
+    streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
+    streams.setStateListener(this)
+    streams.setUncaughtExceptionHandler(this)
+    streams.cleanUp()
+    streams.start()
+    running.set(true)
+  }
+
+  private def topology(): TopologyBuilder = {
+    val builder = new KStreamBuilder()
+    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
+      .flatMap[String, MetricPoint] {
+      (_: String, span: Span) => mapToTuples(span)
+    }.to(new StringSerde, MetricTankSerde, kafkaConfig.produceTopic)
+
+    builder
+  }
+
+  private def mapToTuples(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
+    mapSpans(span).getOrElse(List()).map(metricPoint => {
+      new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)
+    }).asJava
   }
 
   private def closeKafkaStreams(): Boolean = {

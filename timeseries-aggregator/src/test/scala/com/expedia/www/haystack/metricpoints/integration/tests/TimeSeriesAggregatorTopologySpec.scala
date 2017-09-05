@@ -17,7 +17,6 @@
  */
 package com.expedia.www.haystack.metricpoints.integration.tests
 
-import java.util.{List => JList}
 
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
@@ -28,6 +27,7 @@ import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
@@ -43,12 +43,21 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPointsAsync(MAX_METRICPOINTS, 1000.milli, metricName)
+      produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, metricName, 100)
       new StreamTopology(kafkaConfig).start()
 
       Then("we should read one aggregated metricPoint from 'output' topic")
-
+      val result: List[KeyValue[String, MetricPoint]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000).asScala.toList
+      validateAggregatedMetricPoints(result)
     }
+  }
+
+  private def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricPoint]]) = {
+
+    producedRecords.foreach(record => {
+      record.value.metric shouldEqual metricName
+    })
   }
 
 }

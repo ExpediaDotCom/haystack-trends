@@ -20,4 +20,8 @@ import org.scalatest._
 
 
 trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers {
+
+  def currentTimeInSecs: Long = {
+    System.currentTimeMillis() / 1000l
+  }
 }

@@ -38,7 +38,7 @@ object SpanSerde extends Serde[Span] with MetricsSupport {
 
       override def close(): Unit = ()
 
-      override def serialize(topic: String, obj: Span): Array[Byte] = if(obj != null) obj.toByteArray else null
+      override def serialize(topic: String, obj: Span): Array[Byte] = if (obj != null) obj.toByteArray else null
     }
   }
 
@@ -52,12 +52,13 @@ object SpanSerde extends Serde[Span] with MetricsSupport {
 
       /**
         * converts the binary protobuf bytes into Span object
+        *
         * @param data serialized bytes of Span
         * @return
         */
       private def performDeserialize(data: Array[Byte]): Span = {
         try {
-          if(data == null || data.length == 0) null else Span.parseFrom(data)
+          if (data == null || data.length == 0) null else Span.parseFrom(data)
         } catch {
           case _: Exception =>
             /* may be log and add metric */

@@ -13,15 +13,19 @@ case class TimeWindow(startTime: Long, endTime: Long) extends Ordered[TimeWindow
 object TimeWindow {
 
   def apply(timestamp: Long, interval: Interval): TimeWindow = {
-    val intervalTimeInMs = interval.timeInSeconds
-    val windowStart = (timestamp / intervalTimeInMs) * intervalTimeInMs
-    val windowEnd = windowStart + intervalTimeInMs
+    val intervalTimeInSeconds = interval.timeInSeconds
+    val windowStart = (timestamp / intervalTimeInSeconds) * intervalTimeInSeconds
+    val windowEnd = windowStart + intervalTimeInSeconds
     TimeWindow(windowStart, windowEnd)
   }
 }
 
 object Interval extends Enumeration {
   type Interval = IntervalVal
+  val ONE_MINUTE = IntervalVal("OneMinute", 60)
+  val FIVE_MINUTE = IntervalVal("FiveMinute", 300)
+  val FIFTEEN_MINUTE = IntervalVal("FifteenMinute", 900)
+  val ONE_HOUR = IntervalVal("OneHour", 3600)
 
   def all: List[Interval] = {
     List(ONE_MINUTE, FIVE_MINUTE, FIFTEEN_MINUTE, ONE_HOUR)
@@ -29,9 +33,4 @@ object Interval extends Enumeration {
 
   sealed case class IntervalVal(name: String, timeInSeconds: Long) extends Val(name) {
   }
-
-  val ONE_MINUTE = IntervalVal("OneMinute", 60)
-  val FIVE_MINUTE = IntervalVal("FiveMinute", 300)
-  val FIFTEEN_MINUTE = IntervalVal("FifteenMinute", 1500)
-  val ONE_HOUR = IntervalVal("OneHour", 6000)
 }

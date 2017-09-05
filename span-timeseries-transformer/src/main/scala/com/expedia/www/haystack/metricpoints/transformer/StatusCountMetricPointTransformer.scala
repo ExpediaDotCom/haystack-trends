@@ -32,7 +32,7 @@ trait StatusCountMetricPointTransformer extends MetricPointTransformer {
         val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
           TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
         if (errorValue) {
-          MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge,tags, 1, getDataPointTimestamp(span)) :: super.mapSpan(span)
+          MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, tags, 1, getDataPointTimestamp(span)) :: super.mapSpan(span)
         } else {
           MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, tags, 1, getDataPointTimestamp(span)) :: super.mapSpan(span)
         }

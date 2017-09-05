@@ -22,9 +22,9 @@ class CountMetricSpec extends FeatureSpec {
     val interval: Interval = Interval.FIFTEEN_MINUTE
 
     val metricPoints = List(
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 2, System.currentTimeMillis),
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 4, System.currentTimeMillis),
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 5, System.currentTimeMillis))
+      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 2, currentTimeInSecs),
+      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 4, currentTimeInSecs),
+      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 5, currentTimeInSecs))
 
 
     When("get metric is constructed")
