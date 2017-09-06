@@ -18,37 +18,35 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.HistogramMetric._
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.StatValue.StatValue
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue, TagKeys}
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue}
 import org.HdrHistogram.IntHistogram
 
-
-object HistogramMetric {
-  def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
-    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name , TagKeys.STATS_KEY -> statValue.toString)
-  }
-}
 
 class HistogramMetric(interval: Interval) extends Metric(interval) {
 
   var latestMetricPoint: Option[MetricPoint] = None
-  var histogram: IntHistogram = new IntHistogram(1000, 0)
+  var histogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
-    latestMetricPoint.map {
-      metricPoint => {
-        List(
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEAN), histogram.getMean.toLong, publishingTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MAX), histogram.getMaxValue, publishingTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MIN), histogram.getMinValue, publishingTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.PERCENTILE_99), histogram.getValueAtPercentile(99), publishingTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.STDDEV), histogram.getStdDeviation.toLong, publishingTimestamp),
-          MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, StatValue.MEDIAN), histogram.getValueAtPercentile(50), publishingTimestamp)
-        )
-      }
-    }.getOrElse(List())
+    import StatValue._
+    latestMetricPoint match {
+      case Some(metricPoint) =>
+        val result = Map(
+          MEAN -> histogram.getMean.toLong,
+          MIN -> histogram.getMinValue,
+          PERCENTILE_99 -> histogram.getValueAtPercentile(99),
+          STDDEV -> histogram.getStdDeviation.toLong,
+          MEDIAN -> histogram.getValueAtPercentile(50),
+          MAX -> histogram.getMaxValue
+        ).map {
+          case (stat, value) =>
+            MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, stat), value, publishingTimestamp)
+        }
+        result.toList
+
+      case None => List()
+    }
   }
 
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
@@ -56,4 +54,9 @@ class HistogramMetric(interval: Interval) extends Metric(interval) {
     latestMetricPoint = Some(metricPoint)
     this
   }
+}
+
+
+object HistogramMetricFactory extends MetricFactory {
+  override def createMetric(interval: Interval): Metric = new HistogramMetric(interval)
 }

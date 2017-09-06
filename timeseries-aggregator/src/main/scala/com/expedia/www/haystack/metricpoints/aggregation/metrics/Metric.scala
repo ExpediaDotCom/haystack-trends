@@ -18,9 +18,9 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.metricpoints.entities.StatValue.StatValue
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TagKeys}
 
 abstract class Metric(interval: Interval) {
 
@@ -32,22 +32,18 @@ abstract class Metric(interval: Interval) {
 
   def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint]
 
-}
+  protected def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
+    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
+  }
 
+}
 
 object AggregationType extends Enumeration {
   type AggregationType = Value
-  val Count, Histogram, None = Value
+  val Count, Histogram = Value
 }
 
-object MetricFactory {
 
-  def getMetric(aggregationType: AggregationType, timeWindow: Interval): Option[Metric] = {
-    aggregationType match {
-      case AggregationType.Histogram => Some(new HistogramMetric(timeWindow))
-      case AggregationType.Count => Some(new CountMetric(timeWindow))
-      case AggregationType.None => None
-    }
-  }
+trait MetricFactory {
+  def createMetric(interval: Interval): Metric = ???
 }
-

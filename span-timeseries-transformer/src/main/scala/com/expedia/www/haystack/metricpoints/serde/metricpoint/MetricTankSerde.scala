@@ -15,7 +15,7 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.metricpoints.kstream.serde.metricpoint
+package com.expedia.www.haystack.metricpoints.serde.metricpoint
 
 import java.nio.ByteBuffer
 import java.util
@@ -132,5 +132,4 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
       pk.addPayload(buffer.array())
     }
   }
-
 }

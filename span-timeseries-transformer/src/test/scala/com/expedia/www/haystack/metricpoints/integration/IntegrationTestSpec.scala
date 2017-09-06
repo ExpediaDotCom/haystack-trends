@@ -21,8 +21,8 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFutur
 import java.util.{Properties, UUID}
 
 import com.expedia.open.tracing.{Process, Span}
-import com.expedia.www.haystack.metricpoints.entities.TagKeys
-import com.expedia.www.haystack.metricpoints.serde.{MetricPointSerde, SpanSerde}
+import com.expedia.www.haystack.metricpoints.serde.SpanSerde
+import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -40,21 +40,16 @@ object EmbeddedKafka {
 
 class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
-  case class SpanDescription(traceId: String, spanIdPrefix: String)
-
-  protected var scheduler: ScheduledExecutorService = _
-
   protected val PUNCTUATE_INTERVAL_MS = 2000
-
   protected val PRODUCER_CONFIG = new Properties()
   protected val RESULT_CONSUMER_CONFIG = new Properties()
   protected val STREAMS_CONFIG = new Properties()
   protected val scheduledJobFuture: ScheduledFuture[_] = null
-
-  protected var APP_ID = "haystack-trends"
-  protected var CHANGELOG_TOPIC = ""
   protected val INPUT_TOPIC = "spans"
   protected val OUTPUT_TOPIC = "metricpoints"
+  protected var scheduler: ScheduledExecutorService = _
+  protected var APP_ID = "haystack-trends"
+  protected var CHANGELOG_TOPIC = ""
 
   override def beforeAll() {
     scheduler = Executors.newSingleThreadScheduledExecutor()
@@ -78,7 +73,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.GROUP_ID_CONFIG, APP_ID + "-result-consumer")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer])
-    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MetricPointSerde.deserializer().getClass)
+    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MetricTankSerde.deserializer().getClass)
 
     STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
@@ -96,22 +91,6 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     EmbeddedKafka.CLUSTER.deleteTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
   }
-
-  def randomSpan(traceId: String,
-                 spanId: String = UUID.randomUUID().toString,
-                 startTime: Long = System.currentTimeMillis()): Span = {
-    val serviceName = "some-service"
-    val process = Process.newBuilder().setServiceName(serviceName)
-    Span.newBuilder()
-      .setTraceId(traceId)
-      .setParentSpanId(UUID.randomUUID().toString)
-      .setSpanId(spanId)
-      .setOperationName("some-op")
-      .setProcess(process)
-      .setStartTime(startTime)
-      .build()
-  }
-
 
   protected def produceSpansAsync(maxSpans: Int,
                                   produceInterval: FiniteDuration,
@@ -134,6 +113,21 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
 
+  def randomSpan(traceId: String,
+                 spanId: String = UUID.randomUUID().toString,
+                 startTime: Long = System.currentTimeMillis()): Span = {
+    val serviceName = "some-service"
+    val process = Process.newBuilder().setServiceName(serviceName)
+    Span.newBuilder()
+      .setTraceId(traceId)
+      .setParentSpanId(UUID.randomUUID().toString)
+      .setSpanId(spanId)
+      .setOperationName("some-op")
+      .setProcess(process)
+      .setStartTime(startTime)
+      .build()
+  }
+
   protected def produceSpan(span: Span): Unit = {
 
     val spanKeyValue = List(new KeyValue[String, Span](span.getTraceId, span)).asJava
@@ -144,5 +138,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       PRODUCER_CONFIG,
       System.currentTimeMillis())
   }
+
+  case class SpanDescription(traceId: String, spanIdPrefix: String)
 
 }

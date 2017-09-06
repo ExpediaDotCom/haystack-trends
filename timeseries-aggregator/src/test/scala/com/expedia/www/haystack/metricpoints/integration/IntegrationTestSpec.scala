@@ -41,19 +41,16 @@ object EmbeddedKafka {
 class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
 
-  protected var scheduler: ScheduledExecutorService = _
-
-  protected val PUNCTUATE_INTERVAL_MS = 2000
-
+  protected val PUNCTUATE_INTERVAL_SEC = 2000
   protected val PRODUCER_CONFIG = new Properties()
   protected val RESULT_CONSUMER_CONFIG = new Properties()
   protected val STREAMS_CONFIG = new Properties()
   protected val scheduledJobFuture: ScheduledFuture[_] = null
-
-  protected var APP_ID = "haystack-trends"
-  protected var CHANGELOG_TOPIC = ""
   protected val INPUT_TOPIC = "metricpoints"
   protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
+  protected var scheduler: ScheduledExecutorService = _
+  protected var APP_ID = "haystack-trends"
+  protected var CHANGELOG_TOPIC = ""
 
   override def beforeAll() {
     scheduler = Executors.newScheduledThreadPool(2)
@@ -96,31 +93,36 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
   }
 
-  def randomMetricPoint(metricName: String,
-                      value: Long = Random.nextLong(),
-                      timestamp: Long = System.currentTimeMillis()): MetricPoint = {
-    MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
+  def currentTimeInSecs: Long = {
+    System.currentTimeMillis() / 1000l
   }
 
   protected def produceMetricPointsAsync(maxMetricPoints: Int,
                                          produceInterval: FiniteDuration,
                                          metricName: String,
-                                         startTimestamp: Long = 0L): Unit = {
-    var currentTime = startTimestamp
+                                         totalIntervalInSecs: Long = PUNCTUATE_INTERVAL_SEC
+                                        ): Unit = {
+    var epochTimeInSecs = 0l
     var idx = 0
     scheduler.scheduleWithFixedDelay(() => {
       if (idx < maxMetricPoints) {
-        val metricPoint = randomMetricPoint(metricName)
+        val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
         val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
           keyValue,
           PRODUCER_CONFIG,
-          currentTime)
-        currentTime = currentTime + (PUNCTUATE_INTERVAL_MS / (maxMetricPoints - 1))
+          epochTimeInSecs)
+        epochTimeInSecs = epochTimeInSecs + (totalIntervalInSecs / (maxMetricPoints - 1))
       }
       idx = idx + 1
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
+  }
+
+  def randomMetricPoint(metricName: String,
+                        value: Long = Math.abs(Random.nextInt()),
+                        timestamp: Long = currentTimeInSecs): MetricPoint = {
+    MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
   }
 
 

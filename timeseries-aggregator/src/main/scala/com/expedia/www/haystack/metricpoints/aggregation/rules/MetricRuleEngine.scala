@@ -23,7 +23,7 @@ import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 
 trait MetricRuleEngine extends DurationMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
 
-  def findMatchingMetric(metricPoint: MetricPoint): AggregationType = {
+  def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {
     isMatched(metricPoint)
   }
 }

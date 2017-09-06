@@ -19,8 +19,7 @@
 package com.expedia.www.haystack.metricpoints.feature.tests.aggregation.rules
 
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType
-import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.metricpoints.aggregation.rules.{MetricRuleEngine, SuccessMetricRule}
+import com.expedia.www.haystack.metricpoints.aggregation.rules.SuccessMetricRule
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 
@@ -43,15 +42,15 @@ class SuccessMetricRuleSpec extends FeatureSpec with SuccessMetricRule {
       Given("a success MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
-      val startTime = System.currentTimeMillis
+      val startTime = currentTimeInSecs
 
       val metricPoint = MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
 
       When("trying to find matching AggregationType")
-      val aggregationType: AggregationType = isMatched(metricPoint)
+      val aggregationType = isMatched(metricPoint)
 
       Then("should get Aggregate AggregationType")
-      aggregationType shouldEqual AggregationType.Count
+      aggregationType shouldEqual Some(AggregationType.Count)
     }
   }
 }
