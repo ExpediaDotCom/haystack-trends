@@ -17,10 +17,8 @@
  */
 package com.expedia.www.haystack.metricpoints.integration
 
-import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
-import java.util.{Properties, UUID}
 
-import com.expedia.open.tracing.{Process, Span}
+import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.serde.SpanSerde
 import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -28,6 +26,8 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.integration.utils.{EmbeddedKafkaCluster, IntegrationTestUtils}
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
+import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
+import java.util.{Properties, UUID}
 import org.scalatest._
 
 import scala.collection.JavaConverters._
@@ -50,6 +50,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
   protected var CHANGELOG_TOPIC = ""
+  protected var KAFKA_ENDPOINT = "192.168.99.100:9092"
+
 
   override def beforeAll() {
     scheduler = Executors.newSingleThreadScheduledExecutor()
@@ -92,53 +94,22 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
   }
 
-  protected def produceSpansAsync(maxSpans: Int,
-                                  produceInterval: FiniteDuration,
-                                  spansDescr: List[SpanDescription]): Unit = {
+  protected def produceSpansAsync(produceInterval: FiniteDuration,
+                                  spans: List[Span]): Unit = {
     var currentTime = System.currentTimeMillis()
     var idx = 0
     scheduler.scheduleWithFixedDelay(() => {
-      if (idx < maxSpans) {
-        currentTime = currentTime + ((idx * PUNCTUATE_INTERVAL_MS) / (maxSpans - 1))
-        val spans = spansDescr.map(sd => {
-          new KeyValue[String, Span](sd.traceId, randomSpan(sd.traceId, s"${sd.spanIdPrefix}-$idx"))
-        }).asJava
+      if (idx < spans.size) {
+        currentTime = currentTime + ((idx * PUNCTUATE_INTERVAL_MS) / (spans.size - 1))
+        val span = spans.apply(idx)
+        val records = List(new KeyValue[String, Span](span.getTraceId, span)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
-          spans,
+          records,
           PRODUCER_CONFIG,
           currentTime)
       }
       idx = idx + 1
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
-
-  def randomSpan(traceId: String,
-                 spanId: String = UUID.randomUUID().toString,
-                 startTime: Long = System.currentTimeMillis()): Span = {
-    val serviceName = "some-service"
-    val process = Process.newBuilder().setServiceName(serviceName)
-    Span.newBuilder()
-      .setTraceId(traceId)
-      .setParentSpanId(UUID.randomUUID().toString)
-      .setSpanId(spanId)
-      .setOperationName("some-op")
-      .setProcess(process)
-      .setStartTime(startTime)
-      .build()
-  }
-
-  protected def produceSpan(span: Span): Unit = {
-
-    val spanKeyValue = List(new KeyValue[String, Span](span.getTraceId, span)).asJava
-
-    IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
-      INPUT_TOPIC,
-      spanKeyValue,
-      PRODUCER_CONFIG,
-      System.currentTimeMillis())
-  }
-
-  case class SpanDescription(traceId: String, spanIdPrefix: String)
-
 }

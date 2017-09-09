@@ -18,10 +18,14 @@ package com.expedia.www.haystack.metricpoints.entities
 
 import com.expedia.www.haystack.metricpoints.entities.MetricType.MetricType
 
-/*
-The metricpoint object adheres to the metrics 2.0 specifications
- */
-
+/**
+  * The metricpoint object adheres to the metrics 2.0 specifications
+  * @param metric : name of the metric
+  * @param `type` : type of the metric - see metric types below
+  * @param tags : key:value tags which add dimensions to the metric : eg : host, service_name etc
+  * @param value : value of the metric
+  * @param epochTimeInSeconds : epochTime in seconds for when the event is generated
+  */
 case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
   def getMetricPointKey: String = {
     tags.foldLeft("")((tag, tuple) => {
@@ -49,6 +53,7 @@ object TagKeys {
   val SERVICE_NAME_KEY = "host"
   val RESULT_KEY = "result"
   val STATS_KEY = "stat"
+  val ERROR_KEY = "error"
 }
 
 

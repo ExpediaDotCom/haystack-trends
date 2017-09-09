@@ -24,7 +24,7 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
 trait TotalMetricRule extends MetricRule {
   override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
-    if (metricPoint.metric.toLowerCase.contains("total-spans") && metricPoint.`type`.equals(MetricType.Gauge)) {
+    if (metricPoint.metric.toLowerCase.contains("received-span") && metricPoint.`type`.equals(MetricType.Gauge)) {
       Some(AggregationType.Count)
     } else {
       super.isMatched(metricPoint)

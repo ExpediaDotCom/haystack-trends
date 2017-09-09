@@ -16,6 +16,10 @@
  */
 package com.expedia.www.haystack.metricpoints.entities.exceptions
 
-class MetricPointCreationException extends RuntimeException {
+/**
+  * SpanValidationException exception is thrown when the transformer fails to generate metric points
+  * since the incoming span has missing mandatory fields
+  */
+class SpanValidationException extends RuntimeException {
 
 }

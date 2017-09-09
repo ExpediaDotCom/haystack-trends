@@ -21,28 +21,33 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, 
 
 import scala.collection.JavaConverters._
 
-trait StatusCountMetricPointTransformer extends MetricPointTransformer {
 
-  val SUCCESS_METRIC_NAME = "success-spans"
-  val FAILURE_METRIC_NAME = "failure-spans"
+/**
+  * This transformer generates a success or a failure metric y
+  */
+trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
+
+  val SUCCESS_METRIC_NAME = "success-span"
+  val FAILURE_METRIC_NAME = "failure-span"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
     getErrorField(span) match {
       case Some(errorValue) =>
-        val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-          TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
+
         if (errorValue) {
-          MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, tags, 1, getDataPointTimestamp(span)) :: super.mapSpan(span)
+          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
         } else {
-          MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, tags, 1, getDataPointTimestamp(span)) :: super.mapSpan(span)
+          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
         }
 
-      case None => super.mapSpan(span)
+      case None => List()
     }
-
   }
 
   protected def getErrorField(span: Span): Option[Boolean] = {
-    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(ERROR_KEY)).map(_.getVBool)
+    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(_.getVBool)
   }
 }
+
+object SpanStatusMetricPointTransformer extends SpanStatusMetricPointTransformer
+

@@ -17,16 +17,17 @@
 package com.expedia.www.haystack.metricpoints.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
-trait DurationMetricPointTransformer extends MetricPointTransformer {
-  val DURATION_METRIC_NAME = "duration"
+/**
+  * This transformer is responsible to generate the total-spans gauge metric
+  */
+trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
+  val TOTAL_METRIC_NAME = "received-span"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
-
-    val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
-    MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, tags, span.getDuration, getDataPointTimestamp(span)) :: super.mapSpan(span)
+    List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
   }
-
 }
+
+object SpanReceivedMetricPointTransformer extends SpanReceivedMetricPointTransformer

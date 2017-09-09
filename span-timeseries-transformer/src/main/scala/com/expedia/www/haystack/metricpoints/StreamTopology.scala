@@ -26,7 +26,7 @@ import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 import com.expedia.www.haystack.metricpoints.serde.SpanSerde
 import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.metricpoints.transformer.MetricPointGenerator
+import com.expedia.www.haystack.metricpoints.transformer.{SpanDurationMetricPointTransformer, MetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer}
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.kstream.KStreamBuilder
@@ -42,6 +42,8 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private var streams: KafkaStreams = _
+
+
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
@@ -95,7 +97,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   }
 
   private def mapToTuples(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
-    mapSpans(span).getOrElse(List()).map(metricPoint => {
+    generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List()).map(metricPoint => {
       new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)
     }).asJava
   }

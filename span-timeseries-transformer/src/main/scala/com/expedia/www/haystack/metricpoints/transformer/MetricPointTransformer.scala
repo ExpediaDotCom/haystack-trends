@@ -17,14 +17,33 @@
 package com.expedia.www.haystack.metricpoints.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.metricpoints.entities.MetricPoint
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TagKeys}
+
 
 trait MetricPointTransformer {
-  val ERROR_KEY = "error"
 
-  def mapSpan(span: Span): List[MetricPoint] = List()
 
-  def getDataPointTimestamp(span: Span): Long = {
+  def mapSpan(span: Span): List[MetricPoint]
+
+  protected def getDataPointTimestamp(span: Span): Long = {
     span.getStartTime / 1000
   }
+
+  /**
+    * This function creates the common metric tags from a span object.
+    * Every metric point must have the operationName and ServiceName in its tags, the individual transformer
+    * can add more tags to the metricPoint.
+    *
+    * @param span incoming span
+    * @return metric tags in the form of Map of string,string
+    */
+  protected def createCommonMetricTags(span: Span): Map[String, String] = {
+    Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
+      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
+  }
 }
+
+object MetricPointTransformer {
+  val allTransformers = List(SpanDurationMetricPointTransformer,SpanStatusMetricPointTransformer,SpanReceivedMetricPointTransformer)
+}
+

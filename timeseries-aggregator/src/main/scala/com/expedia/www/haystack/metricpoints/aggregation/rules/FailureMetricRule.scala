@@ -24,7 +24,7 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
 trait FailureMetricRule extends MetricRule {
   override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
-    if (metricPoint.metric.toLowerCase.contains("failure-spans") && metricPoint.`type`.equals(MetricType.Gauge)) {
+    if (metricPoint.metric.toLowerCase.contains("failure-span") && metricPoint.`type`.equals(MetricType.Gauge)) {
       Some(AggregationType.Count)
     } else {
       super.isMatched(metricPoint)
