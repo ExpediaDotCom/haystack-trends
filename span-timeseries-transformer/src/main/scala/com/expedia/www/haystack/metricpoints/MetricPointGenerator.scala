@@ -28,7 +28,8 @@ trait MetricPointGenerator {
   /**
     * This function is responsible for generating all the metric points which can be created given a span
     *
-    * @param span incoming span
+    * @param transformers list of transformers to be applied
+    * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
   def generateMetricPoints(transformers: Seq[MetricPointTransformer])(span: Span): Try[List[MetricPoint]] = {
@@ -45,9 +46,7 @@ trait MetricPointGenerator {
     * @param span incoming span
     * @return Try object which should return either the span as is or a validation exception
     */
-  private def validate(span: Span): Try[Span]
-
-  = {
+  private def validate(span: Span): Try[Span] = {
     if (span.getProcess.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       Failure(new SpanValidationException)
     } else {

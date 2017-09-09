@@ -22,7 +22,7 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 /**
   * This Transformer reads a span and creates a duration metric point with the value as the
   */
-trait DurationMetricPointTransformer extends MetricPointTransformer {
+trait SpanDurationMetricPointTransformer extends MetricPointTransformer {
   val DURATION_METRIC_NAME = "duration"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
@@ -31,5 +31,5 @@ trait DurationMetricPointTransformer extends MetricPointTransformer {
 
 }
 
-object DurationMetricPointTransformer extends DurationMetricPointTransformer
+object SpanDurationMetricPointTransformer extends SpanDurationMetricPointTransformer
 

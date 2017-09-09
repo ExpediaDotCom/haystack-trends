@@ -22,14 +22,14 @@ import com.expedia.www.haystack.metricpoints.MetricPointGenerator
 import com.expedia.www.haystack.metricpoints.entities.exceptions.SpanValidationException
 import com.expedia.www.haystack.metricpoints.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
-import com.expedia.www.haystack.metricpoints.transformer.{DurationMetricPointTransformer, StatusCountMetricPointTransformer}
+import com.expedia.www.haystack.metricpoints.transformer.{SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer}
 
 
 class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
 
 
   private def getMetricPointTransformers = {
-    List(DurationMetricPointTransformer, StatusCountMetricPointTransformer)
+    List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer)
   }
 
   feature("The metricPoint generator must generate metricPoints given a span object") {

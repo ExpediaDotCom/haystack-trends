@@ -22,7 +22,7 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 /**
   * This transformer is responsible to generate the total-spans gauge metric
   */
-trait TotalCountMetricPointTransformer extends MetricPointTransformer {
+trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
   val TOTAL_METRIC_NAME = "received-span"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
@@ -30,4 +30,4 @@ trait TotalCountMetricPointTransformer extends MetricPointTransformer {
   }
 }
 
-object TotalCountMetricPointTransformer extends TotalCountMetricPointTransformer
+object SpanReceivedMetricPointTransformer extends SpanReceivedMetricPointTransformer

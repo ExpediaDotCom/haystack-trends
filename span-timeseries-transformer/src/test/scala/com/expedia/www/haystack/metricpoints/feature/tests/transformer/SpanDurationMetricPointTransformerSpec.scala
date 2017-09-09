@@ -19,9 +19,9 @@ package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Process, Span}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
-import com.expedia.www.haystack.metricpoints.transformer.DurationMetricPointTransformer
+import com.expedia.www.haystack.metricpoints.transformer.SpanDurationMetricPointTransformer
 
-class DurationMetricPointTransformerSpec extends FeatureSpec with DurationMetricPointTransformer {
+class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurationMetricPointTransformer {
 
   feature("metricPoint transformer for creating duration metricPoint") {
     scenario("should have duration value in metricPoint for given duration in span") {

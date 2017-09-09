@@ -26,7 +26,7 @@ import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
 import com.expedia.www.haystack.metricpoints.serde.SpanSerde
 import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.metricpoints.transformer.{DurationMetricPointTransformer, MetricPointTransformer, StatusCountMetricPointTransformer, TotalCountMetricPointTransformer}
+import com.expedia.www.haystack.metricpoints.transformer.{SpanDurationMetricPointTransformer, MetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer}
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.kstream.KStreamBuilder

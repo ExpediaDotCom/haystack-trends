@@ -20,13 +20,12 @@ package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 import com.expedia.open.tracing.{Process, Span, Tag}
 import com.expedia.www.haystack.metricpoints.entities.TagKeys
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
-import com.expedia.www.haystack.metricpoints.transformer.StatusCountMetricPointTransformer
+import com.expedia.www.haystack.metricpoints.transformer.SpanReceivedMetricPointTransformer
 
-class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCountMetricPointTransformer {
+class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceivedMetricPointTransformer {
 
-  feature("metricPoint transformer for creating status count metricPoint") {
-
-    scenario("should have a success-spans metricPoint given span which is successful") {
+  feature("metricPoint transformer for creating total count metricPoint") {
+    scenario("should have a total-count metricPoint given span which is successful") {
 
       Given("a successful span object")
       val operationName = "testSpan"
@@ -40,7 +39,7 @@ class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCount
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
-      When("metricPoint is created using the transformer")
+      When("metricPoint is created using transformer")
       val metricPoints = mapSpan(span)
 
       Then("should only have 1 metricPoint")
@@ -49,13 +48,12 @@ class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCount
       Then("the metricPoint value should be 1")
       metricPoints.head.value shouldEqual 1
 
-      Then("metric name should be success-spans")
-      metricPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
+      Then("metric name should be total-count")
+      metricPoints.head.metric shouldEqual TOTAL_METRIC_NAME
     }
+    scenario("should have a total-count metricPoint given span which is erroneous") {
 
-    scenario("should have a failure-spans metricPoint given span  which is erroneous") {
-
-      Given("a erroneous span object")
+      Given("an erroneous span object")
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
@@ -76,31 +74,8 @@ class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCount
       Then("the metricPoint value should be 1")
       metricPoints.head.value shouldEqual 1
 
-
-      Then("metric name should be failure-spans")
-      metricPoints.head.metric shouldEqual FAILURE_METRIC_NAME
-
-
-    }
-
-    scenario("should return an empty list when error key is missing in span tags") {
-
-      Given("a span object which missing error tag")
-      val operationName = "testSpan"
-      val serviceName = "testService"
-      val duration = System.currentTimeMillis
-      val process = Process.newBuilder().setServiceName(serviceName)
-      val span = Span.newBuilder()
-        .setDuration(duration)
-        .setOperationName(operationName)
-        .setProcess(process)
-        .build()
-
-      When("metricPoint is created using transformer")
-      val metricPoints = mapSpan(span)
-
-      Then("should not return metricPoints")
-      metricPoints.length shouldEqual 0
+      Then("metric name should be total-count")
+      metricPoints.head.metric shouldEqual TOTAL_METRIC_NAME
     }
   }
 }

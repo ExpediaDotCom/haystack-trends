@@ -44,6 +44,6 @@ trait MetricPointTransformer {
 }
 
 object MetricPointTransformer {
-  val allTransformers = List(DurationMetricPointTransformer,StatusCountMetricPointTransformer,TotalCountMetricPointTransformer)
+  val allTransformers = List(SpanDurationMetricPointTransformer,SpanStatusMetricPointTransformer,SpanReceivedMetricPointTransformer)
 }
 

@@ -21,7 +21,11 @@ import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, 
 
 import scala.collection.JavaConverters._
 
-trait StatusCountMetricPointTransformer extends MetricPointTransformer {
+
+/**
+  * This transformer generates a success or a failure metric y
+  */
+trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
 
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
@@ -45,5 +49,5 @@ trait StatusCountMetricPointTransformer extends MetricPointTransformer {
   }
 }
 
-object StatusCountMetricPointTransformer extends StatusCountMetricPointTransformer
+object SpanStatusMetricPointTransformer extends SpanStatusMetricPointTransformer
 
