@@ -16,8 +16,7 @@
  */
 package com.expedia.www.haystack.metricpoints.feature
 
-import org.scalatest._
+import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
 
-trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers {
-}
+trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers

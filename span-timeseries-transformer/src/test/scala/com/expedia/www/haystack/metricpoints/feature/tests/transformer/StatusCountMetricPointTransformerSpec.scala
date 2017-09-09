@@ -18,6 +18,7 @@
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
 import com.expedia.open.tracing.{Process, Span, Tag}
+import com.expedia.www.haystack.metricpoints.entities.TagKeys
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 import com.expedia.www.haystack.metricpoints.transformer.StatusCountMetricPointTransformer
 
@@ -36,7 +37,7 @@ class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCount
         .setDuration(duration)
         .setOperationName(operationName)
         .setProcess(process)
-        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(false))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
       When("metricPoint is created using the transformer")
@@ -63,7 +64,7 @@ class StatusCountMetricPointTransformerSpec extends FeatureSpec with StatusCount
         .setDuration(duration)
         .setOperationName(operationName)
         .setProcess(process)
-        .addTags(Tag.newBuilder().setKey(ERROR_KEY).setVBool(true))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(true))
         .build()
 
       When("metricPoint is created using transformer")

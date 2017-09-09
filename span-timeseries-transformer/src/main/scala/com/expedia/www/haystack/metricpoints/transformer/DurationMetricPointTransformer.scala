@@ -17,16 +17,19 @@
 package com.expedia.www.haystack.metricpoints.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
 
+/**
+  * This Transformer reads a span and creates a duration metric point with the value as the
+  */
 trait DurationMetricPointTransformer extends MetricPointTransformer {
   val DURATION_METRIC_NAME = "duration"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
-
-    val tags = Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
-    MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, tags, span.getDuration, getDataPointTimestamp(span)) :: super.mapSpan(span)
+    List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
   }
 
 }
+
+object DurationMetricPointTransformer extends DurationMetricPointTransformer
+

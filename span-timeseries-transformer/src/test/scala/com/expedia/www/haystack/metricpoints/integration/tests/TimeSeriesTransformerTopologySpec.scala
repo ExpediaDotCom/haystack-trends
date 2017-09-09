@@ -17,14 +17,14 @@
  */
 package com.expedia.www.haystack.metricpoints.integration.tests
 
-import java.util.{UUID, List => JList}
+import java.util.UUID
 
 import com.expedia.open.tracing.{Process, Span}
-import com.expedia.www.haystack.metricpoints.StreamTopology
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
-import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.metricpoints.integration.IntegrationTestSpec
-import com.expedia.www.haystack.metricpoints.transformer.MetricPointGenerator
+import com.expedia.www.haystack.metricpoints.transformer.MetricPointTransformer
+import com.expedia.www.haystack.metricpoints.{MetricPointGenerator, StreamTopology}
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
@@ -32,6 +32,7 @@ import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 
 class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricPointGenerator {
 
@@ -44,66 +45,72 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val spanId = "span-id-dummy"
       val duration = 3
       val errorFlag = false
-      val span = generateSpan(traceId, spanId, duration, errorFlag)
+      val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor)
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
-      produceSpan(span)
+      produceSpansAsync(10 millisecond, spans)
       new StreamTopology(kafkaConfig).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPointKVList: JList[KeyValue[String, MetricPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived(RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000) // get metricPoints from Kafka's output topic
-      metricPointKVList.asScala.map(metricPointKV => {
-        metricPointKV.value.`type` shouldEqual MetricType.Gauge
+      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List())) // directly call transformers to get metricPoints
+
+      val records: List[KeyValue[String, MetricPoint]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, metricPoints.size, 15000).asScala.toList // get metricPoints from Kafka's output topic
+      records.map(record => {
+        record.value.`type` shouldEqual MetricType.Gauge
       })
 
       Then("same metricPoints should be created as that from transformers")
-      val metricPointsTransformer: List[MetricPoint] = mapSpans(span).getOrElse(List()) // directly call transformers to get metricPoints
 
-      val metricPointSetTransformer: Set[MetricPoint] = metricPointsTransformer.toSet
-      val metricPointSetKafka: Set[MetricPoint] = metricPointKVList.asScala.map(metricPointKv => metricPointKv.value).toSet
+      val metricPointSetTransformer: Set[MetricPoint] = metricPoints.toSet
+      val metricPointSetKafka: Set[MetricPoint] = records.map(metricPointKv => metricPointKv.value).toSet
 
       val diffSetMetricPoint: Set[MetricPoint] = metricPointSetTransformer.diff(metricPointSetKafka)
 
-      metricPointsTransformer.size shouldEqual (metricPointKVList.size)
-      diffSetMetricPoint.isEmpty shouldEqual (true)
+      metricPoints.size shouldEqual records.size
+      diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPointsTransformer.map(metricPoint => metricPoint.getMetricPointKey).toSet
-      val keySetKafka: Set[String] = metricPointKVList.asScala.map(metricPointKv => metricPointKv.key).toSet
+      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey).toSet
+      val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)
 
-      keySetTransformer.size shouldEqual (keySetKafka.size)
-      diffSetKey.isEmpty shouldEqual (true)
+      keySetTransformer.size shouldEqual keySetKafka.size
+      diffSetKey.isEmpty shouldEqual true
 
       Then("no other intermediate partitions are created after as a result of topology")
       val adminClient: AdminClient = AdminClient.create(STREAMS_CONFIG)
       val topicNames: Iterable[String] = adminClient.listTopics.listings().get().asScala
         .map(topicListing => topicListing.name)
 
-      topicNames.size shouldEqual (2)
-      topicNames.toSet.contains(INPUT_TOPIC) shouldEqual (true)
-      topicNames.toSet.contains(OUTPUT_TOPIC) shouldEqual (true)
+      topicNames.size shouldEqual 2
+      topicNames.toSet.contains(INPUT_TOPIC) shouldEqual true
+      topicNames.toSet.contains(OUTPUT_TOPIC) shouldEqual true
     }
   }
 
-  private def generateSpan(traceId: String, spanId: String, duration: Int, errorFlag: Boolean): Span = {
+  private def generateSpans(traceId: String, spanId: String, duration: Int, errorFlag: Boolean, spanIntervalInMs: Long, spanCount: Int): List[Span] = {
 
-    val currentTime = System.currentTimeMillis()
-    val process = Process.newBuilder().setServiceName("some-service")
-    val span = Span.newBuilder()
-      .setTraceId(traceId)
-      .setParentSpanId(UUID.randomUUID().toString)
-      .setSpanId(spanId)
-      .setOperationName("some-op")
-      .setStartTime(currentTime)
-      .setDuration(duration)
-      .setProcess(process)
-      .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(ERROR_KEY).setVStr("some-error"))
-      .build()
-    span
-  }
+    var currentTime = System.currentTimeMillis()
+    for (i <- 1 to spanCount) yield {
+      currentTime = currentTime + i * spanIntervalInMs
+
+      val process = Process.newBuilder().setServiceName("some-service")
+      val span = Span.newBuilder()
+        .setTraceId(traceId)
+        .setParentSpanId(UUID.randomUUID().toString)
+        .setSpanId(spanId)
+        .setOperationName("some-op")
+        .setStartTime(currentTime)
+        .setDuration(duration)
+        .setProcess(process)
+        .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("some-error"))
+        .build()
+      span
+    }
+  }.toList
+
 }
 

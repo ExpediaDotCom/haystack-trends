@@ -31,6 +31,10 @@ import org.msgpack.value.{ImmutableStringValue, Value, ValueFactory}
 import scala.collection.JavaConverters._
 
 
+/**
+  * This class takes a metric point object and serializes it into a messagepack encoded bytestream
+  * which can be directly consumed by metrictank. The serialized data is finally streamed to kafka
+  */
 object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
   private val metricPointDeserMeter = metricRegistry.meter("deseri.failure")
@@ -53,7 +57,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
       /**
-        * converts the json bytes into MetricPoint object
+        * converts the messagepack bytes into MetricPoint object
         *
         * @param data serialized bytes of MetricPoint
         * @return
@@ -123,6 +127,13 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
   override def close(): Unit = ()
 
+
+  /**
+    * This is a value extention class for signed long type. The java client for messagepack packs positive longs as unsigned
+    * and there is no way to force a signed long who's numberal value is positive.
+    * Metric Tank schema requres a signed long type for the timestamp key.
+    * @param long
+    */
   class ImmutableSignedLongValueImpl(long: Long) extends ImmutableLongValueImpl(long) {
 
     override def writeTo(pk: MessagePacker) {
