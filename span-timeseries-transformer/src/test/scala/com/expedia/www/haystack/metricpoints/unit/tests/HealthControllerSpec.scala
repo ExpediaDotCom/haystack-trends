@@ -1,4 +1,4 @@
-package com.expedia.www.haystack.metricpoints.feature
+package com.expedia.www.haystack.metricpoints.unit.tests
 
 import com.expedia.www.haystack.metricpoints.health.{HealthController, UpdateHealthStatusFile}
 import org.scalatest.{FunSpec, Matchers}
@@ -14,7 +14,7 @@ class HealthControllerSpec extends FunSpec with Matchers {
       healthChecker.isHealthy shouldBe false
       healthChecker.setHealthy()
       healthChecker.isHealthy shouldBe true
-      readStatusLine shouldEqual "healthy"
+      readStatusLine shouldEqual "true"
     }
 
     it("should set the state as unhealthy if previous state is healthy") {
@@ -23,11 +23,11 @@ class HealthControllerSpec extends FunSpec with Matchers {
 
       healthChecker.setHealthy()
       healthChecker.isHealthy shouldBe true
-      readStatusLine shouldEqual "healthy"
+      readStatusLine shouldEqual "true"
 
       healthChecker.setUnhealthy()
       healthChecker.isHealthy shouldBe false
-      readStatusLine shouldEqual "unhealthy"
+      readStatusLine shouldEqual "false"
     }
   }
 

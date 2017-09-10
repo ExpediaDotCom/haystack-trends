@@ -344,7 +344,7 @@
                     <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
                     <filereports>TestSuite.txt</filereports>
                     <testFailureIgnore>false</testFailureIgnore>
-                    <wildcardSuites>com.expedia.www.haystack.metricpoints.feature.tests</wildcardSuites>
+                    <wildcardSuites>com.expedia.www.haystack.metricpoints.feature.tests,com.expedia.www.haystack.metricpoints.unit.tests</wildcardSuites>
                 </configuration>
                 <executions>
                     <execution>
