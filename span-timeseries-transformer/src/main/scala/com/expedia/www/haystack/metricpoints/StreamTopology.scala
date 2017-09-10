@@ -18,34 +18,34 @@
 
 package com.expedia.www.haystack.metricpoints
 
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.MetricPoint
+import com.expedia.www.haystack.metricpoints.health.HealthController
 import com.expedia.www.haystack.metricpoints.serde.SpanSerde
 import com.expedia.www.haystack.metricpoints.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.metricpoints.transformer.{SpanDurationMetricPointTransformer, MetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer}
+import com.expedia.www.haystack.metricpoints.transformer.MetricPointTransformer
+import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.kstream.KStreamBuilder
 import org.apache.kafka.streams.processor.TopologyBuilder
-import org.apache.kafka.streams.{KafkaStreams, KeyValue}
+import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
-  with Thread.UncaughtExceptionHandler with MetricPointGenerator {
+  with Thread.UncaughtExceptionHandler with MetricPointGenerator with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private var streams: KafkaStreams = _
-
-
-
-  Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
 
   /**
     * on change event of kafka streams
@@ -64,11 +64,30 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     * @param e throwable object
     */
   override def uncaughtException(t: Thread, e: Throwable): Unit = {
-    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
+      LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
     // it may happen that uncaught exception gets called by multiple threads at the same time,
     // so we let one of them close the kafka streams and restart it
-    if (closeKafkaStreams()) {
-      start() // start all over again
+    HealthController.setUnhealthy()
+  }
+
+  /**
+    * kafka streams assume the consumer topic should be created before starting the app
+    * see [http://docs.confluent.io/current/streams/developer-guide.html#user-topics]
+    */
+  private def doesConsumerTopicExist(): Boolean = {
+    var adminClient: AdminClient = null
+    try {
+      val properties = new Properties()
+      properties.put(
+        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.streamsConfig.getList(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
+      adminClient = AdminClient.create(properties)
+      // list all topics and see if it contains
+      adminClient.listTopics()
+        .names()
+        .get()
+        .contains(kafkaConfig.consumeTopic)
+    } finally {
+      Try(adminClient.close(5, TimeUnit.SECONDS))
     }
   }
 
@@ -78,41 +97,44 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   def start(): Unit = {
     LOGGER.info("Starting the kafka stream topology.")
 
-    streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
-    streams.setStateListener(this)
-    streams.setUncaughtExceptionHandler(this)
-    streams.cleanUp()
-    streams.start()
-    running.set(true)
+    if(doesConsumerTopicExist()) {
+      streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
+      streams.setStateListener(this)
+      streams.setUncaughtExceptionHandler(this)
+      streams.cleanUp()
+
+      // set the status healthy before starting the stream
+      // Uncaught exception handler will set to unhealthy state if something goes wrong with stream
+      HealthController.setHealthy()
+      streams.start()
+      running.set(true)
+    } else {
+      HealthController.setUnhealthy()
+    }
   }
 
   private def topology(): TopologyBuilder = {
     val builder = new KStreamBuilder()
     builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
       .flatMap[String, MetricPoint] {
-      (_: String, span: Span) => mapToTuples(span)
+      (_: String, span: Span) => mapToMetricPointKeyValue(span)
     }.to(new StringSerde, MetricTankSerde, kafkaConfig.produceTopic)
 
     builder
   }
 
-  private def mapToTuples(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
-    generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List()).map(metricPoint => {
-      new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)
-    }).asJava
+  private def mapToMetricPointKeyValue(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
+    generateMetricPoints(MetricPointTransformer.allTransformers)(span)
+      .getOrElse(Nil)
+      .map {
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey, metricPoint)
+      }.asJava
   }
 
-  private def closeKafkaStreams(): Boolean = {
+  def close(): Unit = {
     if (running.getAndSet(false)) {
       LOGGER.info("Closing the kafka streams.")
-      streams.close(30, TimeUnit.SECONDS)
-      return true
+      streams.close(kafkaConfig.closeTimeoutInMs, TimeUnit.MILLISECONDS)
     }
-    false
   }
-
-  private class ShutdownHookThread extends Thread {
-    override def run(): Unit = closeKafkaStreams()
-  }
-
 }

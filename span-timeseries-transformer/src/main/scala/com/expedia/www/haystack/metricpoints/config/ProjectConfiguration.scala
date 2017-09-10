@@ -29,6 +29,8 @@ import scala.collection.JavaConverters._
 object ProjectConfiguration {
   private val config = ConfigurationLoader.loadAppConfig
 
+  val healthStatusFilePath: String = config.getString("health.status.path")
+
   /**
     *
     * @return streams configuration object
@@ -75,6 +77,7 @@ object ProjectConfiguration {
       consumeTopic = consumerConfig.getString("topic"),
       if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
       else AutoOffsetReset.LATEST
-      , timestampExtractor.newInstance().asInstanceOf[TimestampExtractor])
+      , timestampExtractor.newInstance().asInstanceOf[TimestampExtractor],
+      kafka.getLong("close.timeout.ms"))
   }
 }
