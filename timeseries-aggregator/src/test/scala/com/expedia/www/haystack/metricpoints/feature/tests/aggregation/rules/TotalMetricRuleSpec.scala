@@ -25,7 +25,7 @@ import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 
 class TotalMetricRuleSpec extends FeatureSpec with TotalMetricRule {
 
-  val TOTAL_METRIC_NAME = "total-spans"
+  val TOTAL_METRIC_NAME = "received-span"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
 
