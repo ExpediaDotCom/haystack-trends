@@ -16,25 +16,18 @@
  *
  */
 
-package com.expedia.www.haystack.metricpoints
+package com.expedia.www.haystack.metricpoints.health
 
-import com.codahale.metrics.JmxReporter
-import com.expedia.www.haystack.metricpoints.config.ProjectConfiguration._
-import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
+import com.expedia.www.haystack.metricpoints.health.HealthStatus.HealthStatus
 
+/**
+  * health status listener
+  */
+trait HealthStatusChangeListener {
 
-object HaystackSpanTimeSeriesTransformer extends MetricsSupport {
-
-  private var jmxReporter: JmxReporter = _
-
-  def main(args: Array[String]): Unit = {
-    startJmxReporter()
-    new StreamTopology(kafkaConfig).start()
-
-  }
-
-  private def startJmxReporter() = {
-    jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
-    jmxReporter.start()
-  }
+  /**
+    * called whenever there there is a state change in health
+    * @param status
+    */
+  def onChange(status: HealthStatus): Unit
 }

@@ -26,9 +26,11 @@ import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
   * @param consumeTopic       consumer topic
   * @param autoOffsetReset    auto offset reset policy
   * @param timestampExtractor timestamp extractor
+  * @param closeTimeoutInMs   timeout for closing kafka streams in ms
   */
 case class KafkaConfiguration(streamsConfig: StreamsConfig,
                               produceTopic: String,
                               consumeTopic: String,
                               autoOffsetReset: AutoOffsetReset,
-                              timestampExtractor: TimestampExtractor)
+                              timestampExtractor: TimestampExtractor,
+                              closeTimeoutInMs: Long)

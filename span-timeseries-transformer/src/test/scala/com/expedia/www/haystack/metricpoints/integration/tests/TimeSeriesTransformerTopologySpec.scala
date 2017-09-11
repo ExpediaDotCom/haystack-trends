@@ -46,10 +46,10 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val duration = 3
       val errorFlag = false
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
-      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor)
+      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
-      produceSpansAsync(10 millisecond, spans)
+      produceSpansAsync(10.millis, spans)
       new StreamTopology(kafkaConfig).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
