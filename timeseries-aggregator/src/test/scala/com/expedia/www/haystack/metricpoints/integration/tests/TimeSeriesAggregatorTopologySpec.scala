@@ -40,7 +40,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
   "TimeSeries Aggregator Topology" should {
     "consume metricPoints from input topic and aggregate them based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
-      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor)
+      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor,30000)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, metricName, 100)
