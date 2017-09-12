@@ -20,22 +20,35 @@ package com.expedia.www.haystack.metricpoints
 
 import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.metricpoints.config.ProjectConfiguration._
+import com.expedia.www.haystack.metricpoints.health.{HealthController, UpdateHealthStatusFile}
 import com.expedia.www.haystack.metricpoints.kstream.StreamTopology
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 
 
 object App extends MetricsSupport {
 
+  private var topology: StreamTopology = _
   private var jmxReporter: JmxReporter = _
 
   def main(args: Array[String]): Unit = {
-    startJmxReporter()
-    new StreamTopology(kafkaConfig).start()
+    HealthController.addListener(new UpdateHealthStatusFile(healthStatusFilePath))
 
+    startJmxReporter()
+    topology = new StreamTopology(kafkaConfig)
+    topology.start()
+
+    Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
   }
 
   private def startJmxReporter() = {
     jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
     jmxReporter.start()
+  }
+
+  private class ShutdownHookThread extends Thread {
+    override def run(): Unit = {
+      if(topology != null) topology.close()
+      if(jmxReporter != null) jmxReporter.close()
+    }
   }
 }
