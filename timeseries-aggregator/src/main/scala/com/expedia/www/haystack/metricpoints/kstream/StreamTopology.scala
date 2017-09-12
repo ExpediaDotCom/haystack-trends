@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory
 import scala.util.Try
 
 class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
-  with Thread.UncaughtExceptionHandler {
+  with Thread.UncaughtExceptionHandler with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
@@ -81,7 +81,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     * builds the topology and start kstreams
     */
   def start(): Unit = {
-    if(doesConsumerTopicExist()) {
+    if (doesConsumerTopicExist()) {
       streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
       streams.setStateListener(this)
       streams.setUncaughtExceptionHandler(this)
@@ -167,6 +167,14 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
 
   private class ShutdownHookThread extends Thread {
     override def run(): Unit = closeKafkaStreams()
+  }
+
+
+  def close(): Unit = {
+    if (running.getAndSet(false)) {
+      LOGGER.info("Closing the kafka streams.")
+      streams.close(kafkaConfig.closeTimeoutInMs, TimeUnit.MILLISECONDS)
+    }
   }
 
 }
