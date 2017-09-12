@@ -18,19 +18,24 @@
 
 package com.expedia.www.haystack.metricpoints.kstream
 
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.metricpoints.health.HealthController
 import com.expedia.www.haystack.metricpoints.kstream.processor.MetricAggProcessorSupplier
 import com.expedia.www.haystack.metricpoints.kstream.serde.WindowedMetricSerde
 import com.expedia.www.haystack.metricpoints.kstream.serde.metricpoint.MetricTankSerde
+import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KafkaStreams.StateListener
 import org.apache.kafka.streams.processor.TopologyBuilder
 import org.apache.kafka.streams.state.Stores
+import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.slf4j.LoggerFactory
+
+import scala.util.Try
 
 class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   with Thread.UncaughtExceptionHandler {
@@ -76,14 +81,20 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     * builds the topology and start kstreams
     */
   def start(): Unit = {
-    LOGGER.info("Starting the kafka stream topology.")
+    if(doesConsumerTopicExist()) {
+      streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
+      streams.setStateListener(this)
+      streams.setUncaughtExceptionHandler(this)
+      streams.cleanUp()
 
-    streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
-    streams.setStateListener(this)
-    streams.setUncaughtExceptionHandler(this)
-    streams.cleanUp()
-    streams.start()
-    running.set(true)
+      // set the status healthy before starting the stream
+      // Uncaught exception handler will set to unhealthy state if something goes wrong with stream
+      HealthController.setHealthy()
+      streams.start()
+      running.set(true)
+    } else {
+      HealthController.setUnhealthy()
+    }
   }
 
   private def topology(): TopologyBuilder = {
@@ -122,6 +133,28 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
 
     builder
   }
+
+  /**
+    * kafka streams assume the consumer topic should be created before starting the app
+    * see [http://docs.confluent.io/current/streams/developer-guide.html#user-topics]
+    */
+  private def doesConsumerTopicExist(): Boolean = {
+    var adminClient: AdminClient = null
+    try {
+      val properties = new Properties()
+      properties.put(
+        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.streamsConfig.getList(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
+      adminClient = AdminClient.create(properties)
+      // list all topics and see if it contains
+      adminClient.listTopics()
+        .names()
+        .get()
+        .contains(kafkaConfig.consumeTopic)
+    } finally {
+      Try(adminClient.close(5, TimeUnit.SECONDS))
+    }
+  }
+
 
   private def closeKafkaStreams(): Boolean = {
     if (running.getAndSet(false)) {
