@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ExpediaDotCom/haystack-trends.svg?branch=master)](https://travis-ci.org/ExpediaDotCom/haystack-trends)
+
 # Haystack Trends
 
 haystack-trends contains the required modules for trending the spans pushed to haystack. We currently plan to compute four trends for each 
