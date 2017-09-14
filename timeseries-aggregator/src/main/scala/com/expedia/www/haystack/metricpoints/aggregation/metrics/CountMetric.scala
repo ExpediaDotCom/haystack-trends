@@ -18,14 +18,17 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue}
+import com.expedia.www.haystack.metricpoints.kstream.serde.metric.{CountMetricSerde, MetricSerde}
 
 
-class CountMetric(interval: Interval) extends Metric(interval) {
+class CountMetric(interval: Interval, var currentCount: Long) extends Metric(interval) {
+
+  def this(interval: Interval) = this(interval, 0)
 
   var latestMetricPoint: Option[MetricPoint] = None
-  var currentCount: Long = 0
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
     latestMetricPoint match {
@@ -37,6 +40,11 @@ class CountMetric(interval: Interval) extends Metric(interval) {
     }
   }
 
+  def getCurrentCount: Long = {
+    currentCount
+  }
+
+
   override def compute(metricPoint: MetricPoint): CountMetric = {
     currentCount += metricPoint.value.toLong
     latestMetricPoint = Some(metricPoint)
@@ -45,5 +53,9 @@ class CountMetric(interval: Interval) extends Metric(interval) {
 }
 
 object CountMetricFactory extends MetricFactory {
-  override def createMetric(interval: Interval): Metric = new CountMetric(interval)
+  override def createMetric(interval: Interval): CountMetric = new CountMetric(interval)
+
+  override def getAggregationType: AggregationType = AggregationType.Count
+
+  override def getMetricSerde: MetricSerde = CountMetricSerde
 }

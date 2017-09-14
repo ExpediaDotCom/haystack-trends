@@ -18,9 +18,11 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.StatValue.StatValue
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.metricpoints.kstream.serde.metric.MetricSerde
 
 abstract class Metric(interval: Interval) {
 
@@ -44,6 +46,11 @@ object AggregationType extends Enumeration {
 }
 
 
+
 trait MetricFactory {
-  def createMetric(interval: Interval): Metric = ???
+  def createMetric(interval: Interval): Metric
+
+  def getAggregationType: AggregationType
+
+  def getMetricSerde: MetricSerde
 }

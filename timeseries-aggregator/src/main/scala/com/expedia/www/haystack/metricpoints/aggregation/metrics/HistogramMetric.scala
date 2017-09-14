@@ -18,15 +18,17 @@
 
 package com.expedia.www.haystack.metricpoints.aggregation.metrics
 
+import com.expedia.www.haystack.metricpoints.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, StatValue}
+import com.expedia.www.haystack.metricpoints.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 import org.HdrHistogram.IntHistogram
 
 
-class HistogramMetric(interval: Interval) extends Metric(interval) {
+class HistogramMetric(interval: Interval, histogram: IntHistogram) extends Metric(interval) {
 
+  def this(interval: Interval) = this(interval, new IntHistogram(Int.MaxValue, 0))
   var latestMetricPoint: Option[MetricPoint] = None
-  var histogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
     import StatValue._
@@ -49,6 +51,10 @@ class HistogramMetric(interval: Interval) extends Metric(interval) {
     }
   }
 
+  def getRunningHistogram: IntHistogram = {
+    histogram
+  }
+
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
     histogram.recordValue(metricPoint.value.toLong)
     latestMetricPoint = Some(metricPoint)
@@ -57,6 +63,11 @@ class HistogramMetric(interval: Interval) extends Metric(interval) {
 }
 
 
-object HistogramMetricFactory extends MetricFactory {
-  override def createMetric(interval: Interval): Metric = new HistogramMetric(interval)
+object HistogramMetricFactory extends MetricFactory{
+
+  override def createMetric(interval: Interval): HistogramMetric = new HistogramMetric(interval)
+
+  override def getAggregationType: AggregationType = AggregationType.Histogram
+
+  override def getMetricSerde: MetricSerde = HistogramMetricSerde
 }

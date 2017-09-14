@@ -113,7 +113,6 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       .withStringKeys
       .withValues(WindowedMetricSerde)
       .inMemory()
-      .disableLogging()
       .build()
 
     builder.addProcessor(

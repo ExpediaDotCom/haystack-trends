@@ -23,7 +23,6 @@ import com.expedia.www.haystack.metricpoints.aggregation.metrics.{HistogramMetri
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
-import com.expedia.www.haystack.metricpoints.kstream.serde.metric.HistogramMetricSerde
 
 class WindowedMetricSpec extends FeatureSpec {
 
@@ -51,7 +50,7 @@ class WindowedMetricSpec extends FeatureSpec {
       val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Histogram")
-      val windowedMetric: WindowedMetric = new WindowedMetric(intervals, metricPoints.head, HistogramMetricFactory, HistogramMetricSerde)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
 
 
       metricPoints.indices.foreach(i => if (i > 0) {
@@ -97,7 +96,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
 
       When("creating a WindowedMetric and passing some MetricPoints")
-      val windowedMetric: WindowedMetric = new WindowedMetric(intervals, metricPoints.head, HistogramMetricFactory, HistogramMetricSerde)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
 
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
