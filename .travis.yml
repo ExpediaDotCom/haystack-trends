@@ -16,3 +16,7 @@ script:
   # build, create docker image
   # upload to dockerhub only for master(non PR) and tag scenario
   - if ([ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]) || [ -n "$TRAVIS_TAG" ];  then cd "$SUB_PROJECT" && make release; else cd "$SUB_PROJECT" && make all; fi
+
+notifications:
+  email:
+    - haystack-notifications@expedia.com
