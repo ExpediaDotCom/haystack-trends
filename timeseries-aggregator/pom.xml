@@ -44,7 +44,6 @@
 
         <pegdown.version>1.6.0</pegdown.version>
         <scalatest.version>3.0.3</scalatest.version>
-        <json4s.version>3.5.3</json4s.version>
         <slf4j.version>1.7.25</slf4j.version>
         <msgpack.version>0.8.13</msgpack.version>
         <kafka.version>0.11.0.0</kafka.version>
@@ -116,16 +115,6 @@
             <version>${scala-library.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-jackson_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-ext_${scala.major.minor.version}</artifactId>
-            <version>${json4s.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.msgpack</groupId>

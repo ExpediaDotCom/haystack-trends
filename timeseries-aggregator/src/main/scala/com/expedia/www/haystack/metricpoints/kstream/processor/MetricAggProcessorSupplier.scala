@@ -4,7 +4,6 @@ import com.expedia.www.haystack.metricpoints.aggregation.WindowedMetric
 import com.expedia.www.haystack.metricpoints.aggregation.metrics._
 import com.expedia.www.haystack.metricpoints.aggregation.rules.MetricRuleEngine
 import com.expedia.www.haystack.metricpoints.entities.{Interval, MetricPoint}
-import com.expedia.www.haystack.metricpoints.kstream.serde.metric.{CountMetricSerde, HistogramMetricSerde}
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore
@@ -67,8 +66,8 @@ class MetricAggProcessorSupplier(windowedMetricStoreName: String) extends KStrea
 
     private def createWindowedMetric(value: MetricPoint): Option[WindowedMetric] = {
       findMatchingMetric(value).map {
-        case AggregationType.Histogram => new WindowedMetric(Interval.all, value, HistogramMetricFactory, HistogramMetricSerde)
-        case AggregationType.Count => new WindowedMetric(Interval.all, value, CountMetricFactory, CountMetricSerde)
+        case AggregationType.Histogram => WindowedMetric.createWindowedMetric(Interval.all, value, HistogramMetricFactory)
+        case AggregationType.Count => WindowedMetric.createWindowedMetric(Interval.all, value, CountMetricFactory)
       }
 
 

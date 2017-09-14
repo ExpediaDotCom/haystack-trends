@@ -22,24 +22,21 @@ import com.codahale.metrics.Meter
 import com.expedia.www.haystack.metricpoints.aggregation.metrics.{Metric, MetricFactory}
 import com.expedia.www.haystack.metricpoints.entities.Interval.Interval
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, TimeWindow}
-import com.expedia.www.haystack.metricpoints.kstream.serde.metric.MetricSerde
 import com.expedia.www.haystack.metricpoints.metrics.MetricsSupport
 
-import scala.collection.mutable
+class WindowedMetric private (var windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory) extends MetricsSupport {
 
-class WindowedMetric(private val intervals: List[Interval], firstMetricPoint: MetricPoint, metricFactory: MetricFactory, metricSerde: MetricSerde) extends MetricsSupport {
-
-
-  val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
+  private val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
 
   //Todo: Have to add support for watermarking
-  val numberOfWatermarkedWindows = 1
+  private val numberOfWatermarkedWindows = 1
 
-  val computedMetrics: mutable.Map[Long, Metric] = mutable.Map[Long, Metric]()
+  private var computedMetrics: Map[Long, Metric] = Map[Long, Metric]()
 
-  val windowedMetricsMap: mutable.Map[TimeWindow, Metric] = createMetricsForEachInterval(firstMetricPoint)
 
-  compute(firstMetricPoint)
+  def getMetricFactory: MetricFactory = {
+    metricFactory
+  }
 
 
   def compute(incomingMetricPoint: MetricPoint): Unit = {
@@ -62,8 +59,8 @@ class WindowedMetric(private val intervals: List[Interval], firstMetricPoint: Me
 
       // belongs to next window, lets flush this one to computedMetrics and create a new window
       case number if number < 0 =>
-        windowedMetricsMap.remove(currentTimeWindow)
-        windowedMetricsMap.put(incomingMetricPointTimeWindow, metricFactory.createMetric(currentMetric.getMetricInterval))
+        windowedMetricsMap -= currentTimeWindow
+        windowedMetricsMap += (incomingMetricPointTimeWindow -> metricFactory.createMetric(currentMetric.getMetricInterval))
         computedMetrics += currentTimeWindow.endTime -> currentMetric
 
       // window already closed and we don't support water marking yet
@@ -75,18 +72,25 @@ class WindowedMetric(private val intervals: List[Interval], firstMetricPoint: Me
     val metricPoint = computedMetrics.toList.flatMap(metric => {
       metric._2.mapToMetricPoints(metric._1)
     })
-    computedMetrics.clear()
+    computedMetrics = Map()
     metricPoint
   }
+}
 
-
-  private def createMetricsForEachInterval(metricPoint: MetricPoint): mutable.Map[TimeWindow, Metric] = {
-    val metrics = mutable.Map[TimeWindow, Metric]()
-    intervals.foreach(interval => {
-      metrics.put(TimeWindow.apply(metricPoint.epochTimeInSeconds, interval), metricFactory.createMetric(interval))
-    })
-    metrics
+object WindowedMetric {
+  def createWindowedMetric(intervals: List[Interval], firstMetricPoint: MetricPoint, metricFactory: MetricFactory): WindowedMetric = {
+    val metricsMap = createMetricsForEachInterval(intervals,firstMetricPoint,metricFactory)
+    new WindowedMetric(metricsMap,metricFactory)
   }
 
+  def restoreMetric(windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory): WindowedMetric = {
+    new WindowedMetric(windowedMetricsMap,metricFactory)
+  }
 
+  private def createMetricsForEachInterval(intervals: List[Interval],metricPoint: MetricPoint, metricFactory: MetricFactory): Map[TimeWindow, Metric] = {
+
+    intervals.map(interval => {
+    TimeWindow.apply(metricPoint.epochTimeInSeconds, interval) -> metricFactory.createMetric(interval)
+    }).toMap
+  }
 }
