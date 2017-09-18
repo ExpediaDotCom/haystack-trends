@@ -5,7 +5,7 @@
 
 set -e
 JAVA_OPTS="${JAVA_OPTS} \
--javaagent:${APP_HOME}/${JMXTRANS_AGENT}.jar=classpath:jmxtrans-agent.xml \
+-javaagent:${APP_HOME}/${JMXTRANS_AGENT}.jar=${APP_HOME}/jmxtrans-agent.xml \
 -XX:+UseConcMarkSweepGC \
 -XX:+UseParNewGC \
 -Xmx${JAVA_XMX} \
