@@ -39,7 +39,7 @@ object ConfigurationLoader {
       case _ => loadFromEnvVars().withFallback(baseConfig)
     }
   }
-  private val ENV_NAME_PREFIX = "HAYSTACK_"
+  private val ENV_NAME_PREFIX = "HAYSTACK_PROP_"
 
   /**
     * @return new config object with haystack specific environment variables
