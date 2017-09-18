@@ -47,14 +47,12 @@ trait MetricPointGenerator {
     * @return Try object which should return either the span as is or a validation exception
     */
   private def validate(span: Span): Try[Span] = {
-    if (span.getProcess.getServiceName.isEmpty || span.getOperationName.isEmpty) {
+    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       Failure(new SpanValidationException)
     } else {
       Success(span)
     }
   }
-
-
 }
 
 

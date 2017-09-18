@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Process, Span, Tag}
+import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.metricpoints.entities.TagKeys
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 import com.expedia.www.haystack.metricpoints.transformer.SpanReceivedMetricPointTransformer
@@ -31,11 +31,10 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(duration)
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
@@ -57,11 +56,10 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(duration)
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(true))
         .build()
 
