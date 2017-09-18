@@ -38,8 +38,9 @@ trait MetricPointTransformer {
     * @return metric tags in the form of Map of string,string
     */
   protected def createCommonMetricTags(span: Span): Map[String, String] = {
-    Map(TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getProcess.getServiceName)
+    Map(
+      TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
+      TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
   }
 }
 

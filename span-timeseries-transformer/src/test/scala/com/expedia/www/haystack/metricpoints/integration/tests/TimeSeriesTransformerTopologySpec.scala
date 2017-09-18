@@ -19,7 +19,7 @@ package com.expedia.www.haystack.metricpoints.integration.tests
 
 import java.util.UUID
 
-import com.expedia.open.tracing.{Process, Span}
+import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.metricpoints.entities.{MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.metricpoints.integration.IntegrationTestSpec
@@ -97,7 +97,6 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
     for (i <- 1 to spanCount) yield {
       currentTime = currentTime + i * spanIntervalInMs
 
-      val process = Process.newBuilder().setServiceName("some-service")
       val span = Span.newBuilder()
         .setTraceId(traceId)
         .setParentSpanId(UUID.randomUUID().toString)
@@ -105,7 +104,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
         .setOperationName("some-op")
         .setStartTime(currentTime)
         .setDuration(duration)
-        .setProcess(process)
+        .setServiceName("some-service")
         .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("some-error"))
         .build()
       span

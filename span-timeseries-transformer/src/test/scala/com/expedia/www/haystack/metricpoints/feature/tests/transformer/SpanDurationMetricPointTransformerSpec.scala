@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Process, Span}
+import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.metricpoints.feature.FeatureSpec
 import com.expedia.www.haystack.metricpoints.transformer.SpanDurationMetricPointTransformer
 
@@ -30,11 +30,10 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       val operationName = "testSpan"
       val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(duration)
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .build()
 
       When("metricPoint is created using transformer")

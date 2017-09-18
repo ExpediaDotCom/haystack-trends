@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.metricpoints.feature.tests.transformer
 
-import com.expedia.open.tracing.{Process, Span, Tag}
+import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.metricpoints.MetricPointGenerator
 import com.expedia.www.haystack.metricpoints.entities.exceptions.SpanValidationException
 import com.expedia.www.haystack.metricpoints.entities.{MetricType, TagKeys}
@@ -39,11 +39,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val operationName = "testSpan"
       val serviceName = "testService"
       Given("a valid span")
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
@@ -77,11 +76,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val operationName = ""
       val serviceName = ""
       Given("an invalid span")
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
@@ -99,11 +97,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val serviceName = "testService"
 
       Given("a valid span")
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
@@ -122,11 +119,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val serviceName = "testService"
 
       Given("a valid span")
-      val process = Process.newBuilder().setServiceName(serviceName)
       val span = Span.newBuilder()
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
-        .setProcess(process)
+        .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
 
