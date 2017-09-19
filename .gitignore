@@ -9,5 +9,3 @@ logs/
 **/.idea/
 /timeseries-aggregator/haystack-timeseries-aggregator.iml
 span-timeseries-transformer/haystack-span-timeseries-transformer.iml
-/commons/haystack-trends-commons.iml
-/commons/commons.iml
