@@ -24,12 +24,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.expedia.www</groupId>
     <artifactId>haystack-span-timeseries-transformer</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>haystack-span-timeseries-transformer</name>
     <description>scala module which creates timeseries metricpoints for spans</description>
+
+    <parent>
+        <groupId>com.expedia.www</groupId>
+        <artifactId>haystack-trends</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
     <licenses>
         <license>
@@ -39,171 +44,21 @@
     </licenses>
 
     <properties>
-
-        <!--Dependency Properties -->
-
-        <pegdown.version>1.6.0</pegdown.version>
-        <scalatest.version>3.0.3</scalatest.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <kafka.version>0.11.0.0</kafka.version>
-        <junit.version>4.12</junit.version>
-        <typesafe-config.version>1.3.1</typesafe-config.version>
-        <logback.version>1.2.3</logback.version>
-        <metrics-core.version>3.0.2</metrics-core.version>
-        <protobuf.version>3.3.1</protobuf.version>
-        <protobuf-maven-plugin.version>3.3.0.1</protobuf-maven-plugin.version>
-        <msgpack.version>0.8.13</msgpack.version>
-
-        <!--Compiler Properties -->
-        <project.jdk.version>1.8</project.jdk.version>
-        <scala.major.version>2</scala.major.version>
-        <scala.minor.version>12</scala.minor.version>
-        <scala.maintenance.version>2</scala.maintenance.version>
-        <scala.major.minor.version>${scala.major.version}.${scala.minor.version}</scala.major.minor.version>
-        <scala-library.version>${scala.major.minor.version}.${scala.maintenance.version}</scala-library.version>
-
-        <!--Plugin Properties -->
-        <maven-scala-plugin.version>3.2.1</maven-scala-plugin.version>
-        <maven-scalatest-plugin.version>1.0</maven-scalatest-plugin.version>
-        <maven.scalatest.debug>false</maven.scalatest.debug>
-        <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
-        <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
-        <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
-        <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
-        <maven-enforcer-plugin.version>1.0</maven-enforcer-plugin.version>
-        <maven-scalastyle-plugin.version>0.9.0</maven-scalastyle-plugin.version>
-        <mainClass>com.expedia.www.haystack.metricpoints.App</mainClass>
-
+        <mainClass>com.expedia.www.haystack.trends.App</mainClass>
+        <testClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</testClasses>
     </properties>
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala-library.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
-            <version>${typesafe-config.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${metrics-core.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams</artifactId>
-            <version>${kafka.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-            <version>${scala-library.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.msgpack</groupId>
-            <artifactId>msgpack-core</artifactId>
-            <version>${msgpack.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
-
-        <!-- test dependencies -->
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams</artifactId>
-            <version>${kafka.version}</version>
-            <classifier>test</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka.version}</version>
-            <classifier>test</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_${scala.major.minor.version}</artifactId>
-            <version>${kafka.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_${scala.major.minor.version}</artifactId>
-            <version>${kafka.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-            </exclusions>
-            <classifier>test</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.major.minor.version}</artifactId>
-            <version>${scalatest.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
-        <!-- required by scalatest-maven-plugin to generate HTML report -->
-
-        <dependency>
-            <groupId>org.pegdown</groupId>
-            <artifactId>pegdown</artifactId>
-            <version>${pegdown.version}</version>
-            <scope>test</scope>
+            <groupId>com.expedia.www</groupId>
+            <artifactId>haystack-trends-commons</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
@@ -221,169 +76,26 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>${maven-shade-plugin.version}</version>
-                <configuration>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <filters>
-                        <filter>
-                            <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>META-INF/*.SF</exclude>
-                                <exclude>META-INF/*.DSA</exclude>
-                                <exclude>META-INF/*.RSA</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>${mainClass}</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
-
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <archive>
-                        <index>true</index>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                        </manifest>
-                        <manifestEntries>
-                            <Application-Name>${project.name}</Application-Name>
-                            <Application-Version>${project.version}</Application-Version>
-                            <Implementation-Title>${project.name}</Implementation-Title>
-                            <Implementation-Vendor>Expedia</Implementation-Vendor>
-                            <Build-Jdk>${java.version}</Build-Jdk>
-                            <Build-Time>${maven.build.timestamp}</Build-Time>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>com.github.os72</groupId>
                 <artifactId>protoc-jar-maven-plugin</artifactId>
-                <version>${protobuf-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <includeDirectories>
-                                <include>${project.basedir}/../haystack-idl/proto</include>
-                            </includeDirectories>
-                            <inputDirectories>
-                                <include>${project.basedir}/../haystack-idl/proto</include>
-                            </inputDirectories>
-                            <outputDirectory>${project.basedir}/target/generated-sources</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${project.jdk.version}</source>
-                    <target>${project.jdk.version}</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-                <version>${maven-compiler-plugin.version}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.scalastyle</groupId>
-                <artifactId>scalastyle-maven-plugin</artifactId>
-                <version>${maven-scalastyle-plugin.version}</version>
-                <configuration>
-                    <verbose>false</verbose>
-                    <failOnViolation>true</failOnViolation>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <failOnWarning>false</failOnWarning>
-                    <sourceDirectory>${project.basedir}/src/main/scala</sourceDirectory>
-                    <testSourceDirectory>${project.basedir}/src/test/scala</testSourceDirectory>
-                    <configLocation>${project.basedir}/build/checkstyles/scalastyle_config.xml</configLocation>
-                    <outputFile>${project.basedir}/scalastyle-output.xml</outputFile>
-                    <outputEncoding>UTF-8</outputEncoding>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>compile-scalastyle</id>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
-                <version>${maven-scalatest-plugin.version}</version>
-                <configuration>
-                    <junitxml>.</junitxml>
-                    <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
-                    <filereports>TestSuite.txt</filereports>
-                    <testFailureIgnore>false</testFailureIgnore>
-                    <wildcardSuites>com.expedia.www.haystack.metricpoints.feature.tests,com.expedia.www.haystack.metricpoints.unit.tests</wildcardSuites>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>test</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <reportsDirectory>${project.build.directory}/scalatest/reports</reportsDirectory>
-                            <htmlreporters>${project.build.directory}/scalatest/html</htmlreporters>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
-
-
             <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>${maven-scala-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.scalastyle</groupId>
+                <artifactId>scalastyle-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
     </build>
 
@@ -399,7 +111,7 @@
                         <groupId>org.scalatest</groupId>
                         <artifactId>scalatest-maven-plugin</artifactId>
                         <configuration>
-                            <wildcardSuites>com.expedia.www.haystack.metricpoints.integration.tests</wildcardSuites>
+                            <wildcardSuites>com.expedia.www.haystack.trends.integration.tests</wildcardSuites>
                         </configuration>
                     </plugin>
                 </plugins>
