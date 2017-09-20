@@ -311,7 +311,7 @@
                 <plugin>
                     <groupId>com.github.os72</groupId>
                     <artifactId>protoc-jar-maven-plugin</artifactId>
-                    <version>${protobuf-maven-plugin.version}</version>
+                    <version>${maven-protobuf-plugin.version}</version>
                     <executions>
                         <execution>
                             <phase>generate-sources</phase>
