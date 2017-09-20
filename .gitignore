@@ -7,4 +7,4 @@ target/
 lib/
 logs/
 **/.idea/
-**/*.iml
+*.iml

@@ -57,7 +57,6 @@
         <logback.version>1.2.3</logback.version>
         <metrics-core.version>3.0.2</metrics-core.version>
         <protobuf.version>3.3.1</protobuf.version>
-        <protobuf-maven-plugin.version>3.3.0.1</protobuf-maven-plugin.version>
         <msgpack.version>0.8.13</msgpack.version>
         <hdrhistogram.version>1.2.1</hdrhistogram.version>
 
@@ -71,19 +70,21 @@
         <scala-library.version>${scala.major.minor.version}.${scala.maintenance.version}</scala-library.version>
 
         <!--Plugin Properties -->
+        <maven-protobuf-plugin.version>3.3.0.1</maven-protobuf-plugin.version>
         <maven-scala-plugin.version>3.2.1</maven-scala-plugin.version>
         <maven-scalatest-plugin.version>1.0</maven-scalatest-plugin.version>
         <maven.scalatest.debug>false</maven.scalatest.debug>
         <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
         <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
         <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
-        <maven-jar-plugin.version>2.2</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
         <maven-enforcer-plugin.version>1.0</maven-enforcer-plugin.version>
         <scalastyle.config.location>${project.basedir}/../build/scalastyle_config.xml</scalastyle.config.location>
         <maven-scalastyle-plugin.version>0.9.0</maven-scalastyle-plugin.version>
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
 
     </properties>
+
 
     <dependencies>
         <!-- test dependencies -->
@@ -155,8 +156,11 @@
         </dependency>
 
     </dependencies>
+
     <dependencyManagement>
+
         <dependencies>
+
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
@@ -189,7 +193,6 @@
                 <version>${kafka.version}</version>
             </dependency>
 
-
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
@@ -214,8 +217,11 @@
                 <artifactId>protobuf-java</artifactId>
                 <version>${protobuf.version}</version>
             </dependency>
+
         </dependencies>
+
     </dependencyManagement>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -283,7 +289,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.0.2</version>
+                    <version>${maven-jar-plugin.version}</version>
                     <configuration>
                         <archive>
                             <index>true</index>
