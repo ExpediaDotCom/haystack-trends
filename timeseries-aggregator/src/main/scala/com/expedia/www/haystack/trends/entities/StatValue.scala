@@ -1,5 +1,8 @@
 package com.expedia.www.haystack.trends.entities
 
+/**
+  * This enumeration contains all the supported statistics we want to emit for a given histogram metric
+  */
 object StatValue extends Enumeration {
   type StatValue = Value
 

@@ -41,6 +41,13 @@ class MetricAggProcessorSupplier(windowedMetricStoreName: String) extends KStrea
 
   }
 
+  /**
+    * This is the Processor which contains the map of unique trends consumed from the assigned partition and the corresponding windowed metric for each trend
+    * Each trend is uniquely identified by the metricPoint key - which is a combination of the name and the list of tags. Its backed by a state store which keeps this map and has the
+    * ability to restore the map if/when the app restarts or when the assigned kafka partitions change
+    *
+    * @param windowedMetricStoreName - name of the key-value state store
+    */
   private class MetricAggProcessor(windowedMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
     private var windowedMetricStore: KeyValueStore[String, WindowedMetric] = _
 
@@ -52,13 +59,27 @@ class MetricAggProcessorSupplier(windowedMetricStoreName: String) extends KStrea
     }
 
 
+    /**
+      * tries to fetch the windowed metric based on the key, if it exists it updates the windowed metric else it tries to create a new windowed metric and adds it to the store      *
+      *
+      * @param key   - key in the kafka record - should be metricPoint.getKey
+      * @param value - metricPoint
+      */
     def process(key: String, value: MetricPoint): Unit = {
       if (key == null) return
       // first get the matching windows
 
       Option(windowedMetricStore.get(key)).orElse(createWindowedMetric(value)).foreach(windowedMetric => {
         windowedMetric.compute(value)
+
+        /*
+         we finally put the updated windowed metric back to the store since we want the changelog the state store with the latest state of the windowed metric, if we don't put the metric
+         back and update the mutable metric, the kstreams would not capture the change and app wouldn't be able to restore to the same state when the app comes back again.
+         */
         windowedMetricStore.put(key, windowedMetric)
+
+
+        //retrieve the computed metrics and push it to the kafka topic.
         windowedMetric.getComputedMetricPoints.foreach(metricPoint => {
           context().forward(metricPoint.metric, metricPoint)
         })

@@ -25,6 +25,11 @@ import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerd
 import org.HdrHistogram.IntHistogram
 
 
+/**
+  * This is a base metric which can compute the histogram of the given events. It uses  hdr histogram(https://github.com/HdrHistogram/HdrHistogram) internally to compute the histogram
+  * @param interval : interval for the metric
+  * @param histogram : current histogram, the current histogram should be a new histogram object for a new metric but can be passed when we want to restore a given metric after the application crashed
+  */
 class HistogramMetric(interval: Interval, histogram: IntHistogram) extends Metric(interval) {
 
   def this(interval: Interval) = this(interval, new IntHistogram(Int.MaxValue, 0))

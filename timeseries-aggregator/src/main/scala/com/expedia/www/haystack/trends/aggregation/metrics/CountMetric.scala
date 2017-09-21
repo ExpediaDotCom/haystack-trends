@@ -24,6 +24,11 @@ import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType
 import com.expedia.www.haystack.trends.entities.StatValue
 import com.expedia.www.haystack.trends.kstream.serde.metric.{CountMetricSerde, MetricSerde}
 
+/**
+  * This is a base metric which can compute the count of the given events
+  * @param interval : interval for the metric
+  * @param currentCount : current count, the current count should be 0 for a new metric but can be passed when we want to restore a given metric after the application crashed
+  */
 
 class CountMetric(interval: Interval, var currentCount: Long) extends Metric(interval) {
 

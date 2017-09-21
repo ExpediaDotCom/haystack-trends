@@ -33,7 +33,7 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
       override def close(): Unit = ()
 
       /**
-        * converts the json bytes into windowedMetric object
+        * converts the messagepack encoded bytes into windowedMetric object
         *
         * @param data serialized bytes of windowedMetric
         * @return

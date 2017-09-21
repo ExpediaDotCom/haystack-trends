@@ -22,6 +22,9 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 
+/**
+  * This Rule applies a Count aggregation type when the incoming metric point's name is received-span and is of type gauge
+  */
 trait TotalMetricRule extends MetricRule {
   override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
     if (metricPoint.metric.toLowerCase.contains("received-span") && metricPoint.`type`.equals(MetricType.Gauge)) {

@@ -22,6 +22,9 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 
+/**
+  * This Rule applies a Histogram aggregation type when the incoming metric point's name is duration and is of type gauge
+  */
 trait DurationMetricRule extends MetricRule {
   override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
     if (metricPoint.metric.toLowerCase.contains("duration") && metricPoint.`type`.equals(MetricType.Gauge)) {

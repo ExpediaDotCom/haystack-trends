@@ -26,12 +26,23 @@ import com.expedia.www.haystack.trends.kstream.serde.metric.MetricSerde
 
 abstract class Metric(interval: Interval) {
 
+  /**
+    * function to compute the incoming metric-point
+    * @param value - incoming metric point
+    * @return : returns the metric (in most cases it should return the same object(this) but returning a metric gives the metric implementation class to create an immutable metric)
+    */
   def compute(value: MetricPoint): Metric
 
   def getMetricInterval: Interval = {
     interval
   }
 
+
+  /**
+    * This function returns the metric points which contains the current snapshot of the metric
+    * @param publishingTimestamp : timestamp in seconds which the consumer wants to be used as the timestamps of these published metricpoints
+    * @return list of published metricpoints
+    */
   def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint]
 
   protected def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
@@ -40,6 +51,9 @@ abstract class Metric(interval: Interval) {
 
 }
 
+/**
+  * The enum contains the support aggregation type, which is currently count and histogram
+  */
 object AggregationType extends Enumeration {
   type AggregationType = Value
   val Count, Histogram = Value
@@ -47,6 +61,9 @@ object AggregationType extends Enumeration {
 
 
 
+/**
+  * This trait is supposed to be created by every metric class which lets them create the metric when ever required
+  */
 trait MetricFactory {
   def createMetric(interval: Interval): Metric
 
