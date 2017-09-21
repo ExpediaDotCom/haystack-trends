@@ -21,6 +21,13 @@ package com.expedia.www.haystack.trends.aggregation.rules
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 
+
+/**
+  * This Metric Rule engine applies all the metric rules it extends from right to left(http://jim-mcbeath.blogspot.in/2009/08/scala-class-linearization.html).
+  * it returns None if none of the rules are applicable.
+  * to add another rule, create a rule trait and add it to the with clause in the engine.
+  * If multiple rules match the rightmost rule is applied
+  */
 trait MetricRuleEngine extends DurationMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
 
   def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {

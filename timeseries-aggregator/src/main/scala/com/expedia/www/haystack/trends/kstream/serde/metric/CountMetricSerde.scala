@@ -8,6 +8,10 @@ import org.msgpack.value.{Value, ValueFactory}
 
 import scala.collection.JavaConverters._
 
+/**
+  * Serde which lets us serialize and deserilize the count metric, this is used when we serialize/deserialize the windowedMetric which can internally contain count or histogram metric
+  * It uses messagepack to pack the object into bytes
+  */
 object CountMetricSerde extends MetricSerde {
 
   private val currentCountKey = "currentCount"

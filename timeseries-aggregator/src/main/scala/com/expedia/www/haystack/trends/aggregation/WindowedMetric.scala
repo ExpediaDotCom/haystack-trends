@@ -25,7 +25,14 @@ import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities.TimeWindow
 
-class WindowedMetric private (var windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory) extends MetricsSupport {
+/**
+  * This class contains a metric for each time window being computed for a single trend. The number of time windows at any moment is = no. of intervals
+  * if incoming metric point lies within the timewindow the metric is updated
+  *
+  * @param windowedMetricsMap : map containing timewindows and metrics - generally useful when we want to restore the metric state
+  * @param metricFactory      factory which is used to create new metrics when requried.
+  */
+class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory) extends MetricsSupport {
 
   private val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
 
@@ -39,7 +46,12 @@ class WindowedMetric private (var windowedMetricsMap: Map[TimeWindow, Metric], m
     metricFactory
   }
 
-
+  /**
+    * function to compute the incoming metric point
+    * it updates all the metrics for the windows within which the incoming metric point lies.
+    *
+    * @param incomingMetricPoint - incoming metric point
+    */
   def compute(incomingMetricPoint: MetricPoint): Unit = {
     windowedMetricsMap.foreach(metricTimeWindowTuple => {
       val currentTimeWindow = metricTimeWindowTuple._1
@@ -70,28 +82,31 @@ class WindowedMetric private (var windowedMetricsMap: Map[TimeWindow, Metric], m
   }
 
   def getComputedMetricPoints: List[MetricPoint] = {
-    val metricPoint = computedMetrics.toList.flatMap(metric => {
-      metric._2.mapToMetricPoints(metric._1)
-    })
+    val metricPoints = computedMetrics.toList.flatMap {
+      case (publishTime, metric) => metric.mapToMetricPoints(publishTime)
+    }
     computedMetrics = Map()
-    metricPoint
+    metricPoints
   }
 }
 
+/**
+  * Windowed metric factory which can create a new windowed metric or restore an existing windowed metric
+  */
 object WindowedMetric {
   def createWindowedMetric(intervals: List[Interval], firstMetricPoint: MetricPoint, metricFactory: MetricFactory): WindowedMetric = {
-    val metricsMap = createMetricsForEachInterval(intervals,firstMetricPoint,metricFactory)
-    new WindowedMetric(metricsMap,metricFactory)
+    val metricsMap = createMetricsForEachInterval(intervals, firstMetricPoint, metricFactory)
+    new WindowedMetric(metricsMap, metricFactory)
   }
 
   def restoreMetric(windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory): WindowedMetric = {
-    new WindowedMetric(windowedMetricsMap,metricFactory)
+    new WindowedMetric(windowedMetricsMap, metricFactory)
   }
 
-  private def createMetricsForEachInterval(intervals: List[Interval],metricPoint: MetricPoint, metricFactory: MetricFactory): Map[TimeWindow, Metric] = {
+  private def createMetricsForEachInterval(intervals: List[Interval], metricPoint: MetricPoint, metricFactory: MetricFactory): Map[TimeWindow, Metric] = {
 
     intervals.map(interval => {
-    TimeWindow.apply(metricPoint.epochTimeInSeconds, interval) -> metricFactory.createMetric(interval)
+      TimeWindow.apply(metricPoint.epochTimeInSeconds, interval) -> metricFactory.createMetric(interval)
     }).toMap
   }
 }
