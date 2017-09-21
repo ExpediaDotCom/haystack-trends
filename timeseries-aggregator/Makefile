@@ -4,7 +4,7 @@ export DOCKER_ORG := expediadotcom
 export DOCKER_IMAGE_NAME := haystack-timeseries-aggregator
 
 docker_build:
-	docker build -t $(DOCKER_IMAGE_NAME) -f build/docker/Dockerfile .
+	docker build -t $(DOCKER_IMAGE_NAME) .
 
 integration_test:
 	mvn test -P integration-tests
