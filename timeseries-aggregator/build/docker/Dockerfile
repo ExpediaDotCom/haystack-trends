@@ -9,6 +9,8 @@ RUN mkdir -p ${APP_HOME}
 
 COPY target/${APP_NAME}.jar ${APP_HOME}/
 COPY build/docker/start-app.sh ${APP_HOME}/
+COPY build/docker/jmxtrans-agent.xml ${APP_HOME}/
+
 ADD https://github.com/jmxtrans/jmxtrans-agent/releases/download/${JMXTRANS_AGENT}/${JMXTRANS_AGENT}.jar ${APP_HOME}/
 
 WORKDIR ${APP_HOME}
