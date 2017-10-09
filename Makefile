@@ -8,15 +8,19 @@ clean:
 build: clean
 	mvn install package
 
-all: clean span-timeseries-transformer timeseries-aggregator
+all: clean  span-timeseries-transformer timeseries-aggregator  report-coverage
+
+
+report-coverage:
+	mvn scoverage:report-only
+
 
 span-timeseries-transformer:
-	mvn package -pl span-timeseries-transformer -am
-	cd span-timeseries-transformer && $(MAKE) integration_test
+	mvn scoverage:integration-check -pl span-timeseries-transformer -am
+
 
 timeseries-aggregator:
-	mvn package -pl timeseries-aggregator -am
-	cd timeseries-aggregator && $(MAKE) integration_test
+	mvn scoverage:integration-check -pl timeseries-aggregator -am
 
 # build all and release
 release: all

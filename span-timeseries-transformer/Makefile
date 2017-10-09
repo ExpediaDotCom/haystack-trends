@@ -7,7 +7,7 @@ docker_build:
 	docker build -t $(DOCKER_IMAGE_NAME) -f build/docker/Dockerfile .
 
 integration_test:
-	mvn test -P integration-tests
+	mvn scoverage:integration-check -pl span-timeseries-transformer -am
 
 # build jar, docker image and run integration tests
 all: docker_build integration_test

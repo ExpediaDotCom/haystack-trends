@@ -81,6 +81,7 @@
         <maven-enforcer-plugin.version>1.0</maven-enforcer-plugin.version>
         <scalastyle.config.location>${project.basedir}/../scalastyle/scalastyle_config.xml</scalastyle.config.location>
         <maven-scalastyle-plugin.version>0.9.0</maven-scalastyle-plugin.version>
+        <scoverage.plugin.version>1.3.0</scoverage.plugin.version>
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
 
     </properties>
@@ -223,6 +224,13 @@
     </dependencyManagement>
 
     <build>
+        <sourceDirectory>${basedir}/src/main/scala</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -264,23 +272,33 @@
                     <groupId>org.scalatest</groupId>
                     <artifactId>scalatest-maven-plugin</artifactId>
                     <version>${maven-scalatest-plugin.version}</version>
-                    <configuration>
-                        <junitxml>.</junitxml>
-                        <debugForkedProcess>${maven.scalatest.debug}</debugForkedProcess>
-                        <filereports>TestSuite.txt</filereports>
-                        <testFailureIgnore>false</testFailureIgnore>
-                        <wildcardSuites>${testClasses}</wildcardSuites>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>test</id>
-                            <phase>test</phase>
                             <goals>
                                 <goal>test</goal>
                             </goals>
                             <configuration>
-                                <reportsDirectory>${project.build.directory}/scalatest/reports</reportsDirectory>
-                                <htmlreporters>${project.build.directory}/scalatest/html</htmlreporters>
+                                <environmentVariables>
+                                    <HAYSTACK_PROP_KAFKA_CONSUMER_AUTO_OFFSET_RESET>earliest
+                                    </HAYSTACK_PROP_KAFKA_CONSUMER_AUTO_OFFSET_RESET>
+                                    <HAYSTACK_PROP_CASSANDRA_CONNECTIONS_MAX_PER_HOST>100
+                                    </HAYSTACK_PROP_CASSANDRA_CONNECTIONS_MAX_PER_HOST>
+                                    <HAYSTACK_PROP_CASSANDRA_ENDPOINTS>cass1,cass2</HAYSTACK_PROP_CASSANDRA_ENDPOINTS>
+                                    <HAYSTACK_PROP_ELASTICSEARCH_INDEX_NAME_PREFIX>haystack-test
+                                    </HAYSTACK_PROP_ELASTICSEARCH_INDEX_NAME_PREFIX>
+                                </environmentVariables>
+                                <wildcardSuites>${featureTestClasses}</wildcardSuites>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>integration-test</id>
+                            <phase>integration-test</phase>
+                            <goals>
+                                <goal>test</goal>
+                            </goals>
+                            <configuration>
+                                <wildcardSuites>${integrationTestClasses}</wildcardSuites>
                             </configuration>
                         </execution>
                     </executions>
@@ -329,6 +347,19 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.scoverage</groupId>
+                    <artifactId>scoverage-maven-plugin</artifactId>
+                    <version>${scoverage.plugin.version}</version>
+                    <configuration>
+                        <!-- need to update this as improve the coverage -->
+                        <minimumCoverage>20</minimumCoverage>
+                        <failOnMinimumCoverage>true</failOnMinimumCoverage>
+                        <highlighting>true</highlighting>
+                        <scalaVersion>${scala-library.version}</scalaVersion>
+                        <aggregate>true</aggregate>
+                    </configuration>
                 </plugin>
 
                 <plugin>
