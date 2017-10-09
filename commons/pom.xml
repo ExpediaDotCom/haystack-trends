@@ -34,7 +34,7 @@
     </parent>
 
     <properties>
-        <testClasses>com.expedia.www.haystack.trends.commons.unit.tests</testClasses>
+        <featureTestClasses>com.expedia.www.haystack.trends.commons.unit.tests</featureTestClasses>
     </properties>
 
     <dependencies>

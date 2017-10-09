@@ -45,7 +45,8 @@
 
     <properties>
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
-        <testClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</testClasses>
+        <featureTestClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</featureTestClasses>
+        <integrationTestClasses>com.expedia.www.haystack.trends.integration.tests</integrationTestClasses>
     </properties>
 
     <dependencies>
@@ -98,25 +99,4 @@
 
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>integration-tests</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.scalatest</groupId>
-                        <artifactId>scalatest-maven-plugin</artifactId>
-                        <configuration>
-                            <wildcardSuites>com.expedia.www.haystack.trends.integration.tests</wildcardSuites>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 </project>
