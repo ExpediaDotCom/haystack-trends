@@ -16,7 +16,18 @@
  */
 package com.expedia.www.haystack.trends.feature
 
+import com.expedia.open.tracing.Span
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
 
-trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers
+trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers {
+  def generateTestSpan(duration:Long): Span = {
+    val operationName = "testSpan"
+    val serviceName = "testService"
+    Span.newBuilder()
+      .setDuration(duration)
+      .setOperationName(operationName)
+      .setServiceName(serviceName)
+      .build()
+  }
+}

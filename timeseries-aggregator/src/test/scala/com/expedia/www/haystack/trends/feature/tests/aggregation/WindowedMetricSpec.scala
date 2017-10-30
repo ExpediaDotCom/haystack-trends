@@ -19,7 +19,7 @@
 package com.expedia.www.haystack.trends.feature.tests.aggregation
 
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
-import com.expedia.www.haystack.trends.aggregation.metrics.{HistogramMetric, HistogramMetricFactory}
+import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
 import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.entities.Interval
@@ -97,7 +97,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
 
       When("creating a WindowedMetric and passing some MetricPoints")
-      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, CountMetricFactory)
 
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
@@ -110,15 +110,15 @@ class WindowedMetricSpec extends FeatureSpec {
       windowedMetric.compute(newMetricPointAfterMaxInterval)
       val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
 
-      Then("should return valid values for all histogram types")
+      Then("should return valid values for all count intervals")
 
-      val expectedOneMinuteMetric: HistogramMetric = new HistogramMetric(Interval.ONE_MINUTE)
+      val expectedOneMinuteMetric: CountMetric = new CountMetric(Interval.ONE_MINUTE)
       metricPoints.foreach(metricPoint => expectedOneMinuteMetric.compute(metricPoint))
 
-      val expectedFifteenMinuteMetric: HistogramMetric = new HistogramMetric(Interval.FIFTEEN_MINUTE)
+      val expectedFifteenMinuteMetric: CountMetric = new CountMetric(Interval.FIFTEEN_MINUTE)
       metricPoints.foreach(metricPoint => expectedFifteenMinuteMetric.compute(metricPoint))
 
-      val expectedOneHourMetric: HistogramMetric = new HistogramMetric(Interval.ONE_HOUR)
+      val expectedOneHourMetric: CountMetric = new CountMetric(Interval.ONE_HOUR)
       metricPoints.foreach(metricPoint => expectedOneHourMetric.compute(metricPoint))
     }
   }
