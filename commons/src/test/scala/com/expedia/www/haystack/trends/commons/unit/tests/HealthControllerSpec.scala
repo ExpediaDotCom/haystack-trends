@@ -1,33 +1,41 @@
 package com.expedia.www.haystack.trends.commons.unit.tests
 
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
-import org.scalatest.{FunSpec, Matchers}
+import com.expedia.www.haystack.trends.commons.unit.UnitTestSpec
 
-class HealthControllerSpec extends FunSpec with Matchers {
+class HealthControllerSpec extends UnitTestSpec {
+  val statusFile = "/tmp/app-health.status"
 
-  private val statusFile = "/tmp/app-health.status"
 
-  describe("file based health checker") {
-    it("should set the state as healthy if previous state is not set or unhealthy") {
+  "file based health checker" should {
+
+    "set the value with the correct boolean value for the app's health status" in {
+      Given("a file path")
+
+      When("checked with default state")
       val healthChecker = HealthController
       healthChecker.addListener(new UpdateHealthStatusFile(statusFile))
-      healthChecker.isHealthy shouldBe false
+      val status = healthChecker.isHealthy
+
+      Then("default state should be unhealthy")
+      status shouldBe false
+
+
+      When("explicitly set as healthy")
       healthChecker.setHealthy()
+
+
+      Then("The state should be updated to healthy")
       healthChecker.isHealthy shouldBe true
       readStatusLine shouldEqual "true"
-    }
 
-    it("should set the state as unhealthy if previous state is healthy") {
-      val healthChecker = HealthController
-      healthChecker.addListener(new UpdateHealthStatusFile(statusFile))
 
-      healthChecker.setHealthy()
-      healthChecker.isHealthy shouldBe true
-      readStatusLine shouldEqual "true"
-
+      When("explicitly set as unhealthy")
       healthChecker.setUnhealthy()
+
+      Then("The state should be updated to unhealthy")
       healthChecker.isHealthy shouldBe false
-      readStatusLine shouldEqual "false"
+      readStatusLine shouldBe "false"
     }
   }
 

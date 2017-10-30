@@ -45,7 +45,7 @@
 
     <properties>
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
-        <featureTestClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</featureTestClasses>
+        <featureTestClasses>com.expedia.www.haystack.trends.feature.tests</featureTestClasses>
         <integrationTestClasses>com.expedia.www.haystack.trends.integration.tests</integrationTestClasses>
     </properties>
 

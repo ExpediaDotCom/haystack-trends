@@ -17,7 +17,6 @@
  */
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
-import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanDurationMetricPointTransformer
 
@@ -27,14 +26,8 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
     scenario("should have duration value in metricPoint for given duration in span") {
 
       Given("a valid span object")
-      val operationName = "testSpan"
-      val serviceName = "testService"
       val duration = System.currentTimeMillis
-      val span = Span.newBuilder()
-        .setDuration(duration)
-        .setOperationName(operationName)
-        .setServiceName(serviceName)
-        .build()
+      val span = generateTestSpan(duration)
 
       When("metricPoint is created using transformer")
       val metricPoints = mapSpan(span)
