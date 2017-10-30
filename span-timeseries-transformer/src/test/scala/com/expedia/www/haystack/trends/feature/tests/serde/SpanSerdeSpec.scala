@@ -22,7 +22,17 @@ class SpanSerdeSpec extends FeatureSpec {
       Then("it should be serialized in protobuf binary format")
       bytes should not be null
       Span.parseFrom(bytes) shouldBe span
+    }
 
+    scenario("serializing invalid span object") {
+
+      Given("a null span object")
+
+      When("its serialized")
+      val bytes = SpanSerde.serializer.serialize(TOPIC_NAME, null)
+
+      Then("it should return null")
+      bytes shouldBe null
 
     }
 
@@ -32,7 +42,6 @@ class SpanSerdeSpec extends FeatureSpec {
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
       val bytes = SpanSerde.serializer.serialize(TOPIC_NAME, span)
-
 
       When("its deserialized")
 
@@ -47,9 +56,20 @@ class SpanSerdeSpec extends FeatureSpec {
       Given("a invalid byte array")
       val bytes = "Random String".getBytes()
 
-
       When("its deserialized")
 
+      val deserializedSpan = SpanSerde.deserializer.deserialize(TOPIC_NAME, bytes)
+
+      Then("it should return a null")
+      deserializedSpan shouldBe null
+    }
+
+    scenario("deserializing null span object") {
+
+      Given("a null byte array")
+      val bytes = null
+
+      When("its deserialized")
       val deserializedSpan = SpanSerde.deserializer.deserialize(TOPIC_NAME, bytes)
 
       Then("it should return a null")

@@ -24,10 +24,8 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       Given("metric point")
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
 
-
       When("its serialized using the metricTank Serde")
       val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME,metricPoint)
-
 
       Then("it should be encoded as message pack")
       val unpacker = MessagePack.newDefaultUnpacker(serializedBytes)
@@ -40,11 +38,9 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       Given("metric point")
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
 
-
       When("its serialized in the metricTank Format")
       val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME,metricPoint)
       val deserializedMetricPoint = MetricTankSerde.deserializer().deserialize(TOPIC_NAME,serializedBytes)
-
 
       Then("it should be encoded as message pack")
       metricPoint shouldEqual deserializedMetricPoint

@@ -20,15 +20,12 @@ class HealthControllerSpec extends UnitTestSpec {
       Then("default state should be unhealthy")
       status shouldBe false
 
-
       When("explicitly set as healthy")
       healthChecker.setHealthy()
-
 
       Then("The state should be updated to healthy")
       healthChecker.isHealthy shouldBe true
       readStatusLine shouldEqual "true"
-
 
       When("explicitly set as unhealthy")
       healthChecker.setUnhealthy()
