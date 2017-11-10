@@ -9,8 +9,8 @@
         <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-max" resultAlias="kstreams.process.latency_max"/>
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
-        <host>monitoring-influxdb-graphite.kube-system.svc</host>
-        <port>2003</port>
+        <host>${graphite.host:monitoring-influxdb-graphite.kube-system.svc}</host>
+        <port>${graphite.port:2003}</port>
         <namePrefix>haystack.trends.timeseries-aggregator.#hostname#.</namePrefix>
     </outputWriter>
     <collectIntervalInSeconds>30</collectIntervalInSeconds>

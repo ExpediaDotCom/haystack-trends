@@ -354,7 +354,7 @@
                     <version>${scoverage.plugin.version}</version>
                     <configuration>
                         <!-- need to update this as improve the coverage -->
-                        <minimumCoverage>60</minimumCoverage>
+                        <minimumCoverage>55</minimumCoverage>
                         <failOnMinimumCoverage>true</failOnMinimumCoverage>
                         <highlighting>true</highlighting>
                         <scalaVersion>${scala-library.version}</scalaVersion>

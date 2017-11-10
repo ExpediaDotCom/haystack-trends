@@ -22,11 +22,13 @@ import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.config.ProjectConfiguration._
+import org.slf4j.LoggerFactory
 
 object App extends MetricsSupport {
 
   private var topology: StreamTopology = _
   private var jmxReporter: JmxReporter = _
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   def main(args: Array[String]): Unit = {
     HealthController.addListener(new UpdateHealthStatusFile(healthStatusFilePath))
@@ -45,8 +47,28 @@ object App extends MetricsSupport {
 
   private class ShutdownHookThread extends Thread {
     override def run(): Unit = {
-      if(topology != null) topology.close()
-      if(jmxReporter != null) jmxReporter.close()
+      LOGGER.info("Shutdown hook is invoked, tearing down the application.")
+
+      if (topology != null) topology.close()
+      if (jmxReporter != null) jmxReporter.close()
+      shutdownLogger()
+    }
+
+    private def shutdownLogger(): Unit = {
+      val factory = LoggerFactory.getILoggerFactory
+      val clazz = factory.getClass
+      try {
+        clazz.getMethod("stop").invoke(factory) // logback
+      } catch {
+        case _: ReflectiveOperationException =>
+          try {
+            clazz.getMethod("close").invoke(factory) // log4j
+          } catch {
+            case _: Exception =>
+          }
+        case _: Exception =>
+      }
     }
   }
+
 }
