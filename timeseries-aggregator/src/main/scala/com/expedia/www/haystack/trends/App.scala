@@ -71,8 +71,4 @@ object App extends MetricsSupport {
       case _: Exception =>
     }
   }
-
-
-}
-
 }
