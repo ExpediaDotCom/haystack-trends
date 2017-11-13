@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends
 
 import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
+import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.config.ProjectConfiguration._
 import org.slf4j.LoggerFactory
@@ -51,23 +52,7 @@ object App extends MetricsSupport {
 
       if (topology != null) topology.close()
       if (jmxReporter != null) jmxReporter.close()
-      shutdownLogger()
-    }
-
-    private def shutdownLogger(): Unit = {
-      val factory = LoggerFactory.getILoggerFactory
-      val clazz = factory.getClass
-      try {
-        clazz.getMethod("stop").invoke(factory) // logback
-      } catch {
-        case _: ReflectiveOperationException =>
-          try {
-            clazz.getMethod("close").invoke(factory) // log4j
-          } catch {
-            case _: Exception =>
-          }
-        case _: Exception =>
-      }
+      LoggerUtils.shutdownLogger()
     }
   }
 

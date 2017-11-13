@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends
 
 import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
+import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.config.ProjectConfiguration._
 import com.expedia.www.haystack.trends.kstream.StreamTopology
@@ -39,9 +40,7 @@ object App extends MetricsSupport {
     topology = new StreamTopology(kafkaConfig)
     topology.start()
 
-    Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
-      override def run(): Unit = shutdown()
-    }))
+    Runtime.getRuntime.addShutdownHook(new ShutdownHookThread())
   }
 
   private def startJmxReporter() = {
@@ -49,26 +48,15 @@ object App extends MetricsSupport {
     jmxReporter.start()
   }
 
-  private def shutdown(): Unit = {
-    LOGGER.info("Shutdown hook is invoked, tearing down the application.")
-    if (topology != null) topology.close()
-    if (jmxReporter != null) jmxReporter.close()
-    shutdownLogger()
-  }
 
-  private def shutdownLogger(): Unit = {
-    val factory = LoggerFactory.getILoggerFactory
-    val clazz = factory.getClass
-    try {
-      clazz.getMethod("stop").invoke(factory) // logback
-    } catch {
-      case _: ReflectiveOperationException =>
-        try {
-          clazz.getMethod("close").invoke(factory) // log4j
-        } catch {
-          case _: Exception =>
-        }
-      case _: Exception =>
+  private class ShutdownHookThread extends Thread {
+    override def run(): Unit = {
+      LOGGER.info("Shutdown hook is invoked, tearing down the application.")
+
+      if (topology != null) topology.close()
+      if (jmxReporter != null) jmxReporter.close()
+      LoggerUtils.shutdownLogger()
     }
   }
+
 }

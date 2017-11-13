@@ -59,6 +59,7 @@
         <protobuf.version>3.3.1</protobuf.version>
         <msgpack.version>0.8.13</msgpack.version>
         <hdrhistogram.version>1.2.1</hdrhistogram.version>
+        <easymock.version>3.4</easymock.version>
 
 
         <!--Compiler Properties -->
@@ -97,12 +98,21 @@
             <scope>test</scope>
         </dependency>
 
+
+
         <!-- required by scalatest-maven-plugin to generate HTML report -->
 
         <dependency>
             <groupId>org.pegdown</groupId>
             <artifactId>pegdown</artifactId>
             <version>${pegdown.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>${easymock.version}</version>
             <scope>test</scope>
         </dependency>
 
