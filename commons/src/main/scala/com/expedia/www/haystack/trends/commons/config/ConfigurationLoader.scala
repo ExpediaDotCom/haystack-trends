@@ -24,6 +24,8 @@ import scala.collection.JavaConverters._
 
 object ConfigurationLoader {
 
+  private val ENV_NAME_PREFIX = "HAYSTACK_PROP_"
+
   /**
     * Load and return the configuration
     * if overrides_config_path env variable exists, then we load that config file and use base.conf as fallback,
@@ -33,12 +35,11 @@ object ConfigurationLoader {
 
     val baseConfig = ConfigFactory.load("config/base.conf")
 
-    sys.env.get("OVERRIDES_CONFIG_PATH") match {
+    sys.env.get("HAYSTACK_OVERRIDES_CONFIG_PATH") match {
       case Some(path) => ConfigFactory.parseFile(new File(path)).withFallback(baseConfig)
       case _ => loadFromEnvVars().withFallback(baseConfig)
     }
   }
-  private val ENV_NAME_PREFIX = "HAYSTACK_PROP_"
 
   /**
     * @return new config object with haystack specific environment variables
