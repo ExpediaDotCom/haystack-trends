@@ -17,13 +17,16 @@
 package com.expedia.www.haystack.trends
 
 import com.expedia.open.tracing.Span
+import com.expedia.www.haystack.trends.commons.entities.MetricPoint
+import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 
 import scala.util.{Failure, Success, Try}
 
-trait MetricPointGenerator {
+trait MetricPointGenerator extends MetricsSupport {
+
+  private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
 
   /**
     * This function is responsible for generating all the metric points which can be created given a span
@@ -48,6 +51,7 @@ trait MetricPointGenerator {
     */
   private def validate(span: Span): Try[Span] = {
     if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
+      SpanValidationErrors.mark()
       Failure(new SpanValidationException)
     } else {
       Success(span)
