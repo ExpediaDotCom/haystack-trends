@@ -43,7 +43,7 @@
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
         <host>${graphite.host:monitoring-influxdb-graphite.kube-system.svc}</host>
         <port>${graphite.port:2003}</port>
-        <namePrefix>haystack.trends.timeseries-aggregator.#hostname#.</namePrefix>
+        <namePrefix>haystack.trends.span-transformer.#hostname#.</namePrefix>
     </outputWriter>
     <collectIntervalInSeconds>30</collectIntervalInSeconds>
 </jmxtrans-agent>
