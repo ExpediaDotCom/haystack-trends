@@ -1,12 +1,44 @@
 <jmxtrans-agent>
     <queries>
+        <!-- kafka producer metrics -->
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-send-rate" resultAlias="kafka-producer.record-send.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-exhausted-rate" resultAlias="kafka-producer.buffer-exhausted.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-retry-rate" resultAlias="kafka-producer.record-retry.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="produce-throttle-time-avg" resultAlias="kafka-producer.produce-throttle-time.avg"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-latency-avg" resultAlias="kafka-producer.request-latency.avg"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-available-bytes" resultAlias="kafka-producer.buffer-bytes.available"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-total-bytes" resultAlias="kafka-producer.buffer-bytes.total"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-size-max" resultAlias="kafka-producer.request-size.max"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-rate" resultAlias="kafka-producer.request.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="response-rate" resultAlias="kafka-producer.response.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-error-rate" resultAlias="kafka-producer.record-error.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="requests-in-flight" resultAlias="kafka-producer.request-in-flight.count"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="batch-size-avg" resultAlias="kafka-producer.batch-size.avg"/>
+
+        <!-- kafka consumer metrics -->
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="request-rate" resultAlias="kafka-consumer.request.rate"/>
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="response-rate" resultAlias="kafka-consumer.response.rate"/>
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="incoming-byte-rate" resultAlias="kafka-consumer.incoming-byte.rate"/>
+
         <!-- kafka streams mbeans -->
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="poll-rate" resultAlias="kstreams.poll.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="commit-rate" resultAlias="kstreams.commit.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="punctuate-rate" resultAlias="kstreams.punctuate.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-rate" resultAlias="kstreams.process.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-avg" resultAlias="kstreams.process.latency_avg"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-max" resultAlias="kstreams.process.latency_max"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="poll-rate"
+               resultAlias="kstreams.poll.rate"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="commit-rate"
+               resultAlias="kstreams.commit.rate"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="punctuate-rate"
+               resultAlias="kstreams.punctuate.rate"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-rate"
+               resultAlias="kstreams.process.rate"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-avg"
+               resultAlias="kstreams.process.latency_avg"/>
+        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-max"
+               resultAlias="kstreams.process.latency_max"/>
+
+        <!-- service mbeans -->
+        <query objectName="metrics:name=span.serde.failure" resultAlias="span.serde.failure.#attribute#"/>
+        <query objectName="metrics:name=span.validation.failure" resultAlias="span.validation.failure.#attribute#"/>
+        <query objectName="metrics:name=merticpoint-serde.failure" resultAlias="merticpoint-serde.failure.#attribute#"/>
+
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
         <host>${graphite.host:monitoring-influxdb-graphite.kube-system.svc}</host>
