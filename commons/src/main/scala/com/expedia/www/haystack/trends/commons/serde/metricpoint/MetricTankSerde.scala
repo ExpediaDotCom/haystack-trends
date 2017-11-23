@@ -38,7 +38,7 @@ import scala.collection.JavaConverters._
   */
 object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
-  private val metricPointDeserMeter = metricRegistry.meter("merticpoint-serde.failure")
+  private val metricPointDeserMeter = metricRegistry.meter("metricpoint.deser.failure")
   private val idKey = "Id"
   private val orgIdKey = "OrgId"
   private val nameKey = "Name"

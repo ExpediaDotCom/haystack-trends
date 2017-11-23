@@ -38,8 +38,9 @@ import scala.util.Try
   */
 class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory) extends MetricsSupport {
 
-  private val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
-  private val metricPointComputeFailure: Meter = metricRegistry.meter("metricpoints.compute.failure")
+  private val disorderedMetricPointMeter: Meter = metricRegistry.meter("metricpoints.disordered")
+  private val metricPointComputeFailureMeter: Meter = metricRegistry.meter("metricpoints.compute.failure")
+  private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricpoints.invalid")
 
   //Todo: Have to add support for watermarking
   private val numberOfWatermarkedWindows = 1
@@ -60,20 +61,26 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
   def compute(incomingMetricPoint: MetricPoint): Unit = {
     Try {
 
-      windowedMetricsMap.foreach(metricTimeWindowTuple => {
-        val currentTimeWindow = metricTimeWindowTuple._1
-        val currentMetric = metricTimeWindowTuple._2
+      //discarding values which are less than 0 assuming the are invalid metric points
+      if (incomingMetricPoint.value > 0) {
+        windowedMetricsMap.foreach(metricTimeWindowTuple => {
+          val currentTimeWindow = metricTimeWindowTuple._1
+          val currentMetric = metricTimeWindowTuple._2
 
-        val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, currentMetric.getMetricInterval)
+          val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, currentMetric.getMetricInterval)
 
-        compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
-      })
+          compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
+        })
+      } else {
+        invalidMetricPointMeter.mark()
+      }
     }.recover {
       case failure: Throwable =>
-        metricPointComputeFailure.mark()
+        metricPointComputeFailureMeter.mark()
         LOGGER.error(s"Failed to compute metricpoint : $incomingMetricPoint with exception ", failure)
         failure
     }
+
   }
 
   private def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
@@ -90,7 +97,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
         computedMetrics += currentTimeWindow.endTime -> currentMetric
 
       // window already closed and we don't support water marking yet
-      case _ => disorderedMetricPoints.mark()
+      case _ => disorderedMetricPointMeter.mark()
     }
   }
 
