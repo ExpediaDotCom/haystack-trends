@@ -17,6 +17,8 @@ import scala.util.Try
 object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
 
   private val windowedMetricStatsDeserMeter = metricRegistry.meter("windowedmetric-deseri.failure")
+  private val windowedMetricStatsSerSuccessMeter = metricRegistry.meter("windowedmetric-seri.success")
+  private val windowedMetricStatsDeserSuccessMeter = metricRegistry.meter("windowedmetric-deseri.success")
   private val serializedMetricKey = "serializedMetric"
   private val startTimeKey = "startTime"
   private val endTimeKey = "endTime"
@@ -57,7 +59,9 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
             window -> metric
           }).toMap
 
-          WindowedMetric.restoreMetric(metricMap,metricFactory)
+          val metric = WindowedMetric.restoreMetric(metricMap, metricFactory)
+          windowedMetricStatsDeserMeter.mark()
+          metric
 
         }.recover {
           case ex: Exception =>
@@ -90,12 +94,14 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
           ValueFactory.newString(aggregationTypeKey) -> ValueFactory.newString(windowedMetric.getMetricFactory.getAggregationType.toString)
         )
         packer.packValue(ValueFactory.newMap(windowedMetricMessagePack.asJava))
-        packer.toByteArray
+        val data = packer.toByteArray
+        windowedMetricStatsSerSuccessMeter.mark()
+        data
       }
 
       override def close(): Unit = ()
     }
   }
 
-  override def configure(map: util.Map[String, _], b: Boolean): Unit  = ()
+  override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 }

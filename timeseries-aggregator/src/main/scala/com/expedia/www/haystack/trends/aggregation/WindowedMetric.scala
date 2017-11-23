@@ -19,11 +19,15 @@
 package com.expedia.www.haystack.trends.aggregation
 
 import com.codahale.metrics.Meter
+import com.expedia.www.haystack.trends.aggregation.WindowedMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactory}
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities.TimeWindow
+import org.slf4j.LoggerFactory
+
+import scala.util.Try
 
 /**
   * This class contains a metric for each time window being computed for a single trend. The number of time windows at any moment is = no. of intervals
@@ -35,6 +39,7 @@ import com.expedia.www.haystack.trends.entities.TimeWindow
 class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], metricFactory: MetricFactory) extends MetricsSupport {
 
   private val disorderedMetricPoints: Meter = metricRegistry.meter("disordered-metricpoints")
+  private val metricPointComputeFailure: Meter = metricRegistry.meter("metricpoints.compute.failure")
 
   //Todo: Have to add support for watermarking
   private val numberOfWatermarkedWindows = 1
@@ -53,14 +58,22 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
     * @param incomingMetricPoint - incoming metric point
     */
   def compute(incomingMetricPoint: MetricPoint): Unit = {
-    windowedMetricsMap.foreach(metricTimeWindowTuple => {
-      val currentTimeWindow = metricTimeWindowTuple._1
-      val currentMetric = metricTimeWindowTuple._2
+    Try {
 
-      val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, currentMetric.getMetricInterval)
+      windowedMetricsMap.foreach(metricTimeWindowTuple => {
+        val currentTimeWindow = metricTimeWindowTuple._1
+        val currentMetric = metricTimeWindowTuple._2
 
-      compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
-    })
+        val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, currentMetric.getMetricInterval)
+
+        compareAndAddMetric(currentTimeWindow, currentMetric, incomingMetricPointTimeWindow, incomingMetricPoint)
+      })
+    }.recover {
+      case failure: Throwable =>
+        metricPointComputeFailure.mark()
+        LOGGER.error(s"Failed to compute metricpoint : $incomingMetricPoint with exception ", failure)
+        failure
+    }
   }
 
   private def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
@@ -94,6 +107,9 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
   * Windowed metric factory which can create a new windowed metric or restore an existing windowed metric
   */
 object WindowedMetric {
+
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
+
   def createWindowedMetric(intervals: List[Interval], firstMetricPoint: MetricPoint, metricFactory: MetricFactory): WindowedMetric = {
     val metricsMap = createMetricsForEachInterval(intervals, firstMetricPoint, metricFactory)
     new WindowedMetric(metricsMap, metricFactory)
