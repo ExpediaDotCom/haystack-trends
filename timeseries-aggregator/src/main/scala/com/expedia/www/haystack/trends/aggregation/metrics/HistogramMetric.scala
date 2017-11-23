@@ -19,10 +19,10 @@
 package com.expedia.www.haystack.trends.aggregation.metrics
 
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
-import org.HdrHistogram.IntHistogram
+import org.HdrHistogram.Histogram
 
 
 /**
@@ -30,9 +30,9 @@ import org.HdrHistogram.IntHistogram
   * @param interval : interval for the metric
   * @param histogram : current histogram, the current histogram should be a new histogram object for a new metric but can be passed when we want to restore a given metric after the application crashed
   */
-class HistogramMetric(interval: Interval, histogram: IntHistogram) extends Metric(interval) {
+class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(interval) {
 
-  def this(interval: Interval) = this(interval, new IntHistogram(Int.MaxValue, 0))
+  def this(interval: Interval) = this(interval, new Histogram(Int.MaxValue, 0))
   var latestMetricPoint: Option[MetricPoint] = None
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
@@ -56,12 +56,12 @@ class HistogramMetric(interval: Interval, histogram: IntHistogram) extends Metri
     }
   }
 
-  def getRunningHistogram: IntHistogram = {
+  def getRunningHistogram: Histogram = {
     histogram
   }
 
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
-    histogram.recordValue(metricPoint.value.toLong)
+    histogram.recordValue(metricPoint.value.toInt)
     latestMetricPoint = Some(metricPoint)
     this
   }

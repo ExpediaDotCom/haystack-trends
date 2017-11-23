@@ -38,6 +38,7 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:name=merticpoint-serde.failure" resultAlias="merticpoint-serde.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric-deseri.failure" resultAlias="windowedmetric-deseri.failure.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
