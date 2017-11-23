@@ -26,7 +26,7 @@ trait MetricPointTransformer {
   def mapSpan(span: Span): List[MetricPoint]
 
   protected def getDataPointTimestamp(span: Span): Long = {
-    span.getStartTime / 1000
+    span.getStartTime / 1000000
   }
 
   /**

@@ -39,7 +39,7 @@
         <!-- service mbeans -->
         <query objectName="metrics:name=span.serde.failure" resultAlias="span.serde.failure.#attribute#"/>
         <query objectName="metrics:name=span.validation.failure" resultAlias="span.validation.failure.#attribute#"/>
-        <query objectName="metrics:name=merticpoint-serde.failure" resultAlias="merticpoint-serde.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

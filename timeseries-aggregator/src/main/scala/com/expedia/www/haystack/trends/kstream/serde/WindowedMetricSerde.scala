@@ -16,9 +16,9 @@ import scala.util.Try
 
 object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
 
-  private val windowedMetricStatsDeserMeter = metricRegistry.meter("windowedmetric-deseri.failure")
-  private val windowedMetricStatsSerSuccessMeter = metricRegistry.meter("windowedmetric-seri.success")
-  private val windowedMetricStatsDeserSuccessMeter = metricRegistry.meter("windowedmetric-deseri.success")
+  private val windowedMetricStatsDeserMeter = metricRegistry.meter("windowedmetric.deser.failure")
+  private val windowedMetricStatsSerSuccessMeter = metricRegistry.meter("windowedmetric.ser.success")
+  private val windowedMetricStatsDeserSuccessMeter = metricRegistry.meter("windowedmetric.deser.success")
   private val serializedMetricKey = "serializedMetric"
   private val startTimeKey = "startTime"
   private val endTimeKey = "endTime"

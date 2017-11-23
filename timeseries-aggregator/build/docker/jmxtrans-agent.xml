@@ -37,8 +37,13 @@
                resultAlias="kstreams.process.latency_max"/>
 
         <!-- service mbeans -->
-        <query objectName="metrics:name=merticpoint-serde.failure" resultAlias="merticpoint-serde.failure.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric-deseri.failure" resultAlias="windowedmetric-deseri.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.failure" resultAlias="windowedmetric.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.ser.success" resultAlias="windowedmetric.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.success" resultAlias="windowedmetric.deser.success.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.disordered" resultAlias="metricpoints.disordered.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.compute.failure" resultAlias="metricpoints.compute.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.invalid" resultAlias="metricpoints.invalid.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
