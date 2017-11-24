@@ -38,10 +38,16 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:name=span.serde.failure" resultAlias="span.serde.failure.#attribute#"/>
-        <query objectName="metrics:name=span.validation.failure" resultAlias="span.validation.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.ser.failure" resultAlias="metricpoint.ser.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.ser.success" resultAlias="metricpoint.ser.success.#attribute#"/>
+
+
+        <query objectName="metrics:name=span.validation.failure" resultAlias="span.validation.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.span.failure" resultAlias="metricpoint.span.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.span.success" resultAlias="metricpoint.span.success.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.span.received" resultAlias="metricpoint.span.received.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.span.duration" resultAlias="metricpoint.span.duration.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

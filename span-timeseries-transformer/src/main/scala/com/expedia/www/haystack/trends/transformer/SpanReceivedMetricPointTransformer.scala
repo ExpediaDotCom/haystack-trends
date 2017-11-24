@@ -23,9 +23,12 @@ import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType
   * This transformer is responsible to generate the total-spans gauge metric
   */
 trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
+  private val SpanReceivedMetricPoints = metricRegistry.meter("metricpoint.span.received")
+
   val TOTAL_METRIC_NAME = "received-span"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
+    SpanReceivedMetricPoints.mark()
     List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
   }
 }
