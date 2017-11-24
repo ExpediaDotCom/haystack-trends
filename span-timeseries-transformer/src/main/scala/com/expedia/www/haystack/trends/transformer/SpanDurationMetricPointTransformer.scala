@@ -24,12 +24,12 @@ import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType
   */
 trait SpanDurationMetricPointTransformer extends MetricPointTransformer {
 
-  private val SpanDurationMetricPoints = metricRegistry.meter("metricpoint.span.duration")
+  private val spanDurationMetricPoints = metricRegistry.meter("metricpoint.span.duration")
 
   val DURATION_METRIC_NAME = "duration"
 
   override def mapSpan(span: Span): List[MetricPoint] = {
-    SpanDurationMetricPoints.mark()
+    spanDurationMetricPoints.mark()
     List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
 
   }

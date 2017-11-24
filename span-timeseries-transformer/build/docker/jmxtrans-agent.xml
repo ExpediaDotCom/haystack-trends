@@ -48,6 +48,7 @@
         <query objectName="metrics:name=metricpoint.span.success" resultAlias="metricpoint.span.success.#attribute#"/>
         <query objectName="metrics:name=metricpoint.span.received" resultAlias="metricpoint.span.received.#attribute#"/>
         <query objectName="metrics:name=metricpoint.span.duration" resultAlias="metricpoint.span.duration.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.generation.time" resultAlias="metricpoint.generation.time.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

@@ -27,6 +27,7 @@ import scala.util.{Failure, Success, Try}
 trait MetricPointGenerator extends MetricsSupport {
 
   private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
+  private val metricPointGenerationTimer = metricRegistry.timer("metricpoint.generation.time")
 
   /**
     * This function is responsible for generating all the metric points which can be created given a span
@@ -36,9 +37,14 @@ trait MetricPointGenerator extends MetricsSupport {
     * @return try of either a list of generated metric points or a validation exception
     */
   def generateMetricPoints(transformers: Seq[MetricPointTransformer])(span: Span): Try[List[MetricPoint]] = {
-    validate(span).map { validatedSpan =>
-      transformers.flatMap(transformer => transformer.mapSpan(validatedSpan)).toList
+    val context = metricPointGenerationTimer.time()
+    val metricPoints = {
+      validate(span).map { validatedSpan =>
+        transformers.flatMap(transformer => transformer.mapSpan(validatedSpan)).toList
+      }
     }
+    context.close()
+    metricPoints
   }
 
   /**
@@ -56,7 +62,9 @@ trait MetricPointGenerator extends MetricsSupport {
     } else {
       Success(span)
     }
+
   }
+
 }
 
 
