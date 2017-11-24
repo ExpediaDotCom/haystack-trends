@@ -38,6 +38,8 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.failure" resultAlias="metricpoint.ser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.success" resultAlias="metricpoint.ser.success.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.deser.failure" resultAlias="windowedmetric.deser.failure.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.ser.success" resultAlias="windowedmetric.ser.success.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.deser.success" resultAlias="windowedmetric.deser.success.#attribute#"/>
