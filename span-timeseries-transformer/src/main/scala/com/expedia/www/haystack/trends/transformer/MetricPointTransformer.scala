@@ -18,9 +18,10 @@ package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 
 
-trait MetricPointTransformer {
+trait MetricPointTransformer extends MetricsSupport {
 
 
   def mapSpan(span: Span): List[MetricPoint]
@@ -45,6 +46,6 @@ trait MetricPointTransformer {
 }
 
 object MetricPointTransformer {
-  val allTransformers = List(SpanDurationMetricPointTransformer,SpanStatusMetricPointTransformer,SpanReceivedMetricPointTransformer)
+  val allTransformers = List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer)
 }
 

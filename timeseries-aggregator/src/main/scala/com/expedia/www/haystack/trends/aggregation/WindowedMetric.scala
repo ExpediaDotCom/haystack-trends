@@ -18,7 +18,7 @@
 
 package com.expedia.www.haystack.trends.aggregation
 
-import com.codahale.metrics.Meter
+import com.codahale.metrics.{Meter, Timer}
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactory}
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
@@ -40,6 +40,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
 
   private val disorderedMetricPointMeter: Meter = metricRegistry.meter("metricpoints.disordered")
   private val metricPointComputeFailureMeter: Meter = metricRegistry.meter("metricpoints.compute.failure")
+  private val windowedMetricComputeTimer: Timer = metricRegistry.timer("windowed.metric.compute.time")
   private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricpoints.invalid")
 
   //Todo: Have to add support for watermarking
@@ -59,6 +60,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
     * @param incomingMetricPoint - incoming metric point
     */
   def compute(incomingMetricPoint: MetricPoint): Unit = {
+    val timerContext = windowedMetricComputeTimer.time()
     Try {
 
       //discarding values which are less than 0 assuming the are invalid metric points
@@ -80,7 +82,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
         LOGGER.error(s"Failed to compute metricpoint : $incomingMetricPoint with exception ", failure)
         failure
     }
-
+    timerContext.close()
   }
 
   private def compareAndAddMetric(currentTimeWindow: TimeWindow, currentMetric: Metric, incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {

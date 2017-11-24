@@ -18,6 +18,7 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import com.codahale.metrics.Timer
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.entities.Interval.Interval
@@ -27,12 +28,16 @@ import org.HdrHistogram.Histogram
 
 /**
   * This is a base metric which can compute the histogram of the given events. It uses  hdr histogram(https://github.com/HdrHistogram/HdrHistogram) internally to compute the histogram
-  * @param interval : interval for the metric
+  *
+  * @param interval  : interval for the metric
   * @param histogram : current histogram, the current histogram should be a new histogram object for a new metric but can be passed when we want to restore a given metric after the application crashed
   */
 class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(interval) {
 
+  private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
+
   def this(interval: Interval) = this(interval, new Histogram(Int.MaxValue, 0))
+
   var latestMetricPoint: Option[MetricPoint] = None
 
   override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
@@ -61,14 +66,16 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   }
 
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
+    val timerContext = HistogramMetricComputeTimer.time()
     histogram.recordValue(metricPoint.value.toInt)
     latestMetricPoint = Some(metricPoint)
+    timerContext.close()
     this
   }
 }
 
 
-object HistogramMetricFactory extends MetricFactory{
+object HistogramMetricFactory extends MetricFactory {
 
   override def createMetric(interval: Interval): HistogramMetric = new HistogramMetric(interval)
 

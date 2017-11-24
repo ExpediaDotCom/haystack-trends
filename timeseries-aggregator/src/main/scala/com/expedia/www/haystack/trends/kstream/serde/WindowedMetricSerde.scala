@@ -9,6 +9,7 @@ import com.expedia.www.haystack.trends.entities.TimeWindow
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack
 import org.msgpack.value.ValueFactory
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -22,6 +23,7 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
   private val serializedMetricKey = "serializedMetric"
   private val startTimeKey = "startTime"
   private val endTimeKey = "endTime"
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   private val aggregationTypeKey = "aggregationType"
   private val metricsKey = "metrics"
@@ -65,6 +67,7 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
 
         }.recover {
           case ex: Exception =>
+            LOGGER.error("failed to deserialize windowed metric with exception", ex)
             windowedMetricStatsDeserMeter.mark()
             throw ex
         }.toOption.orNull

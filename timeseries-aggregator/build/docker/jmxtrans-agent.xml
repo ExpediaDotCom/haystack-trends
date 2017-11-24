@@ -38,12 +38,17 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.failure" resultAlias="metricpoint.ser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.success" resultAlias="metricpoint.ser.success.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.deser.failure" resultAlias="windowedmetric.deser.failure.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.ser.success" resultAlias="windowedmetric.ser.success.#attribute#"/>
         <query objectName="metrics:name=windowedmetric.deser.success" resultAlias="windowedmetric.deser.success.#attribute#"/>
         <query objectName="metrics:name=metricpoints.disordered" resultAlias="metricpoints.disordered.#attribute#"/>
         <query objectName="metrics:name=metricpoints.compute.failure" resultAlias="metricpoints.compute.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoints.invalid" resultAlias="metricpoints.invalid.#attribute#"/>
+        <query objectName="metrics:windowed.metric.compute.time" resultAlias="windowed.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:histogram.metric.compute.time" resultAlias="histogram.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:count.metric.compute.time" resultAlias="count.metric.compute.time.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

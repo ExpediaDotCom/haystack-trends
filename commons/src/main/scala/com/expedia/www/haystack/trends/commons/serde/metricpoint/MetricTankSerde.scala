@@ -38,7 +38,9 @@ import scala.collection.JavaConverters._
   */
 object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
-  private val metricPointDeserMeter = metricRegistry.meter("metricpoint.deser.failure")
+  private val metricPointDeserFailureMeter = metricRegistry.meter("metricpoint.deser.failure")
+  private val metricPointSerFailureMeter = metricRegistry.meter("metricpoint.ser.failure")
+  private val metricPointSerSuccessMeter = metricRegistry.meter("metricpoint.ser.success")
   private val idKey = "Id"
   private val orgIdKey = "OrgId"
   private val nameKey = "Name"
@@ -77,7 +79,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
         } catch {
           case ex: Exception =>
             /* may be log and add metric */
-            metricPointDeserMeter.mark()
+            metricPointDeserFailureMeter.mark()
             null
         }
       }
@@ -97,21 +99,31 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
       override def serialize(topic: String, metricPoint: MetricPoint): Array[Byte] = {
-        val packer = MessagePack.newDefaultBufferPacker()
+        try {
+          val packer = MessagePack.newDefaultBufferPacker()
 
-        val metricData = Map[Value, Value](
-          ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
-          ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
-          ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
-          ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
-          ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
-          ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
-          ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
-          ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString),
-          ValueFactory.newString(tagsKey) -> ValueFactory.newArray(convertTagMapToArray(metricPoint.tags).asJava)
-        )
-        packer.packValue(ValueFactory.newMap(metricData.asJava))
-        packer.toByteArray
+
+          val metricData = Map[Value, Value](
+            ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
+            ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
+            ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
+            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
+            ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
+            ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
+            ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
+            ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString),
+            ValueFactory.newString(tagsKey) -> ValueFactory.newArray(convertTagMapToArray(metricPoint.tags).asJava)
+          )
+          packer.packValue(ValueFactory.newMap(metricData.asJava))
+          val data = packer.toByteArray
+          metricPointSerSuccessMeter.mark()
+          data
+        } catch {
+          case ex: Exception =>
+            /* may be log and add metric */
+            metricPointSerFailureMeter.mark()
+            null
+        }
       }
 
       override def close(): Unit = ()
@@ -133,6 +145,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
     * This is a value extention class for signed long type. The java client for messagepack packs positive longs as unsigned
     * and there is no way to force a signed long who's numberal value is positive.
     * Metric Tank schema requres a signed long type for the timestamp key.
+    *
     * @param long
     */
   class ImmutableSignedLongValueImpl(long: Long) extends ImmutableLongValueImpl(long) {
@@ -144,4 +157,5 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
       pk.addPayload(buffer.array())
     }
   }
+
 }
