@@ -28,7 +28,7 @@ import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
 
-object ProjectConfiguration {
+class ProjectConfiguration {
   private val config = ConfigurationLoader.loadAppConfig
 
   val healthStatusFilePath: String = config.getString("health.status.path")
