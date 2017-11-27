@@ -22,7 +22,7 @@ import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
 import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.config.ProjectConfiguration._
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.slf4j.LoggerFactory
 
@@ -32,12 +32,13 @@ object App extends MetricsSupport {
 
   private var topology: StreamTopology = _
   private var jmxReporter: JmxReporter = _
+  private val projectConfiguration = new ProjectConfiguration()
 
   def main(args: Array[String]): Unit = {
-    HealthController.addListener(new UpdateHealthStatusFile(healthStatusFilePath))
+    HealthController.addListener(new UpdateHealthStatusFile(projectConfiguration.healthStatusFilePath))
 
     startJmxReporter()
-    topology = new StreamTopology(kafkaConfig)
+    topology = new StreamTopology(projectConfiguration.kafkaConfig)
     topology.start()
 
     Runtime.getRuntime.addShutdownHook(new ShutdownHookThread())

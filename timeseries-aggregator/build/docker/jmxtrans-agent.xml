@@ -1,26 +1,44 @@
 <jmxtrans-agent>
     <queries>
         <!-- kafka producer metrics -->
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-send-rate" resultAlias="kafka-producer.record-send.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-exhausted-rate" resultAlias="kafka-producer.buffer-exhausted.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-retry-rate" resultAlias="kafka-producer.record-retry.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="produce-throttle-time-avg" resultAlias="kafka-producer.produce-throttle-time.avg"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-latency-avg" resultAlias="kafka-producer.request-latency.avg"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-available-bytes" resultAlias="kafka-producer.buffer-bytes.available"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-total-bytes" resultAlias="kafka-producer.buffer-bytes.total"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-size-max" resultAlias="kafka-producer.request-size.max"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-rate" resultAlias="kafka-producer.request.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="response-rate" resultAlias="kafka-producer.response.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-error-rate" resultAlias="kafka-producer.record-error.rate"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="requests-in-flight" resultAlias="kafka-producer.request-in-flight.count"/>
-        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="batch-size-avg" resultAlias="kafka-producer.batch-size.avg"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-send-rate"
+               resultAlias="kafka-producer.record-send.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-exhausted-rate"
+               resultAlias="kafka-producer.buffer-exhausted.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-retry-rate"
+               resultAlias="kafka-producer.record-retry.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="produce-throttle-time-avg"
+               resultAlias="kafka-producer.produce-throttle-time.avg"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-latency-avg"
+               resultAlias="kafka-producer.request-latency.avg"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-available-bytes"
+               resultAlias="kafka-producer.buffer-bytes.available"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="buffer-total-bytes"
+               resultAlias="kafka-producer.buffer-bytes.total"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-size-max"
+               resultAlias="kafka-producer.request-size.max"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="request-rate"
+               resultAlias="kafka-producer.request.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="response-rate"
+               resultAlias="kafka-producer.response.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="record-error-rate"
+               resultAlias="kafka-producer.record-error.rate"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="requests-in-flight"
+               resultAlias="kafka-producer.request-in-flight.count"/>
+        <query objectName="kafka.producer:type=producer-metrics,client-id=*" attribute="batch-size-avg"
+               resultAlias="kafka-producer.batch-size.avg"/>
 
         <!-- kafka consumer metrics -->
-        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="request-rate" resultAlias="kafka-consumer.request.rate"/>
-        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="response-rate" resultAlias="kafka-consumer.response.rate"/>
-        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="incoming-byte-rate" resultAlias="kafka-consumer.incoming-byte.rate"/>
-        <query objectName="kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*" attribute="records-lag-max" resultAlias="kafka-consumer.records-lag.max"/>
-        <query objectName="kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*" attribute="records-consumed-rate" resultAlias="kafka-consumer.records-consumed.rate"/>
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="request-rate"
+               resultAlias="kafka-consumer.request.rate"/>
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="response-rate"
+               resultAlias="kafka-consumer.response.rate"/>
+        <query objectName="kafka.consumer:type=consumer-metrics,client-id=*" attribute="incoming-byte-rate"
+               resultAlias="kafka-consumer.incoming-byte.rate"/>
+        <query objectName="kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*" attribute="records-lag-max"
+               resultAlias="kafka-consumer.records-lag.max"/>
+        <query objectName="kafka.consumer:type=consumer-fetch-manager-metrics,client-id=*"
+               attribute="records-consumed-rate" resultAlias="kafka-consumer.records-consumed.rate"/>
 
         <!-- kafka streams mbeans -->
         <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="poll-rate"
@@ -37,18 +55,33 @@
                resultAlias="kstreams.process.latency_max"/>
 
         <!-- service mbeans -->
-        <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate" resultAlias="metricpoint.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.failure" attributes="OneMinuteRate" resultAlias="metricpoint.ser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.success" attributes="OneMinuteRate" resultAlias="metricpoint.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.failure" attributes="OneMinuteRate" resultAlias="windowedmetric.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.ser.success" attributes="OneMinuteRate" resultAlias="windowedmetric.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.success" attributes="OneMinuteRate" resultAlias="windowedmetric.deser.success.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.disordered" attributes="OneMinuteRate" resultAlias="metricpoints.disordered.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.compute.failure" attributes="OneMinuteRate" resultAlias="metricpoints.compute.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.invalid" attributes="OneMinuteRate" resultAlias="metricpoints.invalid.#attribute#"/>
-        <query objectName="metrics:name=windowed.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="windowed.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:name=histogram.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="histogram.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:name=count.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="count.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoint.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoint.ser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoint.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowedmetric.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.ser.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowedmetric.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowedmetric.deser.success.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.disordered" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoints.disordered.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.compute.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoints.compute.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.invalid" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoints.invalid.#attribute#"/>
+        <query objectName="metrics:name=windowed.metric.compute.time"
+               attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="windowed.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=histogram.metric.compute.time"
+               attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="histogram.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=count.metric.compute.time"
+               attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="count.metric.compute.time.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

@@ -18,8 +18,8 @@ package com.expedia.www.haystack.trends.config
 
 import java.util.Properties
 
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
+import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.typesafe.config.Config
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.processor.TimestampExtractor
@@ -27,7 +27,7 @@ import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
 
-object ProjectConfiguration {
+class ProjectConfiguration {
   private val config = ConfigurationLoader.loadAppConfig
 
   val healthStatusFilePath: String = config.getString("health.status.path")
