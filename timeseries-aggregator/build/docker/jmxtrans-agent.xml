@@ -37,18 +37,18 @@
                resultAlias="kstreams.process.latency_max"/>
 
         <!-- service mbeans -->
-        <query objectName="metrics:name=metricpoint.deser.failure" resultAlias="metricpoint.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.failure" resultAlias="metricpoint.ser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.success" resultAlias="metricpoint.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.failure" resultAlias="windowedmetric.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.ser.success" resultAlias="windowedmetric.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.success" resultAlias="windowedmetric.deser.success.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.disordered" resultAlias="metricpoints.disordered.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.compute.failure" resultAlias="metricpoints.compute.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoints.invalid" resultAlias="metricpoints.invalid.#attribute#"/>
-        <query objectName="metrics:windowed.metric.compute.time" resultAlias="windowed.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:histogram.metric.compute.time" resultAlias="histogram.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:count.metric.compute.time" resultAlias="count.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate" resultAlias="metricpoint.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.failure" attributes="OneMinuteRate" resultAlias="metricpoint.ser.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.ser.success" attributes="OneMinuteRate" resultAlias="metricpoint.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.failure" attributes="OneMinuteRate" resultAlias="windowedmetric.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.ser.success" attributes="OneMinuteRate" resultAlias="windowedmetric.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.success" attributes="OneMinuteRate" resultAlias="windowedmetric.deser.success.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.disordered" attributes="OneMinuteRate" resultAlias="metricpoints.disordered.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.compute.failure" attributes="OneMinuteRate" resultAlias="metricpoints.compute.failure.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.invalid" attributes="OneMinuteRate" resultAlias="metricpoints.invalid.#attribute#"/>
+        <query objectName="metrics:name=windowed.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="windowed.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=histogram.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="histogram.metric.compute.time.#attribute#"/>
+        <query objectName="metrics:name=count.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate" resultAlias="count.metric.compute.time.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
