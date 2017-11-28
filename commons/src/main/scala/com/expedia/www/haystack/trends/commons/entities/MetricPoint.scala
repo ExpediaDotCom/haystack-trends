@@ -29,7 +29,7 @@ import com.expedia.www.haystack.trends.commons.entities.MetricType.MetricType
 case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
   def getMetricPointKey: String = {
     tags.foldLeft("")((tag, tuple) => {
-      tag + s"${tuple._1}:${tuple._2.replace(".", "_")}."
+      tag + s"${tuple._1}.${tuple._2.replace(".", "___")}."
     }) + metric
   }
 }
