@@ -29,7 +29,7 @@ import com.expedia.www.haystack.trends.commons.entities.MetricType.MetricType
 case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
   def getMetricPointKey: String = {
     tags.foldLeft("")((tag, tuple) => {
-      tag + s"${tuple._1}:${tuple._2}."
+      tag + s"${tuple._1}:${tuple._2.replace(".", "_")}."
     }) + metric
   }
 }
@@ -50,7 +50,7 @@ The Tag keys are according to metrics 2.0 specifications see http://metrics20.or
  */
 object TagKeys {
   val OPERATION_NAME_KEY = "operationName"
-  val SERVICE_NAME_KEY = "host"
+  val SERVICE_NAME_KEY = "serviceName"
   val RESULT_KEY = "result"
   val STATS_KEY = "stat"
   val ERROR_KEY = "error"
