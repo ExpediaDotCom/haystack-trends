@@ -31,15 +31,15 @@ class MetricPointSpec extends UnitTestSpec {
 
   "MetricPoint entity" should {
 
-    "append tags with underscore" in {
+    "replace period with underscore in tag values for metric point key" in {
 
       Given("metric point")
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
 
-      When("its serialized using the metricTank Serde")
+      When("we get the metric point key")
       val metricPointKey = metricPoint.getMetricPointKey
 
-      Then("it should be encoded as message pack")
+      Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
         TagKeys.OPERATION_NAME_KEY + ":" + OPERATION_NAME.replace(".", "_") + "." +
           TagKeys.SERVICE_NAME_KEY + ":" + SERVICE_NAME.replace(".", "_") + "." +

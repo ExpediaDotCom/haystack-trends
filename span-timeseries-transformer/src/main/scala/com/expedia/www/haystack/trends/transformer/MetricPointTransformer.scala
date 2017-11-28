@@ -40,8 +40,8 @@ trait MetricPointTransformer extends MetricsSupport {
     */
   protected def createCommonMetricTags(span: Span): Map[String, String] = {
     Map(
-      TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
+      TagKeys.SERVICE_NAME_KEY -> span.getServiceName,
+      TagKeys.OPERATION_NAME_KEY -> span.getOperationName)
   }
 }
 
