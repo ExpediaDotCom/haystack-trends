@@ -15,7 +15,13 @@
         </layout>
     </appender>
 
+    <appender name="EmitToGraphiteLogbackAppender"
+              class="com.expedia.www.haystack.metrics.appenders.logback.EmitToGraphiteLogbackAppender">
+        <address>${HAYSTACK_GRAPHITE_ADDRESS}</address>
+    </appender>
+
     <root level="${HAYSTACK_LOG_LEVEL:-INFO}">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="EmitToGraphiteLogbackAppender" />
     </root>
 </configuration>
