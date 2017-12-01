@@ -51,7 +51,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
   private val tagsKey = "Tags"
   private val intervalKey = "Interval"
   private val DEFAULT_ORG_ID = 1
-  private val DEFAULT_INTERVAL = 60
+  private val DEFAULT_INTERVAL = 1
   private val TAG_DELIMETER = "="
 
   override def deserializer(): Deserializer[MetricPoint] = {
