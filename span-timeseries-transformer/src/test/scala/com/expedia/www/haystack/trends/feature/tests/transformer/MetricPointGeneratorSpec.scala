@@ -43,6 +43,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
         .setServiceName(serviceName)
+        .setStartTime(System.currentTimeMillis() * 1000)   // in micro seconds
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
@@ -60,9 +61,9 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       })
       metricPointIds.size shouldEqual metricPointTransformers.size
 
-      Then("each metricPoint should have the timestamps which is equal to the span timestamp")
+      Then("each metricPoint should have the timestamps in seconds and which should equal to the span timestamp")
       metricPoints.foreach(metricPoint => {
-        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime
+        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime / 1000000
       })
 
       Then("each metricPoint should have the metric type as Metric")
