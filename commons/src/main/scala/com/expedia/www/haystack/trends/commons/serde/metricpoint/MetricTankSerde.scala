@@ -52,6 +52,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
   private val intervalKey = "Interval"
   private val DEFAULT_ORG_ID = 1
   private val DEFAULT_INTERVAL = 1
+  private val TAG_DELIMETER = "="
 
   override def deserializer(): Deserializer[MetricPoint] = {
     new Deserializer[MetricPoint] {
@@ -90,7 +91,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
   private def convertTagArrayToMap(tags: Iterator[Value]): Map[String, String] = {
     tags.collect {
-      case tag if tag.asStringValue().toString.split(":").length == 2 => tag.asStringValue().toString.split(":").apply(0) -> tag.asStringValue().toString.split(":").apply(1)
+      case tag if tag.asStringValue().toString.split(TAG_DELIMETER).length == 2 => tag.asStringValue().toString.split(TAG_DELIMETER).apply(0) -> tag.asStringValue().toString.split(TAG_DELIMETER).apply(1)
     }.toMap
   }
 
@@ -130,9 +131,10 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
     }
   }
 
+  //converting the tuple into a single string delimeted by the TAG_DELIMETER Constant which is recomended by metrictank , this wouldn't work incase the key or the value already has the TAG_DELIMETER string
   private def convertTagMapToArray(tags: Map[String, String]): List[ImmutableStringValue] = {
     tags.map {
-      case (key, value) => ValueFactory.newString(s"$key:$value")
+      case (key, value) => ValueFactory.newString(key + TAG_DELIMETER + value)
     }.toList
   }
 
