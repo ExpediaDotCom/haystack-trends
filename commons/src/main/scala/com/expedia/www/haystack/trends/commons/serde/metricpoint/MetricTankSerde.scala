@@ -109,7 +109,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
             ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
-            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(retrieveInterval(metricPoint)),
+            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
             ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
             ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
             ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
