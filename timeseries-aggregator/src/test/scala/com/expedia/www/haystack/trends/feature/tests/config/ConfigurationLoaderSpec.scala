@@ -38,17 +38,32 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       projectConfig.healthStatusFilePath shouldEqual healthStatusFilePath
     }
 
-    scenario("should load the kafka config from base.conf and one stream property from env variable") {
+    scenario("should load the kafka config from base.conf") {
 
-      Given("A config file at base config file containing config for health status file path")
-      val healthStatusFilePath = "/app/isHealthy"
+      Given("A config file at base config file containing kafka ")
 
       When("When the configuration is loaded in project configuration")
       val projectConfig = new ProjectConfiguration()
 
+      Then("It should create the write configuration object based on the file contents")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.produceTopic shouldBe "mdm"
       kafkaConfig.consumeTopic shouldBe "metricpoints"
+    }
+
+
+    scenario("should override configuration based on environment variable") {
+
+
+      Given("A config file at base config file containing config for kafka")
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new ProjectConfiguration()
+
+      Then("It should override the configuration object based on the environment variable if it exists")
+
+      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "mdm")
+      val kafkaConfig = projectConfig.kafkaConfig
+      kafkaConfig.produceTopic shouldBe kafkaProduceTopic
     }
 
   }

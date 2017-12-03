@@ -41,23 +41,16 @@ object App extends MetricsSupport {
     topology = new StreamTopology(projectConfiguration.kafkaConfig)
     topology.start()
 
-    Runtime.getRuntime.addShutdownHook(new ShutdownHookThread())
+    Runtime.getRuntime.addShutdownHook(new ShutdownHookThread(topology, jmxReporter))
   }
 
   private def startJmxReporter() = {
     jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
     jmxReporter.start()
   }
-
-
-  private class ShutdownHookThread extends Thread {
-    override def run(): Unit = {
-      LOGGER.info("Shutdown hook is invoked, tearing down the application.")
-
-      if (topology != null) topology.close()
-      if (jmxReporter != null) jmxReporter.close()
-      LoggerUtils.shutdownLogger()
-    }
-  }
-
 }
+
+
+
+
+

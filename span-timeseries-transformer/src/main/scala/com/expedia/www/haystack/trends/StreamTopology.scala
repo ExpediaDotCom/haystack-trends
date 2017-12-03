@@ -64,7 +64,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     * @param e throwable object
     */
   override def uncaughtException(t: Thread, e: Throwable): Unit = {
-      LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
+    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
     // it may happen that uncaught exception gets called by multiple threads at the same time,
     // so we let one of them close the kafka streams and restart it
     HealthController.setUnhealthy()
@@ -86,6 +86,10 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
         .names()
         .get()
         .contains(kafkaConfig.consumeTopic)
+    } catch {
+      case failure: Throwable =>
+        LOGGER.error("Failed to fetch consumer topic with exception ", failure)
+        false
     } finally {
       Try(adminClient.close(5, TimeUnit.SECONDS))
     }
@@ -97,7 +101,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   def start(): Unit = {
     LOGGER.info("Starting the kafka stream topology.")
 
-    if(doesConsumerTopicExist()) {
+    if (doesConsumerTopicExist()) {
       streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
       streams.setStateListener(this)
       streams.setUncaughtExceptionHandler(this)

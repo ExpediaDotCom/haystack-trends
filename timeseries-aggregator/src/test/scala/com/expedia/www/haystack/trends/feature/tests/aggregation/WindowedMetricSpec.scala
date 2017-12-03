@@ -20,9 +20,8 @@ package com.expedia.www.haystack.trends.feature.tests.aggregation
 
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.entities.Interval
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class WindowedMetricSpec extends FeatureSpec {

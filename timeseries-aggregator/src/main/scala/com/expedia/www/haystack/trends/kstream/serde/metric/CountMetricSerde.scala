@@ -1,8 +1,8 @@
 package com.expedia.www.haystack.trends.kstream.serde.metric
 
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, Metric}
-import com.expedia.www.haystack.trends.entities.Interval
-import com.expedia.www.haystack.trends.entities.Interval.Interval
+import com.expedia.www.haystack.trends.commons.entities.Interval
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import org.msgpack.core.MessagePack
 import org.msgpack.value.{Value, ValueFactory}
 
