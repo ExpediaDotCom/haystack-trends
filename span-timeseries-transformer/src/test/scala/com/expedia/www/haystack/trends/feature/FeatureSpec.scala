@@ -17,11 +17,12 @@
 package com.expedia.www.haystack.trends.feature
 
 import com.expedia.open.tracing.Span
+import org.scalatest.easymock.EasyMockSugar
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
 
-trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers {
-  def generateTestSpan(duration:Long): Span = {
+trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with EasyMockSugar {
+  def generateTestSpan(duration: Long): Span = {
     val operationName = "testSpan"
     val serviceName = "testService"
     Span.newBuilder()

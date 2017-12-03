@@ -21,9 +21,9 @@ package com.expedia.www.haystack.trends.aggregation
 import com.codahale.metrics.{Meter, Timer}
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactory}
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities.TimeWindow
 import org.slf4j.LoggerFactory
 

@@ -21,7 +21,7 @@ package com.expedia.www.haystack.trends.commons.serde.metricpoint
 import java.nio.ByteBuffer
 import java.util
 
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack.Code
@@ -49,9 +49,10 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
   private val timeKey = "Time"
   private val typeKey = "Mtype"
   private val tagsKey = "Tags"
-  private val intervalKey = "Interval"
+
+  private[commons] val intervalKey = "Interval"
   private val DEFAULT_ORG_ID = 1
-  private val DEFAULT_INTERVAL = 60
+  private[commons] val DEFAULT_INTERVAL_IN_SECS = 60
   private val TAG_DELIMETER = "="
 
   override def deserializer(): Deserializer[MetricPoint] = {
@@ -108,7 +109,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
             ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
-            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
+            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(retrieveInterval(metricPoint)),
             ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
             ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
             ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
@@ -136,6 +137,11 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
     tags.map {
       case (key, value) => ValueFactory.newString(key + TAG_DELIMETER + value)
     }.toList
+  }
+
+  //Retrieves the interval in case its present in the tags else uses the default interval
+  def retrieveInterval(metricPoint: MetricPoint): Int = {
+      metricPoint.tags.get(TagKeys.INTERVAL_KEY).map(stringInterval => Interval.fromName(stringInterval).timeInSeconds).getOrElse(DEFAULT_INTERVAL_IN_SECS)
   }
 
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = ()

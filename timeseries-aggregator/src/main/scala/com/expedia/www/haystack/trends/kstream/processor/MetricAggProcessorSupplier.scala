@@ -3,8 +3,7 @@ package com.expedia.www.haystack.trends.kstream.processor
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
-import com.expedia.www.haystack.trends.entities.Interval
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore

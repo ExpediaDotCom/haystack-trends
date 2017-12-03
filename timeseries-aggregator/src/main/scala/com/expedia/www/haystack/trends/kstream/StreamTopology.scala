@@ -149,6 +149,10 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
         .names()
         .get()
         .contains(kafkaConfig.consumeTopic)
+    } catch {
+      case failure: Throwable =>
+        LOGGER.error("Failed to fetch consumer topic with exception ", failure)
+        false
     } finally {
       Try(adminClient.close(5, TimeUnit.SECONDS))
     }
