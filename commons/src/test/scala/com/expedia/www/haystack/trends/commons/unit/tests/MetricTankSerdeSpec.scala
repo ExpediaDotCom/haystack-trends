@@ -54,7 +54,7 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
     "serialize metricpoint with the default interval if not present" in {
 
-      Given("metric point with a 5 minute interval")
+      Given("metric point without the interval tag")
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags, 80, currentTimeInSecs)
 
       When("its serialized using the metricTank Serde")
