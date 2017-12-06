@@ -17,9 +17,10 @@
 package com.expedia.www.haystack.trends.feature
 
 import org.scalatest._
+import org.scalatest.easymock.EasyMockSugar
 
 
-trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers {
+trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with EasyMockSugar {
 
   def currentTimeInSecs: Long = {
     System.currentTimeMillis() / 1000l

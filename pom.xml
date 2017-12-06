@@ -60,6 +60,7 @@
         <msgpack.version>0.8.13</msgpack.version>
         <hdrhistogram.version>1.2.1</hdrhistogram.version>
         <easymock.version>3.4</easymock.version>
+        <haystack.logback.metrics.appender.version>0.1.3</haystack.logback.metrics.appender.version>
 
 
         <!--Compiler Properties -->
@@ -192,6 +193,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.expedia.www</groupId>
+                <artifactId>haystack-logback-metrics-appender</artifactId>
+                <version>${haystack.logback.metrics.appender.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.msgpack</groupId>
                 <artifactId>msgpack-core</artifactId>
                 <version>${msgpack.version}</version>
@@ -290,13 +297,7 @@
                             </goals>
                             <configuration>
                                 <environmentVariables>
-                                    <HAYSTACK_PROP_KAFKA_CONSUMER_AUTO_OFFSET_RESET>earliest
-                                    </HAYSTACK_PROP_KAFKA_CONSUMER_AUTO_OFFSET_RESET>
-                                    <HAYSTACK_PROP_CASSANDRA_CONNECTIONS_MAX_PER_HOST>100
-                                    </HAYSTACK_PROP_CASSANDRA_CONNECTIONS_MAX_PER_HOST>
-                                    <HAYSTACK_PROP_CASSANDRA_ENDPOINTS>cass1,cass2</HAYSTACK_PROP_CASSANDRA_ENDPOINTS>
-                                    <HAYSTACK_PROP_ELASTICSEARCH_INDEX_NAME_PREFIX>haystack-test
-                                    </HAYSTACK_PROP_ELASTICSEARCH_INDEX_NAME_PREFIX>
+                                   <HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>testTopic</HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>
                                 </environmentVariables>
                                 <wildcardSuites>${featureTestClasses}</wildcardSuites>
                             </configuration>
@@ -364,7 +365,7 @@
                     <version>${scoverage.plugin.version}</version>
                     <configuration>
                         <!-- need to update this as improve the coverage -->
-                        <minimumCoverage>55</minimumCoverage>
+                        <minimumCoverage>80</minimumCoverage>
                         <failOnMinimumCoverage>true</failOnMinimumCoverage>
                         <highlighting>true</highlighting>
                         <scalaVersion>${scala-library.version}</scalaVersion>

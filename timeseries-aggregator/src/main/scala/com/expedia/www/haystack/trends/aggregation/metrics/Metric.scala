@@ -19,9 +19,9 @@
 package com.expedia.www.haystack.trends.aggregation.metrics
 
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities.StatValue.StatValue
 import com.expedia.www.haystack.trends.kstream.serde.metric.MetricSerde
 

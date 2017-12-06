@@ -21,7 +21,7 @@ package com.expedia.www.haystack.trends.commons.serde.metricpoint
 import java.nio.ByteBuffer
 import java.util
 
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack.Code
@@ -49,9 +49,11 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
   private val timeKey = "Time"
   private val typeKey = "Mtype"
   private val tagsKey = "Tags"
-  private val intervalKey = "Interval"
+
+  private[commons] val intervalKey = "Interval"
   private val DEFAULT_ORG_ID = 1
-  private val DEFAULT_INTERVAL = 1
+  private[commons] val DEFAULT_INTERVAL_IN_SECS = 60
+  private val TAG_DELIMETER = "="
 
   override def deserializer(): Deserializer[MetricPoint] = {
     new Deserializer[MetricPoint] {
@@ -90,7 +92,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
   private def convertTagArrayToMap(tags: Iterator[Value]): Map[String, String] = {
     tags.collect {
-      case tag if tag.asStringValue().toString.split(":").length == 2 => tag.asStringValue().toString.split(":").apply(0) -> tag.asStringValue().toString.split(":").apply(1)
+      case tag if tag.asStringValue().toString.split(TAG_DELIMETER).length == 2 => tag.asStringValue().toString.split(TAG_DELIMETER).apply(0) -> tag.asStringValue().toString.split(TAG_DELIMETER).apply(1)
     }.toMap
   }
 
@@ -107,7 +109,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
             ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
             ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
-            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(DEFAULT_INTERVAL),
+            ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(retrieveInterval(metricPoint)),
             ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
             ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
             ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
@@ -130,10 +132,16 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
     }
   }
 
+  //converting the tuple into a single string delimeted by the TAG_DELIMETER Constant which is recomended by metrictank , this wouldn't work incase the key or the value already has the TAG_DELIMETER string
   private def convertTagMapToArray(tags: Map[String, String]): List[ImmutableStringValue] = {
     tags.map {
-      case (key, value) => ValueFactory.newString(s"$key:$value")
+      case (key, value) => ValueFactory.newString(key + TAG_DELIMETER + value)
     }.toList
+  }
+
+  //Retrieves the interval in case its present in the tags else uses the default interval
+  def retrieveInterval(metricPoint: MetricPoint): Int = {
+      metricPoint.tags.get(TagKeys.INTERVAL_KEY).map(stringInterval => Interval.fromName(stringInterval).timeInSeconds).getOrElse(DEFAULT_INTERVAL_IN_SECS)
   }
 
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = ()

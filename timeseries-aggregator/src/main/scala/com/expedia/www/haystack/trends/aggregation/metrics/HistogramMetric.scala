@@ -20,8 +20,8 @@ package com.expedia.www.haystack.trends.aggregation.metrics
 
 import com.codahale.metrics.Timer
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 import org.HdrHistogram.Histogram
 
