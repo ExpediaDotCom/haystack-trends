@@ -89,6 +89,7 @@ class HistogramMetricSpec extends FeatureSpec {
       resultingMetricPointsMap(StatValue.MEAN.toString) shouldEqual expectedHistogram.getMean.toLong
       resultingMetricPointsMap(StatValue.MAX.toString) shouldEqual expectedHistogram.getMaxValue
       resultingMetricPointsMap(StatValue.MIN.toString) shouldEqual expectedHistogram.getMinValue
+      resultingMetricPointsMap(StatValue.PERCENTILE_95.toString) shouldEqual expectedHistogram.getValueAtPercentile(95)
       resultingMetricPointsMap(StatValue.PERCENTILE_99.toString) shouldEqual expectedHistogram.getValueAtPercentile(99)
       resultingMetricPointsMap(StatValue.STDDEV.toString) shouldEqual expectedHistogram.getStdDeviation.toLong
       resultingMetricPointsMap(StatValue.MEDIAN.toString) shouldEqual expectedHistogram.getValueAtPercentile(50)
