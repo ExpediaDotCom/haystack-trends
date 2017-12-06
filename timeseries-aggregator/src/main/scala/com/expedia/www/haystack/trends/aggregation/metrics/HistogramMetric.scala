@@ -47,6 +47,7 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
         val result = Map(
           MEAN -> histogram.getMean.toLong,
           MIN -> histogram.getMinValue,
+          PERCENTILE_95 -> histogram.getValueAtPercentile(95),
           PERCENTILE_99 -> histogram.getValueAtPercentile(99),
           STDDEV -> histogram.getStdDeviation.toLong,
           MEDIAN -> histogram.getValueAtPercentile(50),

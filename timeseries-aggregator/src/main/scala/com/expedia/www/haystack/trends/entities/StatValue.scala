@@ -11,6 +11,7 @@ object StatValue extends Enumeration {
   val MIN = Value("min")
   val COUNT = Value("count")
   val STDDEV = Value("std")
+  val PERCENTILE_95 = Value("*_95")
   val PERCENTILE_99 = Value("*_99")
   val MEDIAN = Value("*_50")
 
