@@ -44,7 +44,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, metricName, 100)
-      new StreamTopology(kafkaConfig).start()
+      new StreamTopology(kafkaConfig, true).start()
 
       Then("we should read one aggregated metricPoint from 'output' topic")
       val result: List[KeyValue[String, MetricPoint]] =

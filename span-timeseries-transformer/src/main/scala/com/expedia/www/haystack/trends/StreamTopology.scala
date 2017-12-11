@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
@@ -41,13 +40,12 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
+class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodReplacement: Boolean) extends StateListener
   with Thread.UncaughtExceptionHandler with MetricPointGenerator with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private var streams: KafkaStreams = _
-  private val enableMetricPointPeriodReplacement = ConfigurationLoader.loadAppConfig.getBoolean("enable.metricpoint.period.replacement")
 
   /**
     * on change event of kafka streams
@@ -124,7 +122,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(new StringSerde, MetricTankSerde, kafkaConfig.produceTopic)
+    }.to(new StringSerde, new MetricTankSerde(enableMetricPointPeriodReplacement), kafkaConfig.produceTopic)
 
     builder
   }

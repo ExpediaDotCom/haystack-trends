@@ -35,7 +35,7 @@ object App extends MetricsSupport {
     HealthController.addListener(new UpdateHealthStatusFile(projectConfiguration.healthStatusFilePath))
 
     startJmxReporter()
-    topology = new StreamTopology(projectConfiguration.kafkaConfig)
+    topology = new StreamTopology(projectConfiguration.kafkaConfig, projectConfiguration.enableMetricPointPeriodReplacement)
     topology.start()
 
     Runtime.getRuntime.addShutdownHook(new ShutdownHookThread(topology,jmxReporter))

@@ -61,6 +61,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
+    val metricTankSerde = new MetricTankSerde(true)
+
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.createTopic(OUTPUT_TOPIC)
 
@@ -68,13 +70,13 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
     PRODUCER_CONFIG.put(ProducerConfig.RETRIES_CONFIG, "0")
     PRODUCER_CONFIG.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, MetricTankSerde.serializer().getClass)
+    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, metricTankSerde.serializer().getClass)
 
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.GROUP_ID_CONFIG, APP_ID + "-result-consumer")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer])
-    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MetricTankSerde.deserializer().getClass)
+    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, metricTankSerde.deserializer().getClass)
 
     STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)

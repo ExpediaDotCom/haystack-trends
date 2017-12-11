@@ -35,6 +35,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether period in metric point service & operation name needs to be replaced
+    */
+  def enableMetricPointPeriodReplacement: Boolean = {
+    config.getBoolean("enable.metricpoint.period.replacement")
+  }
+
+  /**
+    *
     * @return streams configuration object
     */
   def kafkaConfig: KafkaConfiguration = {

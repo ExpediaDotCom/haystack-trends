@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
+class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodReplacement: Boolean) extends StateListener
   with Thread.UncaughtExceptionHandler with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
@@ -99,6 +99,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
 
   private def topology(): TopologyBuilder = {
 
+    val metricTankSerde = new MetricTankSerde(enableMetricPointPeriodReplacement)
     val builder = new TopologyBuilder()
 
     builder.addSource(
@@ -106,7 +107,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       TOPOLOGY_SOURCE_NAME,
       kafkaConfig.timestampExtractor,
       new StringDeserializer,
-      MetricTankSerde.deserializer(),
+      metricTankSerde.deserializer(),
       kafkaConfig.consumeTopic)
 
     val windowedMetricStore = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
@@ -127,7 +128,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
       TOPOLOGY_SINK_NAME,
       kafkaConfig.produceTopic,
       new StringSerializer,
-      MetricTankSerde.serializer(),
+      metricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     builder

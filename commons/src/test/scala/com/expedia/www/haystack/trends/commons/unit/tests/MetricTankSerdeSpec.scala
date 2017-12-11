@@ -25,7 +25,7 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags, 80, currentTimeInSecs)
 
       When("its serialized using the metricTank Serde")
-      val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+      val serializedBytes = new MetricTankSerde(true).serializer().serialize(TOPIC_NAME, metricPoint)
 
       Then("it should be encoded as message pack")
       val unpacker = MessagePack.newDefaultUnpacker(serializedBytes)
@@ -35,10 +35,11 @@ class MetricTankSerdeSpec extends UnitTestSpec {
     "serialize metricpoint with the right metric interval if present" in {
 
       Given("metric point with a 5 minute interval")
+      val metricTankSerde = new MetricTankSerde(true)
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags + (TagKeys.INTERVAL_KEY -> Interval.FIVE_MINUTE.name), 80, currentTimeInSecs)
 
       When("its serialized using the metricTank Serde")
-      val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+      val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
       val unpacker = MessagePack.newDefaultUnpacker(serializedBytes)
       Then("it should be able to unpack the content")
       unpacker should not be null
@@ -49,16 +50,17 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
       Then("interval key should be set as 300 seconds")
 
-      metricData.get(ValueFactory.newString(MetricTankSerde.intervalKey)).asIntegerValue().asInt() shouldBe 300
+      metricData.get(ValueFactory.newString(metricTankSerde.serializer().intervalKey)).asIntegerValue().asInt() shouldBe 300
     }
 
     "serialize metricpoint with the default interval if not present" in {
 
       Given("metric point without the interval tag")
+      val metricTankSerde = new MetricTankSerde(true)
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags, 80, currentTimeInSecs)
 
       When("its serialized using the metricTank Serde")
-      val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+      val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
       val unpacker = MessagePack.newDefaultUnpacker(serializedBytes)
       Then("it should be able to unpack the content")
       unpacker should not be null
@@ -68,18 +70,19 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       metricData should not be null
 
       Then("interval key should be set as default metric interval in seconds")
-      metricData.get(ValueFactory.newString(MetricTankSerde.intervalKey)).asIntegerValue().asInt() shouldBe MetricTankSerde.DEFAULT_INTERVAL_IN_SECS
+      metricData.get(ValueFactory.newString(metricTankSerde.serializer().intervalKey)).asIntegerValue().asInt() shouldBe metricTankSerde.serializer().DEFAULT_INTERVAL_IN_SECS
     }
 
 
     "serialize and deserialize simple metric points without loosing data" in {
 
       Given("metric point")
+      val metricTankSerde = new MetricTankSerde(true)
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags, 80, currentTimeInSecs)
 
       When("its serialized in the metricTank Format")
-      val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
-      val deserializedMetricPoint = MetricTankSerde.deserializer().deserialize(TOPIC_NAME, serializedBytes)
+      val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+      val deserializedMetricPoint = metricTankSerde.deserializer().deserialize(TOPIC_NAME, serializedBytes)
 
       Then("it should be encoded as message pack")
       metricPoint shouldEqual deserializedMetricPoint
@@ -90,11 +93,12 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       val tagWithSpecialCharacters = Map(TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME, TagKeys.OPERATION_NAME_KEY -> "service:someOp")
 
       Given("metric point")
+      val metricTankSerde = new MetricTankSerde(true)
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, tagWithSpecialCharacters, 80, currentTimeInSecs)
 
       When("its serialized in the metricTank Format")
-      val serializedBytes = MetricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
-      val deserializedMetricPoint = MetricTankSerde.deserializer().deserialize(TOPIC_NAME, serializedBytes)
+      val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+      val deserializedMetricPoint = metricTankSerde.deserializer().deserialize(TOPIC_NAME, serializedBytes)
 
       Then("it should be encoded as message pack")
       metricPoint shouldEqual deserializedMetricPoint
