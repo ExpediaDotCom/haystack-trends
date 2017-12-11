@@ -38,13 +38,30 @@ class MetricPointSpec extends UnitTestSpec {
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME_WITH_DOT)
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
 
-      When("we get the metric point key")
-      val metricPointKey = metricPoint.getMetricPointKey
+      When("we get the metric point key with config enabled")
+      val metricPointKey = metricPoint.getMetricPointKey(true)
 
       Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
         TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT.replace(".", "___") + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT.replace(".", "___") + "." +
+          DURATION_METRIC_NAME
+    }
+
+    "should not replace period with underscore in tag values for metric point key" in {
+
+      Given("metric point with period in service and operation name")
+      val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME_WITH_DOT,
+        TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME_WITH_DOT)
+      val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
+
+      When("we get the metric point key with config disabled")
+      val metricPointKey = metricPoint.getMetricPointKey(false)
+
+      Then("metric point key should have value with period replaced with underscore")
+      metricPointKey shouldEqual
+        TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT + "." +
+          TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT + "." +
           DURATION_METRIC_NAME
     }
 
@@ -56,7 +73,7 @@ class MetricPointSpec extends UnitTestSpec {
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
 
       When("we get the metric point key")
-      val metricPointKey = metricPoint.getMetricPointKey
+      val metricPointKey = metricPoint.getMetricPointKey(true)
 
       Then("metric point key should have value with only period replaced with underscore and colon retained")
       metricPointKey shouldEqual

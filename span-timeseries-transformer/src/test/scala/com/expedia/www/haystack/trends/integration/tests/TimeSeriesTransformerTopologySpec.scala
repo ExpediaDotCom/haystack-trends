@@ -50,7 +50,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
-      new StreamTopology(kafkaConfig).start()
+      new StreamTopology(kafkaConfig, true).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
       val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List())) // directly call transformers to get metricPoints
@@ -72,7 +72,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey).toSet
+      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
       val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)
@@ -110,6 +110,5 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       span
     }
   }.toList
-
 }
 

@@ -27,10 +27,17 @@ import com.expedia.www.haystack.trends.commons.entities.MetricType.MetricType
   * @param epochTimeInSeconds : epochTime in seconds for when the event is generated
   */
 case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
-  def getMetricPointKey: String = {
-    tags.foldLeft("")((tag, tuple) => {
-      tag + s"${tuple._1}.${tuple._2.replace(".", "___")}."
-    }) + metric
+
+  def getMetricPointKey (enablePeriodReplacement: Boolean): String = {
+    if (enablePeriodReplacement) {
+      tags.foldLeft("")((tag, tuple) => {
+        tag + s"${tuple._1}.${tuple._2.replace(".", "___")}."
+      }) + metric
+    } else {
+      tags.foldLeft("")((tag, tuple) => {
+        tag + s"${tuple._1}.${tuple._2}."
+      }) + metric
+    }
   }
 }
 

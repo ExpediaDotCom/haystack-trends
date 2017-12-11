@@ -34,8 +34,19 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       val projectConfig = new ProjectConfiguration()
 
       Then("the healthStatusFilePath should be correct")
-
       projectConfig.healthStatusFilePath shouldEqual healthStatusFilePath
+    }
+
+    scenario("should load the metric point enable period replacement config from base.conf") {
+
+      Given("A config file at base config file containing config for enable period replacement")
+      val enableMetricPointPeriodReplacement = true
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new ProjectConfiguration()
+
+      Then("the enableMetricPointPeriodReplacement should be correct")
+      projectConfig.enableMetricPointPeriodReplacement shouldEqual enableMetricPointPeriodReplacement
     }
 
     scenario("should load the kafka config from base.conf") {

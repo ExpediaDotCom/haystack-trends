@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
+class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodReplacement: Boolean) extends StateListener
   with Thread.UncaughtExceptionHandler with MetricPointGenerator with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
@@ -122,7 +122,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(new StringSerde, MetricTankSerde, kafkaConfig.produceTopic)
+    }.to(new StringSerde, new MetricTankSerde(enableMetricPointPeriodReplacement), kafkaConfig.produceTopic)
 
     builder
   }
@@ -131,7 +131,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     generateMetricPoints(MetricPointTransformer.allTransformers)(span)
       .getOrElse(Nil)
       .map {
-        metricPoint => new KeyValue(metricPoint.getMetricPointKey, metricPoint)
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
       }.asJava
   }
 
