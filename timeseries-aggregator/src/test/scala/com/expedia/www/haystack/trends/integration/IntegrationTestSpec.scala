@@ -107,7 +107,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     scheduler.scheduleWithFixedDelay(() => {
       if (idx < maxMetricPoints) {
         val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
-        val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey, metricPoint)).asJava
+        val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(true), metricPoint)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
           keyValue,

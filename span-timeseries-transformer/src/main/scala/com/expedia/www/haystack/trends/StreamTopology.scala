@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.open.tracing.Span
+import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
@@ -46,6 +47,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private var streams: KafkaStreams = _
+  private val enableMetricPointPeriodReplacement = ConfigurationLoader.loadAppConfig.getBoolean("enable.metricpoint.period.replacement")
 
   /**
     * on change event of kafka streams
@@ -131,7 +133,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration) extends StateListener
     generateMetricPoints(MetricPointTransformer.allTransformers)(span)
       .getOrElse(Nil)
       .map {
-        metricPoint => new KeyValue(metricPoint.getMetricPointKey, metricPoint)
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
       }.asJava
   }
 

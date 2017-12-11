@@ -1,12 +1,10 @@
 package com.expedia.www.haystack.trends.feature.tests.kstreams
 
-import java.util.Properties
 
 import com.expedia.www.haystack.trends.StreamTopology
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
-import org.apache.kafka.streams.StreamsConfig
 
 class StreamTopologySpec extends FeatureSpec {
 

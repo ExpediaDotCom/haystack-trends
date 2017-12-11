@@ -20,7 +20,6 @@ package com.expedia.www.haystack.trends
 
 import com.codahale.metrics.JmxReporter
 import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
-import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import org.slf4j.LoggerFactory
@@ -46,8 +45,6 @@ object App extends MetricsSupport {
     jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
     jmxReporter.start()
   }
-
-
 }
 
 

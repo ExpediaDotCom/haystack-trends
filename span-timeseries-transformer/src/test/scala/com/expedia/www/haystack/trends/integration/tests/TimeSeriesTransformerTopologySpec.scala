@@ -72,7 +72,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey).toSet
+      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
       val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)

@@ -21,6 +21,7 @@ package com.expedia.www.haystack.trends.commons.serde.metricpoint
 import java.nio.ByteBuffer
 import java.util
 
+import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
@@ -54,6 +55,7 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
   private val DEFAULT_ORG_ID = 1
   private[commons] val DEFAULT_INTERVAL_IN_SECS = 60
   private val TAG_DELIMETER = "="
+  private val enableMetricPointReplacement = ConfigurationLoader.loadAppConfig.getBoolean("enable.metricpoint.period.replacement")
 
   override def deserializer(): Deserializer[MetricPoint] = {
     new Deserializer[MetricPoint] {
@@ -106,8 +108,8 @@ object MetricTankSerde extends Serde[MetricPoint] with MetricsSupport {
 
 
           val metricData = Map[Value, Value](
-            ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
-            ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey),
+            ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
+            ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
             ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
             ValueFactory.newString(intervalKey) -> ValueFactory.newInteger(retrieveInterval(metricPoint)),
             ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
