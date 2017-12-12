@@ -18,6 +18,7 @@
     <appender name="EmitToGraphiteLogbackAppender"
               class="com.expedia.www.haystack.metrics.appenders.logback.EmitToGraphiteLogbackAppender">
         <host>${HAYSTACK_GRAPHITE_HOST}</host>
+        <port>${HAYSTACK_GRAPHITE_PORT}</port>
     </appender>
 
     <root level="${HAYSTACK_LOG_LEVEL:-INFO}">

@@ -61,27 +61,27 @@
                resultAlias="metricpoint.ser.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.ser.success" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="windowedmetric.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.ser.success" attributes="OneMinuteRate,MeanRate"
-               resultAlias="windowedmetric.ser.success.#attribute#"/>
-        <query objectName="metrics:name=windowedmetric.deser.success" attributes="OneMinuteRate,MeanRate"
-               resultAlias="windowedmetric.deser.success.#attribute#"/>
         <query objectName="metrics:name=metricpoints.disordered" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoints.disordered.#attribute#"/>
+               resultAlias="metricpoint.disordered.#attribute#"/>
         <query objectName="metrics:name=metricpoints.compute.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoints.compute.failure.#attribute#"/>
+               resultAlias="metricpoint.compute.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoints.invalid" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoints.invalid.#attribute#"/>
-        <query objectName="metrics:name=windowed.metric.compute.time"
-               attributes="50thPercentile,99thPercentile,OneMinuteRate"
-               resultAlias="windowed.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:name=histogram.metric.compute.time"
-               attributes="50thPercentile,99thPercentile,OneMinuteRate"
-               resultAlias="histogram.metric.compute.time.#attribute#"/>
-        <query objectName="metrics:name=count.metric.compute.time"
-               attributes="50thPercentile,99thPercentile,OneMinuteRate"
-               resultAlias="count.metric.compute.time.#attribute#"/>
+               resultAlias="metricpoint.invalid.#attribute#"/>
+
+        <query objectName="metrics:name=windowedmetric.deser.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowed-metric.deser.failure.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.ser.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowed-metric.ser.success.#attribute#"/>
+        <query objectName="metrics:name=windowedmetric.deser.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="windowed-metric.deser.success.#attribute#"/>
+        <query objectName="metrics:name=windowed.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="windowed-metric.compute.time.#attribute#"/>
+
+        <query objectName="metrics:name=histogram.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="histogram-metric.compute.time.#attribute#"/>
+
+        <query objectName="metrics:name=count.metric.compute.time" attributes="50thPercentile,99thPercentile,OneMinuteRate"
+               resultAlias="count-metric.compute.time.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
