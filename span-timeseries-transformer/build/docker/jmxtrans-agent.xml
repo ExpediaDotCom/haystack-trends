@@ -56,7 +56,7 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:name=span.serde.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="span.serde.failure.#attribute#"/>
+               resultAlias="span-serde.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.deser.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.ser.failure" attributes="OneMinuteRate,MeanRate"
@@ -66,7 +66,7 @@
 
 
         <query objectName="metrics:name=span.validation.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="span.validation.failure.#attribute#"/>
+               resultAlias="span-validation.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.span.failure" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.span.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoint.span.success" attributes="OneMinuteRate,MeanRate"
