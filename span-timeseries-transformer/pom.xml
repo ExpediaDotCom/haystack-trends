@@ -50,7 +50,6 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -61,12 +60,6 @@
             <artifactId>haystack-trends-commons</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.expedia.www</groupId>
-            <artifactId>haystack-logback-metrics-appender</artifactId>
-            <version>0.1.1</version>
-        </dependency>
-
     </dependencies>
 
     <build>
