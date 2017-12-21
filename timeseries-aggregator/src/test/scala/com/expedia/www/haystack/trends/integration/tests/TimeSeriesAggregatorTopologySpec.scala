@@ -18,7 +18,7 @@
 package com.expedia.www.haystack.trends.integration.tests
 
 
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
@@ -32,33 +32,42 @@ import scala.concurrent.duration._
 
 class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
-  private val MAX_METRICPOINTS = 5
-  APP_ID = "haystack-topology-test"
-  private val metricName = "duration"
-
+  private val MAX_METRICPOINTS = 62
+  private val METRIC_NAME = "duration"
+  val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7  // Why one less -> won't be generated for 0th time metric point
+  val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) * 7
+  val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
+  val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
+  val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
 
   "TimeSeries Aggregator Topology" should {
     "consume metricPoints from input topic and aggregate them based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
-      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor,30000)
+      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, metricName, 100)
+      produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, 3660)
       new StreamTopology(kafkaConfig, true).start()
 
-      Then("we should read one aggregated metricPoint from 'output' topic")
+      Then("we should read all aggregated metricPoint from 'output' topic")
+      val waitTimeMs = 15000
       val result: List[KeyValue[String, MetricPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, 15000).asScala.toList
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
       validateAggregatedMetricPoints(result)
     }
   }
 
   private def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricPoint]]) = {
 
-    producedRecords.foreach(record => {
-      record.value.metric shouldEqual metricName
-    })
-  }
+    val oneMinAggMetricPoints = producedRecords.filter(_.value.tags("interval").equals(Interval.ONE_MINUTE.toString()))
+    val fiveMinAggMetricPoints = producedRecords.filter(_.value.tags("interval").equals(Interval.FIVE_MINUTE.toString()))
+    val fifteenMinAggMetricPoints = producedRecords.filter(_.value.tags("interval").equals(Interval.FIFTEEN_MINUTE.toString()))
+    val oneHourAggMetricPoints = producedRecords.filter(_.value.tags("interval").equals(Interval.ONE_HOUR.toString()))
 
+    oneMinAggMetricPoints.size shouldEqual expectedOneMinAggregatedPoints
+    fiveMinAggMetricPoints.size shouldEqual expectedFiveMinAggregatedPoints
+    fifteenMinAggMetricPoints.size shouldEqual expectedFifteenMinAggregatedPoints
+    oneHourAggMetricPoints.size shouldEqual expectedOneHourAggregatedPoints
+  }
 }
 
