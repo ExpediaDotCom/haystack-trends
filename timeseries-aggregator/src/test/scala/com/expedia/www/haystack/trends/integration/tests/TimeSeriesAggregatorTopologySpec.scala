@@ -34,7 +34,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
   private val MAX_METRICPOINTS = 62
   private val METRIC_NAME = "duration"
-  val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7  // Why one less -> won't be generated for 0th time metric point
+  val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7  // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
   val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) * 7
   val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
   val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
@@ -46,7 +46,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, 3660)
+      produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, MAX_METRICPOINTS * 60)
       new StreamTopology(kafkaConfig, true).start()
 
       Then("we should read all aggregated metricPoint from 'output' topic")
