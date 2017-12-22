@@ -46,7 +46,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
   //Todo: Have to add support for watermarking
   private val numberOfWatermarkedWindows = 1
 
-  private var computedMetrics: Map[Long, Metric] = Map[Long, Metric]()
+  private var computedMetrics: List[(Long, Metric)] = List[(Long, Metric)]()
 
 
   def getMetricFactory: MetricFactory = {
@@ -63,7 +63,7 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
     val timerContext = windowedMetricComputeTimer.time()
     Try {
 
-      //discarding values which are less than 0 assuming the are invalid metric points
+      //discarding values which are less than 0 assuming they are invalid metric points
       if (incomingMetricPoint.value > 0) {
         windowedMetricsMap.foreach(metricTimeWindowTuple => {
           val currentTimeWindow = metricTimeWindowTuple._1
@@ -90,13 +90,17 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
     currentTimeWindow.compare(incomingMetricPointTimeWindow) match {
 
       // compute to existing metric since in current window
-      case number if number == 0 => currentMetric.compute(incomingMetricPoint)
+      case number if number == 0 =>
+        currentMetric.compute(incomingMetricPoint)
 
       // belongs to next window, lets flush this one to computedMetrics and create a new window
       case number if number < 0 =>
         windowedMetricsMap -= currentTimeWindow
-        windowedMetricsMap += (incomingMetricPointTimeWindow -> metricFactory.createMetric(currentMetric.getMetricInterval))
-        computedMetrics += currentTimeWindow.endTime -> currentMetric
+
+        val newMetric = metricFactory.createMetric(currentMetric.getMetricInterval)
+        newMetric.compute(incomingMetricPoint)
+        windowedMetricsMap += (incomingMetricPointTimeWindow -> newMetric)
+        computedMetrics = (currentTimeWindow.endTime, currentMetric) :: computedMetrics
 
       // window already closed and we don't support water marking yet
       case _ => disorderedMetricPointMeter.mark()
@@ -104,10 +108,11 @@ class WindowedMetric private(var windowedMetricsMap: Map[TimeWindow, Metric], me
   }
 
   def getComputedMetricPoints: List[MetricPoint] = {
-    val metricPoints = computedMetrics.toList.flatMap {
-      case (publishTime, metric) => metric.mapToMetricPoints(publishTime)
+    val metricPoints = computedMetrics.flatMap {
+      case (publishTime, metric) =>
+        metric.mapToMetricPoints(publishTime)
     }
-    computedMetrics = Map()
+    computedMetrics = List[(Long, Metric)]()
     metricPoints
   }
 }
