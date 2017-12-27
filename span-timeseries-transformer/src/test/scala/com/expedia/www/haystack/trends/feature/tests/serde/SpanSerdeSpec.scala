@@ -22,6 +22,9 @@ class SpanSerdeSpec extends FeatureSpec {
       Then("it should be serialized in protobuf binary format")
       bytes should not be null
       Span.parseFrom(bytes) shouldBe span
+
+      SpanSerde.deserializer.close()
+      SpanSerde.close()
     }
 
     scenario("serializing invalid span object") {
@@ -34,6 +37,8 @@ class SpanSerdeSpec extends FeatureSpec {
       Then("it should return null")
       bytes shouldBe null
 
+      SpanSerde.deserializer.close()
+      SpanSerde.close()
     }
 
     scenario("deserializing valid span object") {
@@ -50,6 +55,8 @@ class SpanSerdeSpec extends FeatureSpec {
       Then("it should return the same span object as the one before serializing")
       span shouldBe deserializedSpan
 
+      SpanSerde.deserializer.close()
+      SpanSerde.close()
     }
     scenario("deserializing invalid span object") {
 
@@ -62,6 +69,9 @@ class SpanSerdeSpec extends FeatureSpec {
 
       Then("it should return a null")
       deserializedSpan shouldBe null
+
+      SpanSerde.deserializer.close()
+      SpanSerde.close()
     }
 
     scenario("deserializing null span object") {
@@ -74,6 +84,9 @@ class SpanSerdeSpec extends FeatureSpec {
 
       Then("it should return a null")
       deserializedSpan shouldBe null
+
+      SpanSerde.deserializer.close()
+      SpanSerde.close()
     }
   }
 }
