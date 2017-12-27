@@ -23,13 +23,16 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
       Given("metric point")
       val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, metricTags, 80, currentTimeInSecs)
+      val metricTankSerde = new MetricTankSerde()
 
       When("its serialized using the metricTank Serde")
-      val serializedBytes = new MetricTankSerde(true).serializer().serialize(TOPIC_NAME, metricPoint)
+      val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
 
       Then("it should be encoded as message pack")
       val unpacker = MessagePack.newDefaultUnpacker(serializedBytes)
       unpacker should not be null
+
+      metricTankSerde.close()
     }
 
     "serialize metricpoint with the right metric interval if present" in {
@@ -49,8 +52,9 @@ class MetricTankSerdeSpec extends UnitTestSpec {
       metricData should not be null
 
       Then("interval key should be set as 300 seconds")
-
       metricData.get(ValueFactory.newString(metricTankSerde.serializer().intervalKey)).asIntegerValue().asInt() shouldBe 300
+
+      metricTankSerde.close()
     }
 
     "serialize metricpoint with the default interval if not present" in {
@@ -71,6 +75,8 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
       Then("interval key should be set as default metric interval in seconds")
       metricData.get(ValueFactory.newString(metricTankSerde.serializer().intervalKey)).asIntegerValue().asInt() shouldBe metricTankSerde.serializer().DEFAULT_INTERVAL_IN_SECS
+
+      metricTankSerde.close()
     }
 
 
@@ -86,6 +92,8 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
       Then("it should be encoded as message pack")
       metricPoint shouldEqual deserializedMetricPoint
+
+      metricTankSerde.close()
     }
 
     "serialize and deserialize metric points with tag values containing special characters without loosing data" in {
@@ -102,6 +110,8 @@ class MetricTankSerdeSpec extends UnitTestSpec {
 
       Then("it should be encoded as message pack")
       metricPoint shouldEqual deserializedMetricPoint
+
+      metricTankSerde.close()
     }
   }
 
