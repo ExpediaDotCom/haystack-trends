@@ -22,8 +22,8 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       val keyValueStore: KeyValueStore[String, WindowedMetric] = mock[KeyValueStore[String, WindowedMetric]]
       val processorContext = mock[ProcessorContext]
       expecting{
-        keyValueStore.get("metrics").andReturn(windowedMetric).anyTimes()
-        processorContext.getStateStore(windowedMetricStoreName).andReturn(keyValueStore).anyTimes()
+        keyValueStore.get("metrics").andReturn(windowedMetric)
+        processorContext.getStateStore(windowedMetricStoreName).andReturn(keyValueStore)
       }
       EasyMock.replay(keyValueStore)
       EasyMock.replay(processorContext)
