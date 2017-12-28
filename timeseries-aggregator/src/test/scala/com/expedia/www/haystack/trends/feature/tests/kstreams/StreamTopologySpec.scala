@@ -21,8 +21,8 @@ class StreamTopologySpec extends FeatureSpec {
 
       Then("the app health should be set to unhealthy without throwing an exception")
       HealthController.isHealthy shouldBe false
+
+      topology.close()
     }
-
-
   }
 }

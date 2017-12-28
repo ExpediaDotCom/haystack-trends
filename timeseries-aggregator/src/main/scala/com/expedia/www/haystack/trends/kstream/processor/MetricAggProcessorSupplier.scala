@@ -90,12 +90,8 @@ class MetricAggProcessorSupplier(windowedMetricStoreName: String) extends KStrea
         case AggregationType.Histogram => WindowedMetric.createWindowedMetric(Interval.all, value, HistogramMetricFactory)
         case AggregationType.Count => WindowedMetric.createWindowedMetric(Interval.all, value, CountMetricFactory)
       }
-
-
     }
   }
-
-
 }
 
 

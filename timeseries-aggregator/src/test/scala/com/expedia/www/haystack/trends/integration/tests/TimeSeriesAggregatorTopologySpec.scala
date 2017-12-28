@@ -17,7 +17,6 @@
  */
 package com.expedia.www.haystack.trends.integration.tests
 
-
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
@@ -34,8 +33,8 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
   private val MAX_METRICPOINTS = 62
 
-  "TimeSeries Aggregator Topology" should {
-    "consume metricPoints from input topic and aggregate them based on rules for histogram type" in {
+  "TimeSeries Aggregator Topology for histogram type metrics" should {
+    "consume metricPoints from input topic and aggregate them based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
       val METRIC_NAME = "duration"  //HistogramMetric
       val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7  // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
@@ -43,7 +42,6 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
       val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
-
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
@@ -58,15 +56,15 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
     }
   }
 
-    "consume metricPoints from input topic and aggregate them based on rules for Count type" in {
+  "TimeSeries Aggregator Topology for count type metrics" should {
+    "consume metricPoints from input topic and aggregate them based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
       val METRIC_NAME = "received-span" // CountMetric
-      val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - 1  // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
+      val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - 1 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
       val expectedFiveMinAggregatedPoints: Int = MAX_METRICPOINTS / 5
       val expectedFifteenMinAggregatedPoints: Int = MAX_METRICPOINTS / 15
       val expectedOneHourAggregatedPoints: Int = MAX_METRICPOINTS / 60
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
-
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
@@ -79,6 +77,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
+  }
 
   private def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricPoint]],
                                              expectedOneMinAggregatedPoints: Int,

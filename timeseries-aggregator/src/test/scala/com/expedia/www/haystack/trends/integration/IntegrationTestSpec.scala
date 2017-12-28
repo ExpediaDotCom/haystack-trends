@@ -40,7 +40,6 @@ object EmbeddedKafka {
 
 class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
-
   protected val PUNCTUATE_INTERVAL_SEC = 2000
   protected val PRODUCER_CONFIG = new Properties()
   protected val RESULT_CONSUMER_CONFIG = new Properties()
@@ -53,14 +52,6 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected var CHANGELOG_TOPIC = ""
 
   override def beforeAll() {
-    scheduler = Executors.newScheduledThreadPool(2)
-  }
-
-  override def afterAll(): Unit = {
-    scheduler.shutdownNow()
-  }
-
-  override def beforeEach() {
     val metricTankSerde = new MetricTankSerde(true)
 
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
@@ -88,11 +79,23 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     IntegrationTestUtils.purgeLocalStreamsState(STREAMS_CONFIG)
 
     CHANGELOG_TOPIC = s"$APP_ID-AggregatedMetricPointStore-changelog"
+
+    scheduler = Executors.newScheduledThreadPool(2)
+  }
+
+  override def afterAll(): Unit = {
+    EmbeddedKafka.CLUSTER.deleteTopic(INPUT_TOPIC)
+    EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
+
+    scheduler.shutdownNow()
+  }
+
+  override def beforeEach() {
+
   }
 
   override def afterEach(): Unit = {
-    EmbeddedKafka.CLUSTER.deleteTopic(INPUT_TOPIC)
-    EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
+
   }
 
   def currentTimeInSecs: Long = {
@@ -126,6 +129,4 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
                         timestamp: Long = currentTimeInSecs): MetricPoint = {
     MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
   }
-
-
 }

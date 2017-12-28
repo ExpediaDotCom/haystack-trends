@@ -37,7 +37,6 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       val deserializedMetric = WindowedMetricSerde.deserializer().deserialize(TOPIC_NAME, serializedMetric)
 
       Then("Then it should deserialize the metric back in the same state")
-
       deserializedMetric should not be null
       windowedMetric.windowedMetricsMap.map {
         case (window, metric) =>
@@ -67,12 +66,13 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       })
 
       When("the windowed metric is serialized and then deserialized back")
-      val serializedMetric = WindowedMetricSerde.serializer().serialize(TOPIC_NAME, windowedMetric)
-      val deserializedMetric = WindowedMetricSerde.deserializer().deserialize(TOPIC_NAME, serializedMetric)
+      val serializer = WindowedMetricSerde.serializer()
+      val deserializer = WindowedMetricSerde.deserializer()
+      val serializedMetric = serializer.serialize(TOPIC_NAME, windowedMetric)
+      val deserializedMetric = deserializer.deserialize(TOPIC_NAME, serializedMetric)
 
 
       Then("Then it should deserialize the metric back in the same state")
-
       deserializedMetric should not be null
       windowedMetric.windowedMetricsMap.map {
         case (window, metric) =>
@@ -83,6 +83,9 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
           countMetric.getMetricInterval shouldEqual deserializedCountMetric.getMetricInterval
           countMetric.getCurrentCount shouldEqual deserializedCountMetric.getCurrentCount
       }
+      serializer.close()
+      deserializer.close()
+      WindowedMetricSerde.close()
     }
   }
 
