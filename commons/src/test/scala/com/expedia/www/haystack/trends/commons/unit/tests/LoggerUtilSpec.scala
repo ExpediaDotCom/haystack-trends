@@ -31,6 +31,7 @@ class LoggerUtilSpec extends FunSpec with Matchers with EasyMockSugar {
 
       val loggerFactory = new ILoggerFactory {
         override def getLogger(s: String): Logger = logger
+
         def stop(): Unit = isStopped = true
       }
 
@@ -46,6 +47,7 @@ class LoggerUtilSpec extends FunSpec with Matchers with EasyMockSugar {
 
       val loggerFactory = new ILoggerFactory {
         override def getLogger(s: String): Logger = logger
+
         def close(): Unit = isStopped = true
       }
 
@@ -61,7 +63,27 @@ class LoggerUtilSpec extends FunSpec with Matchers with EasyMockSugar {
 
       val loggerFactory = new ILoggerFactory {
         override def getLogger(s: String): Logger = logger
+
         def shutdown(): Unit = isStopped = true
+      }
+
+      whenExecuting(logger) {
+        LoggerUtils.shutdownLoggerWithFactory(loggerFactory)
+        isStopped shouldBe false
+      }
+    }
+
+    it("should do nothing when stop method throws exception") {
+      val logger = mock[Logger]
+      var isStopped = true
+
+      val loggerFactory = new ILoggerFactory {
+        override def getLogger(s: String): Logger = logger
+
+        def stop(): Unit = {
+          isStopped = false
+          throw new Exception
+        }
       }
 
       whenExecuting(logger) {

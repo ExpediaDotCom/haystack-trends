@@ -115,5 +115,33 @@ class MetricTankSerdeSpec extends UnitTestSpec {
     }
   }
 
+  "serializer returns null for any exception" in {
+
+    Given("MetricTankSerde and a null metric point")
+    val metricTankSerde = new MetricTankSerde(true)
+    val metricPoint = null
+
+    When("its serialized using the metricTank Serde")
+    val serializedBytes = metricTankSerde.serializer().serialize(TOPIC_NAME, metricPoint)
+
+    Then("serializer should return null")
+    serializedBytes shouldBe null
+    metricTankSerde.close()
+  }
+
+  "deserializer returns null for any exception" in {
+
+    Given("MetricTankSerde and a null metric point")
+    val metricTankSerde = new MetricTankSerde(true)
+    val metricPointBytes = null
+
+    When("its deserialized using the metricTank Serde")
+    val deserializedBytes = metricTankSerde.deserializer().deserialize(TOPIC_NAME, metricPointBytes)
+
+    Then("deserializer should return null")
+    deserializedBytes shouldBe null
+    metricTankSerde.close()
+  }
+
   private def readStatusLine = io.Source.fromFile(statusFile).getLines().toList.head
 }
