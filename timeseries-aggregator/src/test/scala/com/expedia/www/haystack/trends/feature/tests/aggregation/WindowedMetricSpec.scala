@@ -18,11 +18,14 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation
 
+import com.codahale.metrics.Meter
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
 import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries
 import com.expedia.www.haystack.trends.feature.FeatureSpec
+import org.easymock.Mock
 
 class WindowedMetricSpec extends FeatureSpec {
 
@@ -119,6 +122,23 @@ class WindowedMetricSpec extends FeatureSpec {
 
       val expectedOneHourMetric: CountMetric = new CountMetric(Interval.ONE_HOUR)
       metricPoints.foreach(metricPoint => expectedOneHourMetric.compute(metricPoint))
+    }
+
+    scenario("jmx metric (metricpoints.invalid) should be set for invalid (negative) value of MetricPoint") {
+
+      Given("a metric point with invalid value")
+      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE, Interval.ONE_HOUR)
+      val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTimeInSecs)
+      val invalidMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, -1, currentTimeInSecs)
+
+
+      When("creating a WindowedMetric and passing an invalid MetricPoint")
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, validMetricPoint, HistogramMetricFactory)
+      windowedMetric.compute(invalidMetricPoint)
+
+      Then("metric point for invalid value should get incremented")
+      val metricsRegistry = MetricsRegistries.metricRegistry
+      metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 1
     }
   }
 }
