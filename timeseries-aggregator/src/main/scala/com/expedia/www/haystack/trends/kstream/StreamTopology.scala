@@ -18,6 +18,7 @@
 
 package com.expedia.www.haystack.trends.kstream
 
+import java.util
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -110,10 +111,14 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodRep
       metricTankSerde.deserializer(),
       kafkaConfig.consumeTopic)
 
+    val loggingConfig = new util.HashMap[String, String]()
+    loggingConfig.put("cleanup.policy", "compact")
+
     val windowedMetricStore = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
       .withStringKeys
       .withValues(WindowedMetricSerde)
       .inMemory()
+      .enableLogging(loggingConfig)
       .build()
 
     builder.addProcessor(
