@@ -18,7 +18,6 @@
 
 package com.expedia.www.haystack.trends.kstream
 
-import java.util
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -36,9 +35,10 @@ import org.apache.kafka.streams.state.Stores
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConverters
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodReplacement: Boolean) extends StateListener
+class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[String, String], enableMetricPointPeriodReplacement: Boolean) extends StateListener
   with Thread.UncaughtExceptionHandler with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
@@ -111,14 +111,11 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodRep
       metricTankSerde.deserializer(),
       kafkaConfig.consumeTopic)
 
-    val loggingConfig = new util.HashMap[String, String]()
-    loggingConfig.put("cleanup.policy", "compact")
-
     val windowedMetricStore = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
       .withStringKeys
       .withValues(WindowedMetricSerde)
       .inMemory()
-      .enableLogging(loggingConfig)
+      .enableLogging(JavaConverters.mapAsJavaMap(stateStoreConfig))
       .build()
 
     builder.addProcessor(

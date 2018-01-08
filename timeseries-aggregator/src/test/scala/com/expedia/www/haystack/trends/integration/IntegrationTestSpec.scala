@@ -52,6 +52,14 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected var CHANGELOG_TOPIC = ""
 
   override def beforeAll() {
+
+  }
+
+  override def afterAll(): Unit = {
+
+  }
+
+  override def beforeEach() {
     val metricTankSerde = new MetricTankSerde(true)
 
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
@@ -83,19 +91,11 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     scheduler = Executors.newScheduledThreadPool(2)
   }
 
-  override def afterAll(): Unit = {
+  override def afterEach(): Unit = {
     EmbeddedKafka.CLUSTER.deleteTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
 
     scheduler.shutdownNow()
-  }
-
-  override def beforeEach() {
-
-  }
-
-  override def afterEach(): Unit = {
-
   }
 
   def currentTimeInSecs: Long = {
