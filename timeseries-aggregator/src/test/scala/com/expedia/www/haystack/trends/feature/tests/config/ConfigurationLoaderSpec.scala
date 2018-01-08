@@ -77,5 +77,17 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       kafkaConfig.produceTopic shouldBe kafkaProduceTopic
     }
 
+    scenario("should load the state store configs from base.conf") {
+
+      Given("A config file at base config file containing kafka ")
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new ProjectConfiguration()
+
+      Then("It should create the write configuration object based on the file contents")
+      val stateStoreConfigs = projectConfig.stateStoreConfig
+      stateStoreConfigs("cleanup.policy") shouldBe "compact,delete"
+    }
+
   }
 }
