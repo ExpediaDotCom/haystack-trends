@@ -27,6 +27,7 @@ import org.apache.kafka.streams.processor.TimestampExtractor
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.HashMap
 
 class ProjectConfiguration {
   private val config = ConfigurationLoader.loadAppConfig
@@ -39,6 +40,19 @@ class ProjectConfiguration {
     */
   def enableMetricPointPeriodReplacement: Boolean = {
     config.getBoolean("enable.metricpoint.period.replacement")
+  }
+
+
+  /**
+    *
+    * @return state store stream config while aggregating
+    */
+  def stateStoreConfig: Map[String, String] = {
+    val stateStoreConfigs = config.getConfig("state.store")
+    if (stateStoreConfigs.isEmpty) {
+      new HashMap[String, String]
+    }
+    stateStoreConfigs.entrySet().asScala.map(entry => entry.getKey -> entry.getValue.unwrapped().toString).toMap
   }
 
   /**

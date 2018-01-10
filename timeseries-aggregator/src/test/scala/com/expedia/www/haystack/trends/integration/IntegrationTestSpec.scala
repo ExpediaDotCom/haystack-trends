@@ -33,11 +33,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
-object EmbeddedKafka {
-  val CLUSTER = new EmbeddedKafkaCluster(1)
-  CLUSTER.start()
-}
-
 class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
   protected val PUNCTUATE_INTERVAL_SEC = 2000
@@ -49,27 +44,37 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
-  protected var CHANGELOG_TOPIC = ""
+  protected var CHANGELOG_TOPIC = s"$APP_ID-windowed-metric-store-changelog"
+  protected var embeddedKafkaCluster: EmbeddedKafkaCluster = null
 
-  override def beforeAll() {
+  override def beforeAll(): Unit = {
+    scheduler = Executors.newScheduledThreadPool(1)
+  }
+
+  override def afterAll(): Unit = {
+    scheduler.shutdownNow()
+  }
+
+  override def beforeEach() {
     val metricTankSerde = new MetricTankSerde(true)
 
-    EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
-    EmbeddedKafka.CLUSTER.createTopic(OUTPUT_TOPIC)
+    embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
+    embeddedKafkaCluster.start()
+    embeddedKafkaCluster.createTopics(INPUT_TOPIC, OUTPUT_TOPIC)
 
-    PRODUCER_CONFIG.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
+    PRODUCER_CONFIG.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
     PRODUCER_CONFIG.put(ProducerConfig.RETRIES_CONFIG, "0")
     PRODUCER_CONFIG.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
     PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, metricTankSerde.serializer().getClass)
 
-    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
+    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.GROUP_ID_CONFIG, APP_ID + "-result-consumer")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer])
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, metricTankSerde.deserializer().getClass)
 
-    STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, EmbeddedKafka.CLUSTER.bootstrapServers)
+    STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
     STREAMS_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     STREAMS_CONFIG.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
@@ -77,25 +82,10 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     STREAMS_CONFIG.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
 
     IntegrationTestUtils.purgeLocalStreamsState(STREAMS_CONFIG)
-
-    CHANGELOG_TOPIC = s"$APP_ID-AggregatedMetricPointStore-changelog"
-
-    scheduler = Executors.newScheduledThreadPool(2)
-  }
-
-  override def afterAll(): Unit = {
-    EmbeddedKafka.CLUSTER.deleteTopic(INPUT_TOPIC)
-    EmbeddedKafka.CLUSTER.deleteTopic(OUTPUT_TOPIC)
-
-    scheduler.shutdownNow()
-  }
-
-  override def beforeEach() {
-
   }
 
   override def afterEach(): Unit = {
-
+    embeddedKafkaCluster.deleteTopicsAndWait(INPUT_TOPIC, OUTPUT_TOPIC)
   }
 
   def currentTimeInSecs: Long = {

@@ -5,6 +5,8 @@ import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
 
+import scala.collection.immutable.HashMap
+
 class StreamTopologySpec extends FeatureSpec {
 
   feature("The stream topology should set the app status as unhealthy in case the environment is not setup correctly") {
@@ -16,7 +18,7 @@ class StreamTopologySpec extends FeatureSpec {
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
 
       When("the stream topology is started")
-      val topology = new StreamTopology(kafkaConfig, true)
+      val topology = new StreamTopology(kafkaConfig, new HashMap[String, String], true)
       topology.start()
 
       Then("the app health should be set to unhealthy without throwing an exception")
