@@ -21,17 +21,41 @@ import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
+import org.apache.kafka.clients.admin.{AdminClient, Config}
+import org.apache.kafka.common.config.ConfigResource
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.HashMap
 import scala.concurrent.duration._
 
 class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
   private val MAX_METRICPOINTS = 62
+
+  "State store" should {
+    "have the configuration set by the topology" in {
+      Given("a set of metricPoints with type metric and state store specific configurations")
+      val METRIC_NAME = "received-span" // CountMetric
+      val stateStoreConfigs = Map("cleanup.policy" -> "compact,delete")
+      val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+
+      When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
+      produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 100)
+      new StreamTopology(kafkaConfig, stateStoreConfigs, true).start()
+
+      Then("we should see the state store topic created with specified properties")
+      val waitTimeMs = 15000
+      IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, waitTimeMs).asScala.toList
+      val adminClient = AdminClient.create(STREAMS_CONFIG)
+      val configResource = new ConfigResource(ConfigResource.Type.TOPIC, CHANGELOG_TOPIC)
+      val describeConfigResult: java.util.Map[ConfigResource, Config] = adminClient.describeConfigs(java.util.Arrays.asList(configResource)).all().get()
+      describeConfigResult.get(configResource).get(stateStoreConfigs.head._1).value() shouldBe (stateStoreConfigs.head._2)
+    }
+  }
 
   "TimeSeries Aggregator Topology for histogram type metrics" should {
     "consume metricPoints from input topic and aggregate them based on rules" in {
@@ -46,7 +70,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, MAX_METRICPOINTS * 60)
-      new StreamTopology(kafkaConfig, true).start()
+      new StreamTopology(kafkaConfig, new HashMap[String, String], true).start()
 
       Then("we should read all aggregated metricPoint from 'output' topic")
       val waitTimeMs = 15000
@@ -69,7 +93,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, MAX_METRICPOINTS * 60)
-      new StreamTopology(kafkaConfig, true).start()
+      new StreamTopology(kafkaConfig, new HashMap[String, String], true).start()
 
       Then("we should read all aggregated metricPoint from 'output' topic")
       val waitTimeMs = 15000
