@@ -47,15 +47,17 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected var CHANGELOG_TOPIC = s"$APP_ID-windowed-metric-store-changelog"
   protected var embeddedKafkaCluster: EmbeddedKafkaCluster = null
 
-  override def beforeAll() {
+  override def beforeAll(): Unit = {
+    scheduler = Executors.newScheduledThreadPool(1)
   }
 
   override def afterAll(): Unit = {
+    scheduler.shutdownNow()
   }
 
   override def beforeEach() {
-    scheduler = Executors.newScheduledThreadPool(1)
     val metricTankSerde = new MetricTankSerde(true)
+
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
     embeddedKafkaCluster.createTopics(INPUT_TOPIC, OUTPUT_TOPIC)
@@ -83,8 +85,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def afterEach(): Unit = {
-    scheduler.shutdownNow()
-    embeddedKafkaCluster.deleteTopics(INPUT_TOPIC, OUTPUT_TOPIC)
+    embeddedKafkaCluster.deleteTopicsAndWait(INPUT_TOPIC, OUTPUT_TOPIC)
   }
 
   def currentTimeInSecs: Long = {
