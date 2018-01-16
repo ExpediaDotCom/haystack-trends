@@ -87,6 +87,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       Then("It should create the write configuration object based on the file contents")
       val stateStoreConfigs = projectConfig.stateStoreConfig
       stateStoreConfigs("cleanup.policy") shouldBe "compact,delete"
+      stateStoreConfigs("retention.ms") shouldBe "14400000"
     }
 
   }
