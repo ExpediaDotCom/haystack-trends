@@ -16,8 +16,8 @@
     </appender>
 
     <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>500</queueSize>
-        <discardingThreshold>0</discardingThreshold>
+        <queueSize>${HAYSTACK_LOG_QUEUE_SIZE:-500}</queueSize>
+        <discardingThreshold>${HAYSTACK_LOG_DISCARD_THRESHOLD:-0}</discardingThreshold>
         <appender-ref ref="STDOUT" />
     </appender>
 
