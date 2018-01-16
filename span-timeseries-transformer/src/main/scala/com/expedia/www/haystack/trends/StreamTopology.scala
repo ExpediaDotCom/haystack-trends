@@ -113,6 +113,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodRep
       streams.start()
       running.set(true)
     } else {
+      LOGGER.error(s"consumer topic ${kafkaConfig.consumeTopic} does not exist in kafka cluster")
       HealthController.setUnhealthy()
     }
   }
