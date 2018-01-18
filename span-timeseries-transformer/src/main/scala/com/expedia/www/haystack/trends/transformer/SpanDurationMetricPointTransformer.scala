@@ -30,7 +30,8 @@ trait SpanDurationMetricPointTransformer extends MetricPointTransformer {
 
   override def mapSpan(span: Span): List[MetricPoint] = {
     spanDurationMetricPoints.mark()
-    List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
+    List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)),
+      MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
 
   }
 

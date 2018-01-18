@@ -52,14 +52,14 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
       metricPoints should not be empty
       val metricPointTransformers = getMetricPointTransformers
-      metricPoints.size shouldEqual metricPointTransformers.size
+      metricPoints.size shouldEqual metricPointTransformers.size * 2
       var metricPointIds = Set[String]()
 
       Then("each metricPoint should have a unique combination of keys")
       metricPoints.foreach(metricPoint => {
         metricPointIds += metricPoint.getMetricPointKey(true)
       })
-      metricPointIds.size shouldEqual metricPointTransformers.size
+      metricPointIds.size shouldEqual metricPointTransformers.size * 2
 
       Then("each metricPoint should have the timestamps in seconds and which should equal to the span timestamp")
       metricPoints.foreach(metricPoint => {
@@ -90,29 +90,6 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       Then("It should return a metricPoint creation exception")
       metricPoints.isFailure shouldBe true
       metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
-    }
-
-
-    scenario("a span object with a valid operation Name") {
-      val operationName = "testSpan"
-      val serviceName = "testService"
-
-      Given("a valid span")
-      val span = Span.newBuilder()
-        .setDuration(System.currentTimeMillis())
-        .setOperationName(operationName)
-        .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
-        .build()
-
-      When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span).getOrElse(List())
-
-      Then("it should create metricPoints with operation name as one its keys")
-      metricPoints.map(metricPoint => {
-        metricPoint.tags.get(TagKeys.OPERATION_NAME_KEY) should not be None
-        metricPoint.tags.get(TagKeys.OPERATION_NAME_KEY) shouldEqual Some(operationName)
-      })
     }
 
     scenario("a span object with a valid service Name") {

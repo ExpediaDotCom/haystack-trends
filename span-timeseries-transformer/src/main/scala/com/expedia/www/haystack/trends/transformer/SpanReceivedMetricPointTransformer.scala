@@ -29,7 +29,8 @@ trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
 
   override def mapSpan(span: Span): List[MetricPoint] = {
     spanReceivedMetricPoints.mark()
-    List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+    List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
   }
 }
 

@@ -17,6 +17,7 @@
  */
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
+import com.expedia.www.haystack.trends.commons.entities.TagKeys
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanDurationMetricPointTransformer
 
@@ -28,12 +29,17 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       Given("a valid span object")
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
+      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+          TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
+          DURATION_METRIC_NAME
+      val metricPointServiceOnlyKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+          DURATION_METRIC_NAME
 
       When("metricPoint is created using transformer")
       val metricPoints = mapSpan(span)
 
-      Then("should only have 1 metricPoint")
-      metricPoints.length shouldEqual 1
+      Then("should only have 2 metricPoint")
+      metricPoints.length shouldEqual 2
 
       Then("same duration should be in metricPoint value")
       metricPoints.head.value shouldEqual duration
@@ -41,6 +47,10 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
 
       Then("the metric name should be duration")
       metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
+
+      Then("returned keys should be as expected")
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
+      metricPointKeys shouldBe (Set(metricPointKey, metricPointServiceOnlyKey))
     }
   }
 }

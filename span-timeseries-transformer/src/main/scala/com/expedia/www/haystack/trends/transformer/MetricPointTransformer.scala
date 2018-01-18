@@ -43,6 +43,10 @@ trait MetricPointTransformer extends MetricsSupport {
       TagKeys.SERVICE_NAME_KEY -> span.getServiceName,
       TagKeys.OPERATION_NAME_KEY -> span.getOperationName)
   }
+
+  protected def createServiceOnlyMetricTags(span: Span): Map[String, String] = {
+    Map(TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
+  }
 }
 
 object MetricPointTransformer {

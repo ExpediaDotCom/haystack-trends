@@ -38,10 +38,12 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
 
         if (errorValue) {
           spanFailuresMetricPoints.mark()
-          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+            MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
         } else {
           spanSuccessMetricPoints.mark()
-          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+            MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
         }
 
       case None => List()
