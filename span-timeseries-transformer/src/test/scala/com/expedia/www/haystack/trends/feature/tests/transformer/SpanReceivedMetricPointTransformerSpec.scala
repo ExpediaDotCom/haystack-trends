@@ -76,7 +76,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       When("metricPoint is created using transformer")
       val metricPoints = mapSpan(span)
 
-      Then("should only have 1 metricPoint")
+      Then("should only have 2 metricPoint")
       metricPoints.length shouldEqual 2
 
       Then("the metricPoint value should be 1")
