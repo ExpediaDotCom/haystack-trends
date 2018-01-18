@@ -26,7 +26,7 @@ import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.serde.SpanSerde
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 import org.apache.kafka.clients.admin.AdminClient
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodReplacement: Boolean) extends StateListener
+class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: TransformerConfiguration) extends StateListener
   with Thread.UncaughtExceptionHandler with MetricPointGenerator with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
@@ -123,16 +123,16 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, enableMetricPointPeriodRep
     builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(new StringSerde, new MetricTankSerde(enableMetricPointPeriodReplacement), kafkaConfig.produceTopic)
+    }.to(new StringSerde, new MetricTankSerde(transformerConfiguration.enableMetricPointPeriodReplacement), kafkaConfig.produceTopic)
 
     builder
   }
 
   private def mapToMetricPointKeyValue(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
-    generateMetricPoints(MetricPointTransformer.allTransformers)(span)
+    generateMetricPoints(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
       .getOrElse(Nil)
       .map {
-        metricPoint => new KeyValue(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.enableMetricPointPeriodReplacement), metricPoint)
       }.asJava
   }
 

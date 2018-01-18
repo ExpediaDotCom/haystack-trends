@@ -24,7 +24,7 @@ import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 trait MetricPointTransformer extends MetricsSupport {
 
 
-  def mapSpan(span: Span): List[MetricPoint]
+  def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint]
 
   protected def getDataPointTimestamp(span: Span): Long = {
     span.getStartTime / 1000000
@@ -42,6 +42,10 @@ trait MetricPointTransformer extends MetricsSupport {
     Map(
       TagKeys.SERVICE_NAME_KEY -> span.getServiceName,
       TagKeys.OPERATION_NAME_KEY -> span.getOperationName)
+  }
+
+  protected def createServiceOnlyMetricTags(span: Span): Map[String, String] = {
+    Map(TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
   }
 }
 

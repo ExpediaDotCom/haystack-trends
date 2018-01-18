@@ -2,7 +2,7 @@ package com.expedia.www.haystack.trends.feature.tests.kstreams
 
 import com.expedia.www.haystack.trends.StreamTopology
 import com.expedia.www.haystack.trends.commons.health.HealthController
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class StreamTopologySpec extends FeatureSpec {
@@ -14,9 +14,10 @@ class StreamTopologySpec extends FeatureSpec {
 
       Given("an invalid kafka configuration")
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
+      val transformerConfig = TransformerConfiguration(true, true)
 
       When("the stream topology is started")
-      val topology = new StreamTopology(kafkaConfig, true)
+      val topology = new StreamTopology(kafkaConfig, transformerConfig)
       topology.start()
 
       Then("the app health should be set to unhealthy without throwing an exception")

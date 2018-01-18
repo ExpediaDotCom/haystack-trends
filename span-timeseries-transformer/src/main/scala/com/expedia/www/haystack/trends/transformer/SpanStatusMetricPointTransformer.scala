@@ -32,17 +32,25 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
     getErrorField(span) match {
       case Some(errorValue) =>
+        var metricName: String = null
 
         if (errorValue) {
           spanFailuresMetricPoints.mark()
-          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          metricName = FAILURE_METRIC_NAME
         } else {
           spanSuccessMetricPoints.mark()
-          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          metricName = SUCCESS_METRIC_NAME
         }
+
+        var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+
+        if (serviceOnlyFlag) {
+          metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+        }
+        metricPoints
 
       case None => List()
     }
