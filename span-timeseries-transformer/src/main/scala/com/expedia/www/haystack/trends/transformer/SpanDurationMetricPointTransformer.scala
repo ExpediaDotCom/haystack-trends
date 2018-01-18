@@ -34,7 +34,7 @@ trait SpanDurationMetricPointTransformer extends MetricPointTransformer {
       List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)),
         MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
     } else {
-      List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
+      List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
     }
   }
 }
