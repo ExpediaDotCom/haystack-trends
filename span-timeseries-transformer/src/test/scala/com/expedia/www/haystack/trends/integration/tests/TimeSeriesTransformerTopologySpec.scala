@@ -50,10 +50,10 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
-      new StreamTopology(kafkaConfig, true).start()
+      new StreamTopology(kafkaConfig, true, true).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List())) // directly call transformers to get metricPoints
+      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints
       metricPoints.size shouldBe(spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
 
       val records: List[KeyValue[String, MetricPoint]] =

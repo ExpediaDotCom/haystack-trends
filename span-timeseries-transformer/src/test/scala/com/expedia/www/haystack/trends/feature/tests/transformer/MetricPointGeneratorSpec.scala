@@ -47,7 +47,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span).getOrElse(List())
+      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, true).getOrElse(List())
 
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
       metricPoints should not be empty
@@ -85,7 +85,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span)
+      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, true)
 
       Then("It should return a metricPoint creation exception")
       metricPoints.isFailure shouldBe true
@@ -105,7 +105,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span)
+      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, false)
 
       Then("it should create metricPoints with service name as one its keys")
       metricPoints.isFailure shouldEqual false

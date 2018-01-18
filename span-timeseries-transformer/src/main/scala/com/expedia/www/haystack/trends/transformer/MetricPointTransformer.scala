@@ -24,7 +24,7 @@ import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 trait MetricPointTransformer extends MetricsSupport {
 
 
-  def mapSpan(span: Span): List[MetricPoint]
+  def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint]
 
   protected def getDataPointTimestamp(span: Span): Long = {
     span.getStartTime / 1000000

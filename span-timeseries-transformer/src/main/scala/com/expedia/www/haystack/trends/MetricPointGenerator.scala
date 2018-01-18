@@ -36,11 +36,11 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
-  def generateMetricPoints(transformers: Seq[MetricPointTransformer])(span: Span): Try[List[MetricPoint]] = {
+  def generateMetricPoints(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): Try[List[MetricPoint]] = {
     val context = metricPointGenerationTimer.time()
     val metricPoints = {
       validate(span).map { validatedSpan =>
-        transformers.flatMap(transformer => transformer.mapSpan(validatedSpan)).toList
+        transformers.flatMap(transformer => transformer.mapSpan(validatedSpan, serviceOnlyFlag)).toList
       }
     }
     context.close()

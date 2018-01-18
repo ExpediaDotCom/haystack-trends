@@ -42,6 +42,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether service level trends to be generated
+    */
+  def enableMetricPointServiceLevelGeneration: Boolean = {
+    config.getBoolean("enable.metricpoint.service.level.generation")
+  }
+
+  /**
+    *
     * @return streams configuration object
     */
   def kafkaConfig: KafkaConfiguration = {

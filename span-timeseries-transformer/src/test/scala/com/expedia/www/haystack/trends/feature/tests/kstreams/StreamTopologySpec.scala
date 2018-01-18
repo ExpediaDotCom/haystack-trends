@@ -16,7 +16,7 @@ class StreamTopologySpec extends FeatureSpec {
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
 
       When("the stream topology is started")
-      val topology = new StreamTopology(kafkaConfig, true)
+      val topology = new StreamTopology(kafkaConfig, true, true)
       topology.start()
 
       Then("the app health should be set to unhealthy without throwing an exception")

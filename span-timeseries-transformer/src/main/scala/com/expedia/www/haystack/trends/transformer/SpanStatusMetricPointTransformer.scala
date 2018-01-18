@@ -32,18 +32,26 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
     getErrorField(span) match {
       case Some(errorValue) =>
 
         if (errorValue) {
           spanFailuresMetricPoints.mark()
-          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
-            MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+          if (serviceOnlyFlag) {
+            List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+              MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+          } else {
+            List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          }
         } else {
           spanSuccessMetricPoints.mark()
-          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
-            MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+          if (serviceOnlyFlag) {
+            List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+              MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+          } else {
+            List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          }
         }
 
       case None => List()

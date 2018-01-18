@@ -27,10 +27,14 @@ trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
 
   val TOTAL_METRIC_NAME = "received-span"
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
     spanReceivedMetricPoints.mark()
-    List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+    if (serviceOnlyFlag) {
+      List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)),
+        MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span)))
+    } else {
+      List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+    }
   }
 }
 
