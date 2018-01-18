@@ -21,7 +21,7 @@ import java.util.UUID
 
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 import com.expedia.www.haystack.trends.{MetricPointGenerator, StreamTopology}
@@ -47,10 +47,11 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val errorFlag = false
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+      val transformerConfig = TransformerConfiguration(true, true)
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
-      new StreamTopology(kafkaConfig, true, true).start()
+      new StreamTopology(kafkaConfig, transformerConfig).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
       val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints

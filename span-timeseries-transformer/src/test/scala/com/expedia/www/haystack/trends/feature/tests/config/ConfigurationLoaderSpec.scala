@@ -41,12 +41,14 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Given("A config file at base config file containing config for enable period replacement")
       val enableMetricPointPeriodReplacement = true
+      val enableMetricPointServiceLevelGeneration = true
 
       When("When the configuration is loaded in project configuration")
       val projectConfig = new ProjectConfiguration()
 
       Then("the enableMetricPointPeriodReplacement should be correct")
-      projectConfig.enableMetricPointPeriodReplacement shouldEqual enableMetricPointPeriodReplacement
+      projectConfig.transformerConfiguration.enableMetricPointPeriodReplacement shouldEqual enableMetricPointPeriodReplacement
+      projectConfig.transformerConfiguration.enableMetricPointServiceLevelGeneration shouldEqual enableMetricPointServiceLevelGeneration
     }
 
     scenario("should load the kafka config from base.conf") {

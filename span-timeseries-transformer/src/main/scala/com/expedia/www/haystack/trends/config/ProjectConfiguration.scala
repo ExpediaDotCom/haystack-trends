@@ -19,7 +19,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.processor.TimestampExtractor
@@ -34,18 +34,11 @@ class ProjectConfiguration {
 
   /**
     *
-    * @return whether period in metric point service & operation name needs to be replaced
+    * @return transformer related configs
     */
-  def enableMetricPointPeriodReplacement: Boolean = {
-    config.getBoolean("enable.metricpoint.period.replacement")
-  }
-
-  /**
-    *
-    * @return whether service level trends to be generated
-    */
-  def enableMetricPointServiceLevelGeneration: Boolean = {
-    config.getBoolean("enable.metricpoint.service.level.generation")
+  def transformerConfiguration: TransformerConfiguration = {
+    TransformerConfiguration(config.getBoolean("enable.metricpoint.period.replacement"),
+      config.getBoolean("enable.metricpoint.service.level.generation"))
   }
 
   /**

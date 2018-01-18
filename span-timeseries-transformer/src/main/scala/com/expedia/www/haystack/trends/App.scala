@@ -36,8 +36,7 @@ object App extends MetricsSupport {
 
     startJmxReporter()
     topology = new StreamTopology(projectConfiguration.kafkaConfig,
-      projectConfiguration.enableMetricPointPeriodReplacement,
-      projectConfiguration.enableMetricPointServiceLevelGeneration)
+      projectConfiguration.transformerConfiguration)
     topology.start()
 
     Runtime.getRuntime.addShutdownHook(new ShutdownHookThread(topology,jmxReporter))
