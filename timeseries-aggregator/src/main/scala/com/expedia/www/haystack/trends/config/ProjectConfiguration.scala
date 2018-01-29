@@ -36,12 +36,19 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether logging for state store is enabled
+    */
+  def enableStateStoreLogging: Boolean = {
+    config.getBoolean("enable.state.store.logging")
+  }
+
+  /**
+    *
     * @return whether period in metric point service & operation name needs to be replaced
     */
   def enableMetricPointPeriodReplacement: Boolean = {
     config.getBoolean("enable.metricpoint.period.replacement")
   }
-
 
   /**
     *

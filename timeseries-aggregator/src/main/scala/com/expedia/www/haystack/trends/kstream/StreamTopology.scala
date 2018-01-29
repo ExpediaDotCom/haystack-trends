@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
 import com.expedia.www.haystack.trends.kstream.serde.WindowedMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters
 import scala.util.Try
 
-class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[String, String], enableMetricPointPeriodReplacement: Boolean) extends StateListener
+class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateListener
   with Thread.UncaughtExceptionHandler with AutoCloseable {
 
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
@@ -83,7 +83,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[Stri
     */
   def start(): Unit = {
     if (doesConsumerTopicExist()) {
-      streams = new KafkaStreams(topology(), kafkaConfig.streamsConfig)
+      streams = new KafkaStreams(topology(), projectConfiguration.kafkaConfig.streamsConfig)
       streams.setStateListener(this)
       streams.setUncaughtExceptionHandler(this)
       streams.cleanUp()
@@ -94,30 +94,41 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[Stri
       streams.start()
       running.set(true)
     } else {
-      LOGGER.error(s"consumer topic ${kafkaConfig.consumeTopic} does not exist in kafka cluster")
+      LOGGER.error(s"consumer topic ${projectConfiguration.kafkaConfig.consumeTopic} does not exist in kafka cluster")
       HealthController.setUnhealthy()
     }
   }
 
   private def topology(): TopologyBuilder = {
 
-    val metricTankSerde = new MetricTankSerde(enableMetricPointPeriodReplacement)
+    val metricTankSerde = new MetricTankSerde(projectConfiguration.enableMetricPointPeriodReplacement)
     val builder = new TopologyBuilder()
 
     builder.addSource(
-      kafkaConfig.autoOffsetReset,
+      projectConfiguration.kafkaConfig.autoOffsetReset,
       TOPOLOGY_SOURCE_NAME,
-      kafkaConfig.timestampExtractor,
+      projectConfiguration.kafkaConfig.timestampExtractor,
       new StringDeserializer,
       metricTankSerde.deserializer(),
-      kafkaConfig.consumeTopic)
+      projectConfiguration.kafkaConfig.consumeTopic)
 
-    val windowedMetricStore = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
-      .withStringKeys
-      .withValues(WindowedMetricSerde)
-      .inMemory()
-      .enableLogging(JavaConverters.mapAsJavaMap(stateStoreConfig))
-      .build()
+    val windowedMetricStore = {
+      if (projectConfiguration.enableStateStoreLogging) {
+        Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
+          .withStringKeys
+          .withValues(WindowedMetricSerde)
+          .inMemory()
+          .enableLogging(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
+          .build()
+      } else {
+        Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
+          .withStringKeys
+          .withValues(WindowedMetricSerde)
+          .inMemory()
+          .disableLogging()
+          .build()
+      }
+    }
 
     builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
@@ -129,7 +140,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[Stri
 
     builder.addSink(
       TOPOLOGY_SINK_NAME,
-      kafkaConfig.produceTopic,
+      projectConfiguration.kafkaConfig.produceTopic,
       new StringSerializer,
       metricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
@@ -146,13 +157,13 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[Stri
     try {
       val properties = new Properties()
       properties.put(
-        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.streamsConfig.getList(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
+        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, projectConfiguration.kafkaConfig.streamsConfig.getList(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG))
       adminClient = AdminClient.create(properties)
       // list all topics and see if it contains
       adminClient.listTopics()
         .names()
         .get()
-        .contains(kafkaConfig.consumeTopic)
+        .contains(projectConfiguration.kafkaConfig.consumeTopic)
     } catch {
       case failure: Throwable =>
         LOGGER.error("Failed to fetch consumer topic with exception ", failure)
@@ -180,7 +191,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, stateStoreConfig: Map[Stri
   def close(): Unit = {
     if (running.getAndSet(false)) {
       LOGGER.info("Closing the kafka streams.")
-      streams.close(kafkaConfig.closeTimeoutInMs, TimeUnit.MILLISECONDS)
+      streams.close(projectConfiguration.kafkaConfig.closeTimeoutInMs, TimeUnit.MILLISECONDS)
     }
   }
 
