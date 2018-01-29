@@ -39,7 +39,7 @@ class ProjectConfiguration {
     * @return whether logging for state store is enabled
     */
   def enableStateStoreLogging: Boolean = {
-    config.getBoolean("enable.state.store.logging")
+    config.getBoolean("state.store.enable.logging")
   }
 
   /**

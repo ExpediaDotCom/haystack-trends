@@ -112,19 +112,18 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       metricTankSerde.deserializer(),
       projectConfiguration.kafkaConfig.consumeTopic)
 
+    val windowedMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
+      .withStringKeys
+      .withValues(WindowedMetricSerde)
+      .inMemory()
+
     val windowedMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
-        Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
-          .withStringKeys
-          .withValues(WindowedMetricSerde)
-          .inMemory()
+        windowedMetricStoreBuilder
           .enableLogging(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
           .build()
       } else {
-        Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
-          .withStringKeys
-          .withValues(WindowedMetricSerde)
-          .inMemory()
+        windowedMetricStoreBuilder
           .disableLogging()
           .build()
       }
