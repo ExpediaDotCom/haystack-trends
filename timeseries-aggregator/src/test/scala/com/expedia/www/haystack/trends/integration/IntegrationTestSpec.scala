@@ -28,12 +28,13 @@ import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializ
 import org.apache.kafka.streams.integration.utils.{EmbeddedKafkaCluster, IntegrationTestUtils}
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import org.scalatest._
+import org.scalatest.easymock.EasyMockSugar
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
-class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
+class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with BeforeAndAfterEach with EasyMockSugar {
 
   protected val PUNCTUATE_INTERVAL_SEC = 2000
   protected val PRODUCER_CONFIG = new Properties()
