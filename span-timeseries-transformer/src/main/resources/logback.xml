@@ -10,7 +10,7 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss:SSS} %thread, %level, %logger{70}, "%msg"%n
+                %d{yyyy-MM-dd HH:mm:ss:SSS} %thread, %level, %logger{70},  "%msg" %replace(%ex){'[\n]+', '\\n'}%nopex%n
             </Pattern>
         </layout>
     </appender>
