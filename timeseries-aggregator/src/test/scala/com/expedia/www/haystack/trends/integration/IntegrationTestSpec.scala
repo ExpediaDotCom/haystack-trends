@@ -115,6 +115,19 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
 
+  protected def produceMetricPoint(metricName: String,
+                                   epochTimeInSecs: Long,
+                                   produceTimeInSecs: Long
+                                  ): Unit = {
+    val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
+    val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(true), metricPoint)).asJava
+    IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
+      INPUT_TOPIC,
+      keyValue,
+      PRODUCER_CONFIG,
+      produceTimeInSecs)
+  }
+
   def randomMetricPoint(metricName: String,
                         value: Long = Math.abs(Random.nextInt()),
                         timestamp: Long = currentTimeInSecs): MetricPoint = {

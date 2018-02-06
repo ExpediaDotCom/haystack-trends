@@ -26,8 +26,8 @@ import scala.collection.JavaConverters._
   * This transformer generates a success or a failure metric y
   */
 trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
-  private val spanFailuresMetricPoints = metricRegistry.meter("metricpoint.span.success")
-  private val spanSuccessMetricPoints = metricRegistry.meter("metricpoint.span.failure")
+  private val spanFailuresMetricPoints = metricRegistry.meter("metricpoint.span.failure")
+  private val spanSuccessMetricPoints = metricRegistry.meter("metricpoint.span.success")
 
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"

@@ -107,7 +107,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
         .setStartTime(currentTime)
         .setDuration(duration)
         .setServiceName("some-service")
-        .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("some-error"))
+        .addTags(com.expedia.open.tracing.Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("true"))
         .build()
       span
     }
