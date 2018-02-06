@@ -101,10 +101,12 @@ class WindowedMetric private(var windowedMetrics: Map[Interval, Queue[(TimeWindo
 
         // belongs to next window, lets flush this one to computedMetrics and create a new window
         case number if number < 0 =>
-          val newMetric = metricFactory.createMetric(currentMetric.getMetricInterval)
-          //newMetric.compute(incomingMetricPoint)    // not required since we will traverse over it after enqueue
-          currentIntervalQueue.enqueue((incomingMetricPointTimeWindow, newMetric))
-          evictMetric(currentIntervalQueue, currentInterval)
+          if (!currentIntervalQueue.map(metricTuple => metricTuple._1).toSet.contains(incomingMetricPointTimeWindow)) {
+            val newMetric = metricFactory.createMetric(currentMetric.getMetricInterval)
+            //newMetric.compute(incomingMetricPoint)    // not required since we will traverse over it after enqueue
+            currentIntervalQueue.enqueue((incomingMetricPointTimeWindow, newMetric))
+            evictMetric(currentIntervalQueue, currentInterval)
+          }
 
         // disordered metric point
         case _ =>

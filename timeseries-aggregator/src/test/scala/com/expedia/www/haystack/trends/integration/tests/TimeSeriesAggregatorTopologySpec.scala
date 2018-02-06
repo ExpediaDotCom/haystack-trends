@@ -95,7 +95,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val METRIC_NAME = "received-span" // CountMetric
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 100)
+      produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 3 * 60)
       new StreamTopology(mockProjectConfig).start()
 
       Then("we should see the state store topic created with specified properties")
@@ -110,10 +110,10 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
     "aggregate histogram type metricPoints from input topic based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
       val METRIC_NAME = "duration" //HistogramMetric
-      val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
-      val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) * 7
-      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
-      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
+      val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1 - numberOfWatermarkedWindows) * 7 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
+      val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5 - numberOfWatermarkedWindows) * 7
+      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15 - numberOfWatermarkedWindows) * 7
+      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60 - numberOfWatermarkedWindows) * 7
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
