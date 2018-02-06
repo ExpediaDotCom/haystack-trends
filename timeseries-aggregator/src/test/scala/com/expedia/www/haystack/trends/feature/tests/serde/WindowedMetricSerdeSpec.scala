@@ -31,6 +31,10 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
       })
+      val expectedMetricsMap = windowedMetric.windowedMetrics.flatMap(tuple => List(tuple._2)).flatten.map {
+        case (timeWindow, metric) =>
+          timeWindow -> metric
+      }.toMap
 
       When("the windowed metric is serialized and then deserialized back")
       val serializedMetric = WindowedMetricSerde.serializer().serialize(TOPIC_NAME, windowedMetric)
@@ -38,17 +42,13 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
 
       Then("Then it should deserialize the metric back in the same state")
       deserializedMetric should not be null
-      windowedMetric.windowedMetricsMap.map {
-        case (window, metric) =>
-          deserializedMetric.windowedMetricsMap.get(window) should not be None
-
-          val histogram = metric.asInstanceOf[HistogramMetric]
-          val deserializedHistogram = deserializedMetric.windowedMetricsMap(window).asInstanceOf[HistogramMetric]
-          histogram.getMetricInterval shouldEqual deserializedHistogram.getMetricInterval
-          histogram.getRunningHistogram shouldEqual deserializedHistogram.getRunningHistogram
+      deserializedMetric.windowedMetrics.flatMap(tuple => List(tuple._2)).flatten.map {
+        case (timeWindow, deserializedMetric) =>
+          deserializedMetric.getMetricInterval shouldEqual expectedMetricsMap(timeWindow).getMetricInterval
+          val deserializedHistMetric = deserializedMetric.asInstanceOf[HistogramMetric]
+          val expectedHistMetric = expectedMetricsMap(timeWindow).asInstanceOf[HistogramMetric]
+          deserializedHistMetric.getRunningHistogram shouldEqual expectedHistMetric.getRunningHistogram
       }
-
-
     }
 
     scenario("should be able to serialize and deserialize a valid windowed metric computing counts") {
@@ -64,6 +64,10 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
       })
+      val expectedMetricsMap = windowedMetric.windowedMetrics.flatMap(tuple => List(tuple._2)).flatten.map {
+        case (timeWindow, metric) =>
+          timeWindow -> metric
+      }.toMap
 
       When("the windowed metric is serialized and then deserialized back")
       val serializer = WindowedMetricSerde.serializer()
@@ -71,17 +75,14 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       val serializedMetric = serializer.serialize(TOPIC_NAME, windowedMetric)
       val deserializedMetric = deserializer.deserialize(TOPIC_NAME, serializedMetric)
 
-
       Then("Then it should deserialize the metric back in the same state")
       deserializedMetric should not be null
-      windowedMetric.windowedMetricsMap.map {
-        case (window, metric) =>
-          deserializedMetric.windowedMetricsMap.get(window) should not be None
-
-          val countMetric = metric.asInstanceOf[CountMetric]
-          val deserializedCountMetric = deserializedMetric.windowedMetricsMap(window).asInstanceOf[CountMetric]
-          countMetric.getMetricInterval shouldEqual deserializedCountMetric.getMetricInterval
-          countMetric.getCurrentCount shouldEqual deserializedCountMetric.getCurrentCount
+      deserializedMetric.windowedMetrics.flatMap(tuple => List(tuple._2)).flatten.map {
+        case (timeWindow, deserializedMetric) =>
+          deserializedMetric.getMetricInterval shouldEqual expectedMetricsMap(timeWindow).getMetricInterval
+          val deserializedCountMetric = deserializedMetric.asInstanceOf[CountMetric]
+          val expectedCountMetric = expectedMetricsMap(timeWindow).asInstanceOf[CountMetric]
+          deserializedCountMetric.getCurrentCount shouldEqual expectedCountMetric.getCurrentCount
       }
       serializer.close()
       deserializer.close()

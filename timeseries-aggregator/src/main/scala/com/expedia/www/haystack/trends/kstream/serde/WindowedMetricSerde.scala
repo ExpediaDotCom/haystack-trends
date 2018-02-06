@@ -12,6 +12,7 @@ import org.msgpack.value.ValueFactory
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.Queue
 import scala.util.Try
 
 
@@ -58,7 +59,7 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
             val endTime = map.get(ValueFactory.newString(endTimeKey)).asIntegerValue().asLong()
             val window = TimeWindow(startTime, endTime)
             val metric = metricFactory.getMetricSerde.deserialize(map.get(ValueFactory.newString(serializedMetricKey)).asBinaryValue().asByteArray())
-            window -> metric
+            metric.getMetricInterval -> Queue(window -> metric)
           }).toMap
 
           val metric = WindowedMetric.restoreMetric(metricMap, metricFactory)
@@ -84,14 +85,15 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
 
         val packer = MessagePack.newDefaultBufferPacker()
 
-        val serializedMetrics = windowedMetric.windowedMetricsMap.map {
-          case (interval, metric) =>
+        val serializedMetrics = windowedMetric.windowedMetrics.flatMap(tuple => List(tuple._2)).flatten.map {
+          case(timeWindow, metric) =>
             ValueFactory.newMap(Map(
-              ValueFactory.newString(startTimeKey) -> ValueFactory.newInteger(interval.startTime),
-              ValueFactory.newString(endTimeKey) -> ValueFactory.newInteger(interval.endTime),
+              ValueFactory.newString(startTimeKey) -> ValueFactory.newInteger(timeWindow.startTime),
+              ValueFactory.newString(endTimeKey) -> ValueFactory.newInteger(timeWindow.endTime),
               ValueFactory.newString(serializedMetricKey) -> ValueFactory.newBinary(windowedMetric.getMetricFactory.getMetricSerde.serialize(metric))
             ).asJava)
         }
+
         val windowedMetricMessagePack = Map(
           ValueFactory.newString(metricsKey) -> ValueFactory.newArray(serializedMetrics.toList.asJava),
           ValueFactory.newString(aggregationTypeKey) -> ValueFactory.newString(windowedMetric.getMetricFactory.getAggregationType.toString)
