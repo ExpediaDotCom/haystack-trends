@@ -27,7 +27,7 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
       val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Histogram")
-      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(metricPoints.head, HistogramMetricFactory, 1, Interval.ONE_MINUTE)
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
       })
@@ -60,7 +60,7 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
 
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Count")
-      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, CountMetricFactory)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(metricPoints.head, CountMetricFactory, 1, Interval.ONE_MINUTE)
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
       })

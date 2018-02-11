@@ -1,29 +1,43 @@
+/*
+ *
+ *     Copyright 2017 Expedia, Inc.
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ *
+ */
+
 package com.expedia.www.haystack.trends.kstream.serde
 
 import java.util
 
-import com.expedia.www.haystack.trends.aggregation.WindowedMetric
-import com.expedia.www.haystack.trends.aggregation.metrics.{AggregationType, CountMetricFactory, HistogramMetricFactory}
+import com.expedia.www.haystack.trends.aggregation.metrics.{AggregationType, CountMetricFactory, HistogramMetricFactory, Metric}
+import com.expedia.www.haystack.trends.aggregation.{TrendMetric, WindowedMetric}
+import com.expedia.www.haystack.trends.commons.entities.Interval
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.entities.TimeWindow
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack
 import org.msgpack.value.ValueFactory
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.collection.mutable
 
 
 object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
 
-  private val windowedMetricStatsDeserMeter = metricRegistry.meter("windowedmetric.deser.failure")
-  private val windowedMetricStatsSerSuccessMeter = metricRegistry.meter("windowedmetric.ser.success")
-  private val windowedMetricStatsDeserSuccessMeter = metricRegistry.meter("windowedmetric.deser.success")
-  private val serializedMetricKey = "serializedMetric"
-  private val startTimeKey = "startTime"
-  private val endTimeKey = "endTime"
-  private val LOGGER = LoggerFactory.getLogger(this.getClass)
+  private val SERIALIZED_METRIC_KEY = "serializedMetric"
+  private val START_TIME_KEY = "startTime"
+  private val END_TIME_KEY = "endTime"
 
   private val aggregationTypeKey = "aggregationType"
   private val metricsKey = "metrics"
@@ -43,34 +57,29 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
         * @return
         */
       override def deserialize(topic: String, data: Array[Byte]): WindowedMetric = {
-        Try {
-          val unpacker = MessagePack.newDefaultUnpacker(data)
-          val serializedWindowedMetric = unpacker.unpackValue().asMapValue().map()
-          val aggregationType = AggregationType.withName(serializedWindowedMetric.get(ValueFactory.newString(aggregationTypeKey)).asStringValue().toString)
+        val unpacker = MessagePack.newDefaultUnpacker(data)
+        val serializedWindowedMetric = unpacker.unpackValue().asMapValue().map()
+        val aggregationType = AggregationType.withName(serializedWindowedMetric.get(ValueFactory.newString(aggregationTypeKey)).asStringValue().toString)
 
-          val metricFactory = aggregationType match {
-            case AggregationType.Histogram => HistogramMetricFactory
-            case AggregationType.Count => CountMetricFactory
-          }
-          val metricMap = serializedWindowedMetric.get(ValueFactory.newString(metricsKey)).asArrayValue().asScala.map(mapValue => {
-            val map = mapValue.asMapValue().map()
-            val startTime = map.get(ValueFactory.newString(startTimeKey)).asIntegerValue().asLong()
-            val endTime = map.get(ValueFactory.newString(endTimeKey)).asIntegerValue().asLong()
-            val window = TimeWindow(startTime, endTime)
-            val metric = metricFactory.getMetricSerde.deserialize(map.get(ValueFactory.newString(serializedMetricKey)).asBinaryValue().asByteArray())
-            window -> metric
-          }).toMap
+        val metricFactory = aggregationType match {
+          case AggregationType.Histogram => HistogramMetricFactory
+          case AggregationType.Count => CountMetricFactory
+        }
 
-          val metric = WindowedMetric.restoreMetric(metricMap, metricFactory)
-          windowedMetricStatsDeserMeter.mark()
-          metric
+        val windowedMetricMap = mutable.TreeMap[TimeWindow, Metric]()
+        serializedWindowedMetric.get(ValueFactory.newString(metricsKey)).asArrayValue().asScala.map(mapValue => {
+          val map = mapValue.asMapValue().map()
+          val startTime = map.get(ValueFactory.newString(START_TIME_KEY)).asIntegerValue().asLong()
+          val endTime = map.get(ValueFactory.newString(END_TIME_KEY)).asIntegerValue().asLong()
+          val window = TimeWindow(startTime, endTime)
+          val metric = metricFactory.getMetricSerde.deserialize(map.get(ValueFactory.newString(SERIALIZED_METRIC_KEY)).asBinaryValue().asByteArray())
+          windowedMetricMap.put(window, metric)
+        })
 
-        }.recover {
-          case ex: Exception =>
-            LOGGER.error("failed to deserialize windowed metric with exception", ex)
-            windowedMetricStatsDeserMeter.mark()
-            throw ex
-        }.toOption.orNull
+        val intervalVal = windowedMetricMap.firstKey.endTime - windowedMetricMap.firstKey.startTime
+        val interval = Interval.fromVal(intervalVal)
+        val metric = WindowedMetric.restoreWindowedMetric(windowedMetricMap, metricFactory, TrendMetric.trendMetricConfig(interval)._1, interval)
+        metric
       }
     }
   }
@@ -85,11 +94,11 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
         val packer = MessagePack.newDefaultBufferPacker()
 
         val serializedMetrics = windowedMetric.windowedMetricsMap.map {
-          case (interval, metric) =>
+          case (timeWindow, metric) =>
             ValueFactory.newMap(Map(
-              ValueFactory.newString(startTimeKey) -> ValueFactory.newInteger(interval.startTime),
-              ValueFactory.newString(endTimeKey) -> ValueFactory.newInteger(interval.endTime),
-              ValueFactory.newString(serializedMetricKey) -> ValueFactory.newBinary(windowedMetric.getMetricFactory.getMetricSerde.serialize(metric))
+              ValueFactory.newString(START_TIME_KEY) -> ValueFactory.newInteger(timeWindow.startTime),
+              ValueFactory.newString(END_TIME_KEY) -> ValueFactory.newInteger(timeWindow.endTime),
+              ValueFactory.newString(SERIALIZED_METRIC_KEY) -> ValueFactory.newBinary(windowedMetric.getMetricFactory.getMetricSerde.serialize(metric))
             ).asJava)
         }
         val windowedMetricMessagePack = Map(
@@ -98,7 +107,6 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
         )
         packer.packValue(ValueFactory.newMap(windowedMetricMessagePack.asJava))
         val data = packer.toByteArray
-        windowedMetricStatsSerSuccessMeter.mark()
         data
       }
 

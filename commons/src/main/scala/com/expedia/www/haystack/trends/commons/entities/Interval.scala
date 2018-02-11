@@ -41,6 +41,16 @@ object Interval extends Enumeration {
     }
   }
 
+  def fromVal(value: Long): IntervalVal = {
+    value match {
+      case 60 => ONE_MINUTE
+      case 300 => FIVE_MINUTE
+      case 900 => FIFTEEN_MINUTE
+      case 3600 => ONE_HOUR
+      case _ => ONE_MINUTE
+    }
+  }
+
   sealed case class IntervalVal(name: String, timeInSeconds: Int) extends Val(name) {
   }
 
