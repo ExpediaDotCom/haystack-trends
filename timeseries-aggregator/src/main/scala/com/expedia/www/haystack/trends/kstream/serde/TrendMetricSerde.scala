@@ -51,9 +51,10 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
       override def close(): Unit = ()
 
       /**
-        * converts the messagepack encoded bytes into windowedMetric object
+        * converts the messagepack encoded bytes into trendMetric object
         *
-        * @param data serialized bytes of windowedMetric
+        * @param topic topic associated with data
+        * @param data serialized bytes of trendMetric
         * @return
         */
       override def deserialize(topic: String, data: Array[Byte]): TrendMetric = {
@@ -84,7 +85,7 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
 
         }.recover {
           case ex: Exception =>
-            LOGGER.error("failed to deserialize windowed metric with exception", ex)
+            LOGGER.error("failed to deserialize trend metric with exception", ex)
             trendMetricStatsDeserFailureMeter.mark()
             throw ex
         }.toOption.orNull
@@ -96,6 +97,13 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
     new Serializer[TrendMetric] {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
+      /**
+        * converts the trendMetric object to encoded bytes
+        *
+        * @param topic       topic associated with data
+        * @param trendMetric trendMetric object
+        * @return
+        */
       override def serialize(topic: String, trendMetric: TrendMetric): Array[Byte] = {
 
         val packer = MessagePack.newDefaultBufferPacker()
@@ -122,7 +130,7 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
     }
   }
 
-  override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = ???
+  override def close(): Unit = ()
 
-  override def close(): Unit = ???
+  override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 }

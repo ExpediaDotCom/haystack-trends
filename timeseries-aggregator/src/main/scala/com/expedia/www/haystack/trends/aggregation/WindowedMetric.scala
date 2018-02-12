@@ -29,11 +29,10 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable
 
 /**
-  * This class contains a metric for each time window being computed for a single trend. The number of time windows at any moment is = no. of intervals
-  * if incoming metric point lies within the timewindow the metric is updated
+  * This class contains a metric for each time window being computed for a single interval
   *
-  * @param windowedMetricsMap : map containing timewindows and metrics for an Interval
-  * @param metricFactory      : factory which is used to create new metrics when required.
+  * @param windowedMetricsMap map containing  sorted timewindows and metrics for an Interval
+  * @param metricFactory      factory which is used to create new metrics when required
   */
 class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow, Metric], metricFactory: MetricFactory, numberOfWatermarkedWindows: Int, interval: Interval) extends MetricsSupport {
 
@@ -46,7 +45,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 
   /**
     * function to compute the incoming metric point
-    * it updates all the metrics for the windows within which the incoming metric point lies.
+    * it updates all the metrics for the windows within which the incoming metric point lies for an interval
     *
     * @param incomingMetricPoint - incoming metric point
     */
@@ -55,10 +54,10 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 
     val matchedWindowedMetric = windowedMetricsMap.get(incomingMetricPointTimeWindow)
 
-    if (matchedWindowedMetric.isDefined) {    // an existing metric
+    if (matchedWindowedMetric.isDefined) { // an existing metric
       matchedWindowedMetric.get.compute(incomingMetricPoint)
-    } else {    // incoming metric is a new metric
-      if (incomingMetricPointTimeWindow.compare(windowedMetricsMap.firstKey) > 0 ) { // incoming metric's time is more that minimum (first) time window
+    } else { // incoming metric is a new metric
+      if (incomingMetricPointTimeWindow.compare(windowedMetricsMap.firstKey) > 0) { // incoming metric's time is more that minimum (first) time window
         createNewMetric(incomingMetricPointTimeWindow, incomingMetricPoint)
         evictMetric()
       } else {
@@ -77,10 +76,15 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
   private def evictMetric() = {
     if (windowedMetricsMap.size > (numberOfWatermarkedWindows + 1)) {
       val evictedMetric = windowedMetricsMap.remove(windowedMetricsMap.firstKey)
-      computedMetrics = ((windowedMetricsMap.lastKey.endTime, evictedMetric.get)) :: computedMetrics
+      computedMetrics = (windowedMetricsMap.lastKey.endTime, evictedMetric.get) :: computedMetrics
     }
   }
 
+  /**
+    * returns list of metricPoints which are evicted and their window is closes
+    *
+    * @return list of evicted metricPoints
+    */
   def getComputedMetricPoints: List[MetricPoint] = {
     val metricPoints = computedMetrics.flatMap {
       case (publishTime, metric) =>
@@ -92,7 +96,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 }
 
 /**
-  * Windowed metric factory which can create a new windowed metric or restore an existing windowed metric
+  * Windowed metric factory which can create a new windowed metric or restore an existing windowed metric for an interval
   */
 object WindowedMetric {
 

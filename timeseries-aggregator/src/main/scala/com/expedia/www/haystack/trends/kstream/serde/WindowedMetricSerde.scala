@@ -89,6 +89,13 @@ object WindowedMetricSerde extends Serde[WindowedMetric] with MetricsSupport {
     new Serializer[WindowedMetric] {
       override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
+      /**
+        * converts the windowedMetric object to encoded bytes
+        *
+        * @param topic       topic associated with data
+        * @param windowedMetric windowedMetric object
+        * @return
+        */
       override def serialize(topic: String, windowedMetric: WindowedMetric): Array[Byte] = {
 
         val packer = MessagePack.newDefaultBufferPacker()

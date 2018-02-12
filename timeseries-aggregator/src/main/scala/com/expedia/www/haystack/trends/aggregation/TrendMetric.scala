@@ -28,6 +28,13 @@ import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
+/**
+  * This class contains a windowedMetric for each interval being computed. The number of time windows at any moment is = no. of intervals
+  * depends upon interval, numberOfWatermarkWindows and in which timeWindow incoming metric lies
+  *
+  * @param trendMetricsMap map containing intervals and windowedMetrics
+  * @param metricFactory   factory which is used to create new metrics when required
+  */
 class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], metricFactory: MetricFactory) extends MetricsSupport {
 
   private val trendMetricComputeTimer: Timer = metricRegistry.timer("trendmetric.compute.time")
@@ -38,6 +45,12 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     metricFactory
   }
 
+  /**
+    * function to compute the incoming metric point
+    * it updates all the metrics for the windows within which the incoming metric point lies
+    *
+    * @param incomingMetricPoint - incoming metric point
+    */
   def compute(incomingMetricPoint: MetricPoint): Unit = {
     val timerContext = trendMetricComputeTimer.time()
     Try {
@@ -59,6 +72,11 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     timerContext.close()
   }
 
+  /**
+    * returns list of metricPoints which are evicted and their window is closes
+    *
+    * @return list of evicted metricPoints
+    */
   def getComputedMetricPoints: List[MetricPoint] = {
     List(trendMetricsMap.flatMap {
       case (_, windowedMetric) => {
