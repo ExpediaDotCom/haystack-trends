@@ -38,16 +38,45 @@ import scala.concurrent.duration._
 class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
 
   private val MAX_METRICPOINTS = 62
+  private val numberOfWatermarkedWindows = 1
   val stateStoreConfigs = Map("cleanup.policy" -> "compact,delete")
 
   "TimeSeriesAggregatorTopology" should {
+
+    "watermark metrics for aggregate count type metricPoints from input topic" in {
+      Given("a set of metricPoints with type metric and kafka specific configurations")
+      val METRIC_NAME = "received-span" // CountMetric
+      val expectedOneMinAggregatedPoints: Int = 3 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
+      val expectedFiveMinAggregatedPoints: Int = 1
+      val expectedFifteenMinAggregatedPoints: Int = 0
+      val expectedOneHourAggregatedPoints: Int = 0
+      val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
+
+
+      When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
+      produceMetricPoint(METRIC_NAME, 1l, 1l)
+      produceMetricPoint(METRIC_NAME, 65l, 2l)
+      produceMetricPoint(METRIC_NAME, 2l, 3l)
+      produceMetricPoint(METRIC_NAME, 130l, 4l)
+      produceMetricPoint(METRIC_NAME, 310l, 5l)
+      produceMetricPoint(METRIC_NAME, 610l, 6l)
+
+      new StreamTopology(mockProjectConfig).start()
+
+      Then("we should read all aggregated metricPoint from 'output' topic")
+      val waitTimeMs = 15000
+      val result: List[KeyValue[String, MetricPoint]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
+      validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
+    }
+
     "aggregate count type metricPoints from input topic based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
       val METRIC_NAME = "received-span" // CountMetric
-      val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - 1 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
-      val expectedFiveMinAggregatedPoints: Int = MAX_METRICPOINTS / 5
-      val expectedFifteenMinAggregatedPoints: Int = MAX_METRICPOINTS / 15
-      val expectedOneHourAggregatedPoints: Int = MAX_METRICPOINTS / 60
+      val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - numberOfWatermarkedWindows - 1 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
+      val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) - numberOfWatermarkedWindows
+      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) - numberOfWatermarkedWindows
+      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) - numberOfWatermarkedWindows
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
@@ -61,12 +90,12 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
 
-    " have state store (change log) configuration be set by the topology" in {
+    "have state store (change log) configuration be set by the topology" in {
       Given("a set of metricPoints with type metric and state store specific configurations")
       val METRIC_NAME = "received-span" // CountMetric
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 100)
+      produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 3 * 60)
       new StreamTopology(mockProjectConfig).start()
 
       Then("we should see the state store topic created with specified properties")
@@ -81,10 +110,10 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
     "aggregate histogram type metricPoints from input topic based on rules" in {
       Given("a set of metricPoints with type metric and kafka specific configurations")
       val METRIC_NAME = "duration" //HistogramMetric
-      val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1) * 7 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
-      val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) * 7
-      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
-      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
+      val expectedOneMinAggregatedPoints: Int = (MAX_METRICPOINTS - 1 - numberOfWatermarkedWindows) * 7 // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
+      val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5 - numberOfWatermarkedWindows) * 7
+      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15 - numberOfWatermarkedWindows) * 7
+      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60 - numberOfWatermarkedWindows) * 7
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
@@ -130,4 +159,3 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
     projectConfiguration
   }
 }
-

@@ -1,9 +1,6 @@
 package com.expedia.www.haystack.trends.feature.tests.processor
 
-import java.util.Optional
-
-import com.expedia.www.haystack.trends.aggregation.WindowedMetric
-import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
@@ -21,23 +18,23 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
     scenario("should return windowed metric for a given key") {
 
       Given("a metric aggregator supplier and metric processor")
-      val windowedMetric = mock[WindowedMetric]
+      val trendMetric = mock[TrendMetric]
       val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName)
-      val keyValueStore: KeyValueStore[String, WindowedMetric] = mock[KeyValueStore[String, WindowedMetric]]
+      val keyValueStore: KeyValueStore[String, TrendMetric] = mock[KeyValueStore[String, TrendMetric]]
       val processorContext = mock[ProcessorContext]
       expecting{
-        keyValueStore.get("metrics").andReturn(windowedMetric)
+        keyValueStore.get("metrics").andReturn(trendMetric)
         processorContext.getStateStore(windowedMetricStoreName).andReturn(keyValueStore)
       }
       EasyMock.replay(keyValueStore)
       EasyMock.replay(processorContext)
 
       When("metric processor is initialised with processor context")
-      val kTableValueGetter : KTableValueGetter[String, WindowedMetric] = metricAggProcessorSupplier.view().get()
+      val kTableValueGetter : KTableValueGetter[String, TrendMetric] = metricAggProcessorSupplier.view().get()
       kTableValueGetter.init(processorContext)
 
       Then("same windowed metric should be retrieved with the given key")
-      kTableValueGetter.get("metrics") shouldBe (windowedMetric)
+      kTableValueGetter.get("metrics") shouldBe (trendMetric)
     }
 
     scenario("should not return any AggregationType for invalid MetricPoint") {

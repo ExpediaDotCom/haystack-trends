@@ -26,7 +26,7 @@ import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
-import com.expedia.www.haystack.trends.kstream.serde.WindowedMetricSerde
+import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams.StateListener
@@ -46,7 +46,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
   private val TOPOLOGY_SOURCE_NAME = "metricpoint-source"
   private val TOPOLOGY_SINK_NAME = "metricpoint-aggegated-sink"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
-  private val TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME = "windowed-metric-store"
+  private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private var streams: KafkaStreams = _
 
   Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
@@ -112,18 +112,18 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       metricTankSerde.deserializer(),
       projectConfiguration.kafkaConfig.consumeTopic)
 
-    val windowedMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME)
+    val trendMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME)
       .withStringKeys
-      .withValues(WindowedMetricSerde)
+      .withValues(TrendMetricSerde)
       .inMemory()
 
-    val windowedMetricStore = {
+    val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
-        windowedMetricStoreBuilder
+        trendMetricStoreBuilder
           .enableLogging(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
           .build()
       } else {
-        windowedMetricStoreBuilder
+        trendMetricStoreBuilder
           .disableLogging()
           .build()
       }
@@ -131,11 +131,11 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
-      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_WINDOWED_METRIC_STORE_NAME),
+      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),
       TOPOLOGY_SOURCE_NAME)
 
 
-    builder.addStateStore(windowedMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     builder.addSink(
       TOPOLOGY_SINK_NAME,

@@ -45,7 +45,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
-  protected var CHANGELOG_TOPIC = s"$APP_ID-windowed-metric-store-changelog"
+  protected var CHANGELOG_TOPIC = s"$APP_ID-trend-metric-store-changelog"
   protected var embeddedKafkaCluster: EmbeddedKafkaCluster = null
 
   override def beforeAll(): Unit = {
@@ -113,6 +113,19 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       }
       idx = idx + 1
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
+  }
+
+  protected def produceMetricPoint(metricName: String,
+                                   epochTimeInSecs: Long,
+                                   produceTimeInSecs: Long
+                                  ): Unit = {
+    val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
+    val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(true), metricPoint)).asJava
+    IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
+      INPUT_TOPIC,
+      keyValue,
+      PRODUCER_CONFIG,
+      produceTimeInSecs)
   }
 
   def randomMetricPoint(metricName: String,

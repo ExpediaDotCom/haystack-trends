@@ -11,8 +11,15 @@ case class TimeWindow(startTime: Long, endTime: Long) extends Ordered[TimeWindow
   override def compare(that: TimeWindow): Int = {
     this.startTime.compare(that.startTime)
   }
-}
 
+  override def hashCode(): Int = {
+    this.startTime.hashCode()
+  }
+
+  override def equals(that: scala.Any): Boolean = {
+    this.startTime == that.asInstanceOf[TimeWindow].startTime && this.endTime == that.asInstanceOf[TimeWindow].endTime
+  }
+}
 
 object TimeWindow {
 
