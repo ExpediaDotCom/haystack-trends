@@ -36,6 +36,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String) extends KStreamAg
 
       def get(key: String): TrendMetric = store.get(key)
     }
+
   }
 
   /**
@@ -71,7 +72,9 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String) extends KStreamAg
          we finally put the updated trend metric back to the store since we want the changelog the state store with the latest state of the trend metric, if we don't put the metric
          back and update the mutable metric, the kstreams would not capture the change and app wouldn't be able to restore to the same state when the app comes back again.
          */
-        trendMetricStore.put(key, trendMetric)
+        if (trendMetric.shouldLogToStateStore) {
+          trendMetricStore.put(key, trendMetric)
+        }
 
         //retrieve the computed metrics and push it to the kafka topic.
         trendMetric.getComputedMetricPoints.foreach(metricPoint => {
@@ -87,6 +90,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String) extends KStreamAg
       }
     }
   }
+
 }
 
 

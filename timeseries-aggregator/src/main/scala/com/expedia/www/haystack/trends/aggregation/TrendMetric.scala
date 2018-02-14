@@ -24,6 +24,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.MetricFactory
 import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import org.slf4j.LoggerFactory
 
 import scala.util.Try
@@ -69,6 +70,13 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
         LOGGER.error(s"Failed to compute metricpoint : $incomingMetricPoint with exception ", failure)
         failure
     }
+
+    // check whether time to log to state store
+    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > ProjectConfiguration.loggingDelayInSeconds) {
+      currentEpochTimeInSec = incomingMetricPoint.epochTimeInSeconds
+      shouldLog = true
+    }
+
     timerContext.close()
   }
 
@@ -84,11 +92,26 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
       }
     }).flatten
   }
+
+  /**
+    * flag to tell whether we need to log to state store
+    *
+    * @return flag to indicate should we log
+    */
+  def shouldLogToStateStore: Boolean = {
+    if (shouldLog) {
+      shouldLog = false
+      return true
+    }
+    return false
+  }
 }
 
 object TrendMetric {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
+  private var currentEpochTimeInSec: Long = 0
+  private var shouldLog = true
 
   // config for watermark windows & tick per interval
   val trendMetricConfig = Map(
@@ -100,6 +123,8 @@ object TrendMetric {
   def createTrendMetric(intervals: List[Interval],
                         firstMetricPoint: MetricPoint,
                         metricFactory: MetricFactory): TrendMetric = {
+    currentEpochTimeInSec = 0 // reset for every unique metric point
+    shouldLog = true          //  this enable to log data to state store for the very first time
     val trendMetricMap = createMetricsForEachInterval(intervals, firstMetricPoint, metricFactory)
     new TrendMetric(trendMetricMap, metricFactory)
   }
