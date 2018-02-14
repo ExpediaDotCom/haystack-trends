@@ -36,6 +36,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return delay in logging to state store
+    */
+  def loggingDelayInSeconds: Long = {
+    config.getLong("state.store.logging.delay.seconds")
+  }
+
+  /**
+    *
     * @return whether logging for state store is enabled
     */
   def enableStateStoreLogging: Boolean = {
@@ -112,3 +120,5 @@ class ProjectConfiguration {
       kafka.getLong("close.timeout.ms"))
   }
 }
+
+object ProjectConfiguration extends ProjectConfiguration

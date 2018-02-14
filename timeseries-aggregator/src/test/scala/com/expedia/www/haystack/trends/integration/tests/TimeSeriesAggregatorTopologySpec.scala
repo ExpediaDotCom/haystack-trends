@@ -104,7 +104,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       val adminClient = AdminClient.create(STREAMS_CONFIG)
       val configResource = new ConfigResource(ConfigResource.Type.TOPIC, CHANGELOG_TOPIC)
       val describeConfigResult: java.util.Map[ConfigResource, Config] = adminClient.describeConfigs(java.util.Arrays.asList(configResource)).all().get()
-      describeConfigResult.get(configResource).get(stateStoreConfigs.head._1).value() shouldBe (stateStoreConfigs.head._2)
+      describeConfigResult.get(configResource).get(stateStoreConfigs.head._1).value() shouldBe stateStoreConfigs.head._2
     }
 
     "aggregate histogram type metricPoints from input topic based on rules" in {
@@ -150,10 +150,11 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
     val projectConfiguration = mock[ProjectConfiguration]
 
     expecting {
-      projectConfiguration.kafkaConfig.andReturn(kafkaConfig).times(10)
-      projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs)
-      projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true)
-      projectConfiguration.enableStateStoreLogging.andReturn(true)
+      projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
+      projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs).anyTimes()
+      projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true).anyTimes()
+      projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
+      projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration

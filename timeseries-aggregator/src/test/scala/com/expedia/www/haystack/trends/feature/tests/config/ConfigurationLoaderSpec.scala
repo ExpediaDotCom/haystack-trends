@@ -24,7 +24,6 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
   feature("Configuration loader") {
 
-
     scenario("should load the health status config from base.conf") {
 
       Given("A config file at base config file containing config for health status file path")
@@ -86,10 +85,10 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       val stateStoreConfigs = projectConfig.stateStoreConfig
-      projectConfig.enableStateStoreLogging shouldBe false
+      projectConfig.enableStateStoreLogging shouldBe true
+      projectConfig.loggingDelayInSeconds shouldBe 60
       stateStoreConfigs("cleanup.policy") shouldBe "compact,delete"
       stateStoreConfigs("retention.ms") shouldBe "14400000"
     }
-
   }
 }
