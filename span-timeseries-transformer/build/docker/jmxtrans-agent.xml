@@ -55,29 +55,7 @@
                resultAlias="kstreams.process.latency_max"/>
 
         <!-- service mbeans -->
-        <query objectName="metrics:name=span.serde.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="span-serde.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.deser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.ser.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.ser.success" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.ser.success.#attribute#"/>
-
-
-        <query objectName="metrics:name=span.validation.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="span-validation.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.span.failure" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.span.failure.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.span.success" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.span.success.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.span.received" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.span.received.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.span.duration" attributes="OneMinuteRate,MeanRate"
-               resultAlias="metricpoint.span.duration.#attribute#"/>
-        <query objectName="metrics:name=metricpoint.generation.time"
-               attributes="50thPercentile,99thPercentile,OneMinuteRate"
-               resultAlias="metricpoint.generation.time.#attribute#"/>
+        <query objectName="metrics:type=*,name=*" resultAlias="%type%.%name%.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
