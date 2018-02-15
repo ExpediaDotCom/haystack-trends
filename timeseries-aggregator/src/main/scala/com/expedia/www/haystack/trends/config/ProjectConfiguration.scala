@@ -39,7 +39,7 @@ class ProjectConfiguration {
     * @return delay in logging to state store
     */
   def loggingDelayInSeconds: Long = {
-    config.getLong("state.store.logging.delay.seconds")
+    config.getLong("statestore.logging.delay.seconds")
   }
 
   /**
@@ -47,7 +47,7 @@ class ProjectConfiguration {
     * @return whether logging for state store is enabled
     */
   def enableStateStoreLogging: Boolean = {
-    config.getBoolean("state.store.enable.logging")
+    config.getBoolean("statestore.enable.logging")
   }
 
   /**
