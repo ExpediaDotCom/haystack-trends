@@ -56,7 +56,7 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     val timerContext = trendMetricComputeTimer.time()
     Try {
       //discarding values which are less than 0 assuming they are invalid metric points
-      if (incomingMetricPoint.value >= 0) {
+      if (incomingMetricPoint.value > 0) {
         trendMetricsMap.foreach(trendMetrics => {
           val windowedMetric = trendMetrics._2
           windowedMetric.compute(incomingMetricPoint)
