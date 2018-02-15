@@ -110,9 +110,27 @@ class TrendMetricSpec extends FeatureSpec {
     scenario("jmx metric (metricpoints.invalid) should be set for invalid (negative) value of MetricPoint") {
       val DURATION_METRIC_NAME = "duration"
 
-      Given("a metric point with invalid value")
+      Given("a metric point with invalid (negative) value")
       val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTimeInSecs)
       val invalidMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, -1, currentTimeInSecs)
+      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
+
+      When("creating a WindowedMetric and passing an invalid MetricPoint")
+      val trendMetric: TrendMetric = TrendMetric.createTrendMetric(intervals, validMetricPoint, HistogramMetricFactory)
+      trendMetric.compute(invalidMetricPoint)
+
+      Then("metric point for invalid value should get incremented")
+      val metricsRegistry = MetricsRegistries.metricRegistry
+      metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 1
+    }
+
+    //to prevent hdr histogram from breaking
+    scenario("jmx metric (metricpoints.invalid) should be set for invalid (zero) value of MetricPoint") {
+      val DURATION_METRIC_NAME = "duration"
+
+      Given("a metric point with invalid (zero) value")
+      val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTimeInSecs)
+      val invalidMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 0, currentTimeInSecs)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
 
       When("creating a WindowedMetric and passing an invalid MetricPoint")
