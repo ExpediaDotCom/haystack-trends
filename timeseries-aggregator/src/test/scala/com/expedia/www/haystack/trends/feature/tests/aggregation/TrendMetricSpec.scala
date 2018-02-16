@@ -39,7 +39,7 @@ class TrendMetricSpec extends FeatureSpec {
     val SERVICE_NAME_KEY = "serviceName"
   }
 
-  feature("Creating a WindowedMetric") {
+  feature("Creating a TrendMetric") {
 
     scenario("should get Histogram aggregated MetricPoints post watermarked metrics") {
       val DURATION_METRIC_NAME = "duration"
@@ -52,6 +52,7 @@ class TrendMetricSpec extends FeatureSpec {
 
       When("creating a WindowedMetric and passing first MetricPoint")
       val trendMetric: TrendMetric = TrendMetric.createTrendMetric(intervals, firstMetricPoint, HistogramMetricFactory)
+      trendMetric.compute(firstMetricPoint)
       expectedMetric.compute(firstMetricPoint)
 
       Then("should return 0 MetricPoints if we try to get within (watermark + 1) metrics")
@@ -88,6 +89,7 @@ class TrendMetricSpec extends FeatureSpec {
 
       val firstMetricPoint: MetricPoint = MetricPoint(COUNT_METRIC_NAME, MetricType.Gauge, keys, 1, currentTime)
       val trendMetric = TrendMetric.createTrendMetric(intervals, firstMetricPoint, CountMetricFactory)
+      trendMetric.compute(firstMetricPoint)
       val expectedMetric: CountMetric = new CountMetric(Interval.FIVE_MINUTE)
       expectedMetric.compute(firstMetricPoint)
 
