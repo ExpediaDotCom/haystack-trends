@@ -129,7 +129,7 @@ class TrendMetricSpec extends FeatureSpec {
       When("computing a zero value MetricPoint")
       trendMetric.compute(zeroValueMetricPoint)     //to prevent hdr histogram from breaking
 
-      Then("metric point for invalid value should get incremented")
+      Then("metric for invalid value should get incremented")
       metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 2
     }
   }
