@@ -56,6 +56,7 @@
 
         <!-- service mbeans -->
         <query objectName="metrics:type=*,name=*" resultAlias="%type%.%name%.#attribute#"/>
+        <query objectName="metrics:name=*" resultAlias="%name%.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
