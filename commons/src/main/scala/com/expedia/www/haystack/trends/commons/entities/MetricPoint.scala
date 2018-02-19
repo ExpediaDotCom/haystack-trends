@@ -20,15 +20,16 @@ import com.expedia.www.haystack.trends.commons.entities.MetricType.MetricType
 
 /**
   * The metricpoint object adheres to the metrics 2.0 specifications
-  * @param metric : name of the metric
-  * @param `type` : type of the metric - see metric types below
-  * @param tags : key:value tags which add dimensions to the metric : eg : host, service_name etc
-  * @param value : value of the metric
+  *
+  * @param metric             : name of the metric
+  * @param `type`             : type of the metric - see metric types below
+  * @param tags               : key:value tags which add dimensions to the metric : eg : host, service_name etc
+  * @param value              : value of the metric
   * @param epochTimeInSeconds : epochTime in seconds for when the event is generated
   */
 case class MetricPoint(metric: String, `type`: MetricType, tags: Map[String, String], value: Float, epochTimeInSeconds: Long) {
 
-  def getMetricPointKey (enablePeriodReplacement: Boolean): String = {
+  def getMetricPointKey(enablePeriodReplacement: Boolean): String = {
     if (enablePeriodReplacement) {
       tags.foldLeft("")((tag, tuple) => {
         tag + s"${tuple._1}.${tuple._2.replace(".", "___")}."
