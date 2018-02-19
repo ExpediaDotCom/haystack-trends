@@ -27,7 +27,7 @@ import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack.Code
 import org.msgpack.core.{MessagePack, MessagePacker}
 import org.msgpack.value.impl.ImmutableLongValueImpl
-import org.msgpack.value.{ImmutableStringValue, Value, ValueFactory}
+import org.msgpack.value.{Value, ValueFactory}
 
 import scala.collection.JavaConverters._
 
@@ -40,7 +40,7 @@ class MetricTankSerde(enableMetricPointReplacement: Boolean) extends Serde[Metri
   def this() = this(true)
 
   override def deserializer(): MetricPointDeserializer = {
-    new MetricPointDeserializer()
+    new MetricPointDeserializer(enableMetricPointReplacement)
   }
 
   override def serializer(): MetricPointSerializer = {
@@ -52,7 +52,9 @@ class MetricTankSerde(enableMetricPointReplacement: Boolean) extends Serde[Metri
   override def close(): Unit = ()
 }
 
-class MetricPointDeserializer extends Deserializer[MetricPoint] with MetricsSupport {
+class MetricPointDeserializer(enableMetricPointReplacement: Boolean) extends Deserializer[MetricPoint] with MetricsSupport {
+
+  def this() = this(true)
 
   private val metricPointDeserFailureMeter = metricRegistry.meter("metricpoint.deser.failure")
   private val TAG_DELIMETER = "="
@@ -61,6 +63,7 @@ class MetricPointDeserializer extends Deserializer[MetricPoint] with MetricsSupp
   private val timeKey = "Time"
   private val typeKey = "Mtype"
   private val tagsKey = "Tags"
+  private val idKey = "Id"
 
   override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
@@ -80,7 +83,7 @@ class MetricPointDeserializer extends Deserializer[MetricPoint] with MetricsSupp
         `type` = MetricType.withName(metricData.get(ValueFactory.newString(typeKey)).asStringValue().toString),
         value = metricData.get(ValueFactory.newString(valueKey)).asFloatValue().toFloat,
         epochTimeInSeconds = metricData.get(ValueFactory.newString(timeKey)).asIntegerValue().toLong,
-        tags = convertTagArrayToMap(metricData.get(ValueFactory.newString(tagsKey)).asArrayValue().iterator().asScala))
+        tags = createTagsFromMetricKey(metricData.get(ValueFactory.newString(idKey)).asStringValue.toString, enableMetricPointReplacement))
     } catch {
       case ex: Exception =>
         /* may be log and add metric */
@@ -89,19 +92,22 @@ class MetricPointDeserializer extends Deserializer[MetricPoint] with MetricsSupp
     }
   }
 
-  private def convertTagArrayToMap(tags: Iterator[Value]): Map[String, String] = {
-    tags.collect {
-      case tag if tag.asStringValue().toString.split(TAG_DELIMETER).length == 2 => tag.asStringValue().toString.split(TAG_DELIMETER).apply(0) -> tag.asStringValue().toString.split(TAG_DELIMETER).apply(1)
+  private def createTagsFromMetricKey(metricKey: String, enablePeriodReplacement: Boolean): Map[String, String] = {
+    metricKey.split("\\.").dropRight(1).grouped(2).map {
+      if (enablePeriodReplacement) {
+        tuple => tuple(0) -> tuple(1).replace("___", ".")
+      } else {
+        tuple => tuple(0) -> tuple(1)
+      }
     }.toMap
   }
 
   override def close(): Unit = ()
 }
 
-class MetricPointSerializer (enableMetricPointReplacement: Boolean) extends Serializer[MetricPoint] with MetricsSupport {
+class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Serializer[MetricPoint] with MetricsSupport {
   private val metricPointSerFailureMeter = metricRegistry.meter("metricpoint.ser.failure")
   private val metricPointSerSuccessMeter = metricRegistry.meter("metricpoint.ser.success")
-  private val TAG_DELIMETER = "="
   private val DEFAULT_ORG_ID = 1
   private[commons] val DEFAULT_INTERVAL_IN_SECS = 60
   private val idKey = "Id"
@@ -130,8 +136,7 @@ class MetricPointSerializer (enableMetricPointReplacement: Boolean) extends Seri
         ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
         ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
         ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
-        ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString),
-        ValueFactory.newString(tagsKey) -> ValueFactory.newArray(convertTagMapToArray(metricPoint.tags).asJava)
+        ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString)
       )
       packer.packValue(ValueFactory.newMap(metricData.asJava))
       val data = packer.toByteArray
@@ -144,14 +149,6 @@ class MetricPointSerializer (enableMetricPointReplacement: Boolean) extends Seri
         null
     }
   }
-
-  //converting the tuple into a single string delimeted by the TAG_DELIMETER Constant which is recomended by metrictank , this wouldn't work incase the key or the value already has the TAG_DELIMETER string
-  private def convertTagMapToArray(tags: Map[String, String]): List[ImmutableStringValue] = {
-    tags.map {
-      case (key, value) => ValueFactory.newString(key + TAG_DELIMETER + value)
-    }.toList
-  }
-
   //Retrieves the interval in case its present in the tags else uses the default interval
   def retrieveInterval(metricPoint: MetricPoint): Int = {
     metricPoint.tags.get(TagKeys.INTERVAL_KEY).map(stringInterval => Interval.fromName(stringInterval).timeInSeconds).getOrElse(DEFAULT_INTERVAL_IN_SECS)
