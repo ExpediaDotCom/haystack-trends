@@ -32,9 +32,8 @@ import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams.KafkaStreams.StateListener
-import org.apache.kafka.streams.kstream.KStreamBuilder
-import org.apache.kafka.streams.processor.TopologyBuilder
-import org.apache.kafka.streams.{KafkaStreams, KeyValue, StreamsConfig}
+import org.apache.kafka.streams._
+import org.apache.kafka.streams.kstream.Produced
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -118,14 +117,13 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
     }
   }
 
-  private def topology(): TopologyBuilder = {
-    val builder = new KStreamBuilder()
-    builder.stream(kafkaConfig.autoOffsetReset, kafkaConfig.timestampExtractor, new StringSerde, SpanSerde, kafkaConfig.consumeTopic)
+  private def topology(): Topology = {
+    val builder = new StreamsBuilder()
+    builder.stream(kafkaConfig.consumeTopic, Consumed.`with`(kafkaConfig.autoOffsetReset).withKeySerde(new StringSerde).withValueSerde(SpanSerde).withTimestampExtractor(kafkaConfig.timestampExtractor))
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(new StringSerde, new MetricTankSerde(transformerConfiguration.enableMetricPointPeriodReplacement), kafkaConfig.produceTopic)
-
-    builder
+    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde(transformerConfiguration.enableMetricPointPeriodReplacement)))
+    builder.build()
   }
 
   private def mapToMetricPointKeyValue(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {

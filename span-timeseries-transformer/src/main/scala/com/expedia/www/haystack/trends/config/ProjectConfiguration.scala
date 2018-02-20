@@ -22,8 +22,8 @@ import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
 
