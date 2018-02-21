@@ -38,10 +38,10 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
-      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         TOTAL_METRIC_NAME
-      val metricPointServiceOnlyKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TOTAL_METRIC_NAME
 
       When("metricPoint is created using transformer")
@@ -51,7 +51,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       metricPoints.length shouldEqual 2
 
       Then("the metricPoint value should be 1")
-      metricPoints(0).value shouldEqual 1
+      metricPoints.head.value shouldEqual 1
       metricPoints(1).value shouldEqual 1
 
       Then("metric name should be total-count")
@@ -59,7 +59,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
 
       Then("returned keys should be as expected")
       val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
-      metricPointKeys shouldBe (Set(metricPointKey, metricPointServiceOnlyKey))
+      metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
     scenario("should have a total-count metricPoint given span which is erroneous " +
@@ -105,7 +105,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       .setServiceName(serviceName)
       .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
       .build()
-    val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+    val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
       TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
       TOTAL_METRIC_NAME
 

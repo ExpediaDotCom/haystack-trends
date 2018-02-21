@@ -43,7 +43,7 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
-        TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT.replace(".", "___") + "." +
+        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT.replace(".", "___") + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT.replace(".", "___") + "." +
           DURATION_METRIC_NAME
     }
@@ -60,7 +60,7 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
-        TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT + "." +
+        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT + "." +
           DURATION_METRIC_NAME
     }
@@ -77,7 +77,7 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with only period replaced with underscore and colon retained")
       metricPointKey shouldEqual
-        TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_COLON.replace(".", "___") + "." +
+        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_COLON.replace(".", "___") + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_COLON.replace(".", "___") + "." +
           DURATION_METRIC_NAME
     }
