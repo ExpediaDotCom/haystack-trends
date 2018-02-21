@@ -30,10 +30,10 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       Given("a valid span object")
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
-      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         DURATION_METRIC_NAME
-      val metricPointServiceOnlyKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         DURATION_METRIC_NAME
 
       When("metricPoint is created using transformer")
@@ -60,7 +60,7 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       Given("a valid span object")
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
-      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         DURATION_METRIC_NAME
 

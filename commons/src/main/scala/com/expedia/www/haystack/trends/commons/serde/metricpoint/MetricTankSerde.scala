@@ -93,7 +93,7 @@ class MetricPointDeserializer(enableMetricPointReplacement: Boolean) extends Des
   }
 
   private def createTagsFromMetricKey(metricKey: String, enablePeriodReplacement: Boolean): Map[String, String] = {
-    metricKey.split("\\.").dropRight(1).grouped(2).map {
+    metricKey.split("\\.").drop(1).dropRight(1).grouped(2).map {
       if (enablePeriodReplacement) {
         tuple => tuple(0) -> tuple(1).replace("___", ".")
       } else {
@@ -149,6 +149,7 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
         null
     }
   }
+
   //Retrieves the interval in case its present in the tags else uses the default interval
   def retrieveInterval(metricPoint: MetricPoint): Int = {
     metricPoint.tags.get(TagKeys.INTERVAL_KEY).map(stringInterval => Interval.fromName(stringInterval).timeInSeconds).getOrElse(DEFAULT_INTERVAL_IN_SECS)
@@ -172,4 +173,5 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
       pk.addPayload(buffer.array())
     }
   }
+
 }

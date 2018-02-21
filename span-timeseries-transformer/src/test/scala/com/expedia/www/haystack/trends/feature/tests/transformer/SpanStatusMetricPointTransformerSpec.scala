@@ -39,10 +39,10 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
-      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
-      val metricPointServiceOnlyKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         SUCCESS_METRIC_NAME
 
       When("metricPoint is created using the transformer")
@@ -52,7 +52,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints.length shouldEqual 2
 
       Then("the metricPoint value should be 1")
-      metricPoints(0).value shouldEqual 1
+      metricPoints.head.value shouldEqual 1
       metricPoints(1).value shouldEqual 1
 
       Then("metric name should be success-spans")
@@ -60,7 +60,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
 
       Then("returned keys should be as expected")
       val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
-      metricPointKeys shouldBe (Set(metricPointKey, metricPointServiceOnlyKey))
+      metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
     scenario("should have a failure-spans metricPoint given span  which is erroneous " +
@@ -124,7 +124,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
-      val metricPointKey = TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
 
