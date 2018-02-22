@@ -24,8 +24,8 @@ import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.clients.admin.{AdminClient, Config}
 import org.apache.kafka.common.config.ConfigResource
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import org.easymock.EasyMock

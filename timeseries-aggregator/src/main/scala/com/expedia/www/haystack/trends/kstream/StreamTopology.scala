@@ -28,11 +28,11 @@ import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams.StateListener
-import org.apache.kafka.streams.processor.TopologyBuilder
 import org.apache.kafka.streams.state.Stores
-import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
+import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters
@@ -99,12 +99,12 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
     }
   }
 
-  private def topology(): TopologyBuilder = {
+  private def topology(): Topology = {
 
     val metricTankSerde = new MetricTankSerde(projectConfiguration.enableMetricPointPeriodReplacement)
-    val builder = new TopologyBuilder()
+    val topology = new Topology()
 
-    builder.addSource(
+    topology.addSource(
       projectConfiguration.kafkaConfig.autoOffsetReset,
       TOPOLOGY_SOURCE_NAME,
       projectConfiguration.kafkaConfig.timestampExtractor,
@@ -112,39 +112,35 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       metricTankSerde.deserializer(),
       projectConfiguration.kafkaConfig.consumeTopic)
 
-    val trendMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME)
-      .withStringKeys
-      .withValues(TrendMetricSerde)
-      .inMemory()
+    val trendMetricStoreBuilder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),new StringSerde,TrendMetricSerde)
+
 
     val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
         trendMetricStoreBuilder
-          .enableLogging(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
-          .build()
+          .withLoggingEnabled(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
       } else {
         trendMetricStoreBuilder
-          .disableLogging()
-          .build()
+          .withLoggingDisabled()
       }
     }
 
-    builder.addProcessor(
+    topology.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
       new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),
       TOPOLOGY_SOURCE_NAME)
 
 
-    builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    topology.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    builder.addSink(
+    topology.addSink(
       TOPOLOGY_SINK_NAME,
       projectConfiguration.kafkaConfig.produceTopic,
       new StringSerializer,
       metricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    builder
+    topology
   }
 
   /**
