@@ -78,7 +78,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String) extends KStreamAg
 
         //retrieve the computed metrics and push it to the kafka topic.
         trendMetric.getComputedMetricPoints.foreach(metricPoint => {
-          context().forward(metricPoint.metric, metricPoint)
+          context().forward(metricPoint.getMetricPointKey(true), metricPoint)
         })
       })
     }
