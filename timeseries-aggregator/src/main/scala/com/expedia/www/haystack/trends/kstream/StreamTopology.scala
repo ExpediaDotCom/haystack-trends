@@ -138,9 +138,9 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
       builder.addProcessor(
-        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
+        TOPOLOGY_SINK_NAME,
         new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
-        TOPOLOGY_SOURCE_NAME)
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     } else {
       builder.addSink(
         TOPOLOGY_SINK_NAME,
