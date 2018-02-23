@@ -19,7 +19,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
 
       Given("a metric aggregator supplier and metric processor")
       val trendMetric = mock[TrendMetric]
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true)
       val keyValueStore: KeyValueStore[String, TrendMetric] = mock[KeyValueStore[String, TrendMetric]]
       val processorContext = mock[ProcessorContext]
       expecting{
@@ -41,7 +41,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
 
       Given("a metric aggregator supplier and an invalid metric point")
       val metricPoint = MetricPoint("invalid-metric", MetricType.Gauge, null, 80, currentTimeInSecs)
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true)
 
       When("find the AggregationType for the metric point")
       val aggregationType = metricAggProcessorSupplier.findMatchingMetric(metricPoint)

@@ -73,7 +73,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "mdm")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.produceTopic shouldBe kafkaProduceTopic
+      kafkaConfig.producerConfig.topic shouldBe kafkaProduceTopic
     }
 
     scenario("should load the state store configs from base.conf") {

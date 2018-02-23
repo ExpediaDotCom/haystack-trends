@@ -67,6 +67,10 @@
                resultAlias="metricpoint.compute.failure.#attribute#"/>
         <query objectName="metrics:name=metricpoints.invalid" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.invalid.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.kafka-external.success" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoint.kafka-external.success.#attribute#"/>
+        <query objectName="metrics:name=metricpoint.kafka-external.failure" attributes="OneMinuteRate,MeanRate"
+               resultAlias="metricpoint.kafka-external.failure.#attribute#"/>
 
         <query objectName="metrics:name=trendmetric.deser.failure" attributes="OneMinuteRate,MeanRate"
                resultAlias="trend-metric.deser.failure.#attribute#"/>
