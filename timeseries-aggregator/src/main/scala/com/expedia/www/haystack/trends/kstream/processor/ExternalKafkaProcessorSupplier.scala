@@ -22,44 +22,18 @@ import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.config.entities.KafkaProduceConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde.metricRegistry
 import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}
-import org.apache.kafka.streams.kstream.internals._
-import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
-import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext, ProcessorSupplier}
 import org.slf4j.LoggerFactory
 
-class ExternalKafkaProcessorSupplier(trendMetricStoreName: String, kafkaProduceConfig: KafkaProduceConfiguration) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] {
+class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfiguration) extends ProcessorSupplier[String, MetricPoint] {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
   private var sendOldValues: Boolean = false
   private val metricPointExternalKafkaSuccessMeter = metricRegistry.meter("metricpoint.kafka-external.success")
   private val metricPointExternalKafkaFailureMeter = metricRegistry.meter("metricpoint.kafka-external.failure")
-  private val kafkaProducer: KafkaProducer[String, MetricPoint] = new KafkaProducer[String, MetricPoint](kafkaProduceConfig.props.get)
 
   def get: Processor[String, MetricPoint] = {
-    new ExternalKafkaProcessor(kafkaProduceConfig.topic)
-  }
-
-  def enableSendingOldValues() {
-    sendOldValues = true
-  }
-
-  override def view(): KTableValueGetterSupplier[String, TrendMetric] = new KTableValueGetterSupplier[String, TrendMetric]() {
-
-    override def get(): KTableValueGetter[String, TrendMetric] = new TrendMetricAggregateValueGetter()
-
-    override def storeNames(): Array[String] = Array[String](trendMetricStoreName)
-
-    private class TrendMetricAggregateValueGetter extends KTableValueGetter[String, TrendMetric] {
-
-      private var store: KeyValueStore[String, TrendMetric] = _
-
-      @SuppressWarnings(Array("unchecked")) def init(context: ProcessorContext) {
-        store = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
-      }
-
-      def get(key: String): TrendMetric = store.get(key)
-    }
-
+    new ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration)
   }
 
   /**
@@ -67,15 +41,16 @@ class ExternalKafkaProcessorSupplier(trendMetricStoreName: String, kafkaProduceC
     * Each trend is uniquely identified by the metricPoint key - which is a combination of the name and the list of tags. Its backed by a state store which keeps this map and has the
     * ability to restore the map if/when the app restarts or when the assigned kafka partitions change
     *
-    * @param kafkaProduceTopic - kafka producer topic
+    * @param kafkaProduceConfig - configuration to create kafka producer
     */
-  private class ExternalKafkaProcessor(kafkaProduceTopic: String) extends AbstractProcessor[String, MetricPoint] {
-    private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
+  private class ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration) extends AbstractProcessor[String, MetricPoint] {
+
+    private val kafkaProducer: KafkaProducer[String, MetricPoint] = new KafkaProducer[String, MetricPoint](kafkaProduceConfig.props.get)
+    private val kafkaProduceTopic = kafkaProduceConfig.topic
 
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)
-      trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
     }
 
     /**
@@ -91,7 +66,7 @@ class ExternalKafkaProcessorSupplier(trendMetricStoreName: String, kafkaProduceC
       kafkaProducer.send(kafkaMessage, new Callback {
         override def onCompletion(recordMetadata: RecordMetadata, e: Exception): Unit = {
           if (e != null) {
-            LOGGER.error(s"Failed to produce the message to kafka for topic=${kafkaProduceTopic}, with reason=", e)
+            LOGGER.error(s"Failed to produce the message to kafka for topic=$kafkaProduceTopic, with reason=", e)
             metricPointExternalKafkaFailureMeter.mark()
           } else {
             metricPointExternalKafkaSuccessMeter.mark()
@@ -100,7 +75,6 @@ class ExternalKafkaProcessorSupplier(trendMetricStoreName: String, kafkaProduceC
       })
     }
   }
-
 }
 
 

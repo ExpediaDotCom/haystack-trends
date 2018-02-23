@@ -146,7 +146,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
   }
 
   private def mockProjectConfig: ProjectConfiguration = {
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, null, false) , INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, None, false) , INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[ProjectConfiguration]
 
     expecting {

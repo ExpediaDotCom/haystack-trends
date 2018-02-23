@@ -69,6 +69,7 @@ class ProjectConfiguration {
 
     // add stream specific properties
     addProps(streamsConfig, props)
+
     // validate props
     verifyRequiredProps(props)
 
