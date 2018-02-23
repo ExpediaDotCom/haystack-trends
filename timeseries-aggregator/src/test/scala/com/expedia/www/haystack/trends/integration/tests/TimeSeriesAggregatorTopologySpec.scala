@@ -19,7 +19,7 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.clients.admin.{AdminClient, Config}
@@ -146,7 +146,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
   }
 
   private def mockProjectConfig: ProjectConfiguration = {
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, null, false) , INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[ProjectConfiguration]
 
     expecting {

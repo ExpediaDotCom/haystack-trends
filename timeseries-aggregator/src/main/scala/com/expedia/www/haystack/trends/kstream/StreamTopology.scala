@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
-import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
+import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -131,18 +131,24 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
-      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),
+      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement),
       TOPOLOGY_SOURCE_NAME)
-
 
     builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    builder.addSink(
-      TOPOLOGY_SINK_NAME,
-      projectConfiguration.kafkaConfig.produceTopic,
-      new StringSerializer,
-      metricTankSerde.serializer(),
-      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
+      builder.addProcessor(
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
+        new ExternalKafkaProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.kafkaConfig.producerConfig),
+        TOPOLOGY_SOURCE_NAME)
+    } else {
+      builder.addSink(
+        TOPOLOGY_SINK_NAME,
+        projectConfiguration.kafkaConfig.producerConfig.topic,
+        new StringSerializer,
+        metricTankSerde.serializer(),
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    }
 
     builder
   }

@@ -18,19 +18,25 @@
 package com.expedia.www.haystack.trends.kstream.processor
 
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
-import com.expedia.www.haystack.trends.aggregation.metrics._
-import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.trends.commons.entities.MetricPoint
+import com.expedia.www.haystack.trends.config.entities.KafkaProduceConfiguration
+import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde.metricRegistry
+import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore
+import org.slf4j.LoggerFactory
 
-class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine {
+class ExternalKafkaProcessorSupplier(trendMetricStoreName: String, kafkaProduceConfig: KafkaProduceConfiguration) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] {
 
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
   private var sendOldValues: Boolean = false
+  private val metricPointExternalKafkaSuccessMeter = metricRegistry.meter("metricpoint.kafka-external.success")
+  private val metricPointExternalKafkaFailureMeter = metricRegistry.meter("metricpoint.kafka-external.failure")
+  private val kafkaProducer: KafkaProducer[String, MetricPoint] = new KafkaProducer[String, MetricPoint](kafkaProduceConfig.props.get)
 
   def get: Processor[String, MetricPoint] = {
-    new MetricAggProcessor(trendMetricStoreName)
+    new ExternalKafkaProcessor(kafkaProduceConfig.topic)
   }
 
   def enableSendingOldValues() {
@@ -61,9 +67,9 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     * Each trend is uniquely identified by the metricPoint key - which is a combination of the name and the list of tags. Its backed by a state store which keeps this map and has the
     * ability to restore the map if/when the app restarts or when the assigned kafka partitions change
     *
-    * @param trendMetricStoreName - name of the key-value state store
+    * @param kafkaProduceTopic - kafka producer topic
     */
-  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
+  private class ExternalKafkaProcessor(kafkaProduceTopic: String) extends AbstractProcessor[String, MetricPoint] {
     private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
 
     @SuppressWarnings(Array("unchecked"))
@@ -79,32 +85,19 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       * @param value - metricPoint
       */
     def process(key: String, value: MetricPoint): Unit = {
-      if (key == null) return
-      // first get the matching windows
 
-      Option(trendMetricStore.get(key)).orElse(createTrendMetric(value)).foreach(trendMetric => {
-        trendMetric.compute(value)
-
-        /*
-         we finally put the updated trend metric back to the store since we want the changelog the state store with the latest state of the trend metric, if we don't put the metric
-         back and update the mutable metric, the kstreams would not capture the change and app wouldn't be able to restore to the same state when the app comes back again.
-         */
-        if (trendMetric.shouldLogToStateStore) {
-          trendMetricStore.put(key, trendMetric)
+      val kafkaMessage = new ProducerRecord(kafkaProduceTopic,
+        key, value)
+      kafkaProducer.send(kafkaMessage, new Callback {
+        override def onCompletion(recordMetadata: RecordMetadata, e: Exception): Unit = {
+          if (e != null) {
+            LOGGER.error(s"Failed to produce the message to kafka for topic=${kafkaProduceTopic}, with reason=", e)
+            metricPointExternalKafkaFailureMeter.mark()
+          } else {
+            metricPointExternalKafkaSuccessMeter.mark()
+          }
         }
-
-        //retrieve the computed metrics and push it to the kafka topic.
-        trendMetric.getComputedMetricPoints.foreach(metricPoint => {
-          context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
-        })
       })
-    }
-
-    private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {
-      findMatchingMetric(value).map {
-        case AggregationType.Histogram => TrendMetric.createTrendMetric(Interval.all, value, HistogramMetricFactory)
-        case AggregationType.Count => TrendMetric.createTrendMetric(Interval.all, value, CountMetricFactory)
-      }
     }
   }
 
