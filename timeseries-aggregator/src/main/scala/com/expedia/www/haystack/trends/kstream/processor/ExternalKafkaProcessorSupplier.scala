@@ -17,7 +17,6 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.config.entities.KafkaProduceConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde.metricRegistry
