@@ -54,10 +54,13 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 
     val matchedWindowedMetric = windowedMetricsMap.get(incomingMetricPointTimeWindow)
 
-    if (matchedWindowedMetric.isDefined) { // an existing metric
+    if (matchedWindowedMetric.isDefined) {
+      // an existing metric
       matchedWindowedMetric.get.compute(incomingMetricPoint)
-    } else { // incoming metric is a new metric
-      if (incomingMetricPointTimeWindow.compare(windowedMetricsMap.firstKey) > 0) { // incoming metric's time is more that minimum (first) time window
+    } else {
+      // incoming metric is a new metric
+      if (incomingMetricPointTimeWindow.compare(windowedMetricsMap.firstKey) > 0) {
+        // incoming metric's time is more that minimum (first) time window
         createNewMetric(incomingMetricPointTimeWindow, incomingMetricPoint)
         evictMetric()
       } else {
@@ -75,8 +78,10 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 
   private def evictMetric() = {
     if (windowedMetricsMap.size > (numberOfWatermarkedWindows + 1)) {
-      val evictedMetric = windowedMetricsMap.remove(windowedMetricsMap.firstKey)
-      computedMetrics = (windowedMetricsMap.lastKey.endTime, evictedMetric.get) :: computedMetrics
+      val evictInterval = windowedMetricsMap.firstKey
+      windowedMetricsMap.remove(evictInterval).foreach { evictedMetric =>
+        computedMetrics = (evictInterval.endTime, evictedMetric) :: computedMetrics
+      }
     }
   }
 
