@@ -17,21 +17,25 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
+import com.codahale.metrics.Gauge
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore
+import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries.MetricRegistryExtension
 
-class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine {
+class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
   private var sendOldValues: Boolean = false
 
   def get: Processor[String, MetricPoint] = {
     new MetricAggProcessor(trendMetricStoreName)
   }
+
 
   def enableSendingOldValues() {
     sendOldValues = true
@@ -52,6 +56,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       }
 
       def get(key: String): TrendMetric = store.get(key)
+      def size: Long = store.approximateNumEntries
     }
 
   }
@@ -63,8 +68,14 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     *
     * @param trendMetricStoreName - name of the key-value state store
     */
-  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
+  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint]   {
     private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
+
+
+    metricRegistry.getOrAddGauge(s"metricprocessor.trendcount", new Gauge[Long] {
+      override def getValue: Long = trendMetricStore.approximateNumEntries()
+    })
+
 
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
