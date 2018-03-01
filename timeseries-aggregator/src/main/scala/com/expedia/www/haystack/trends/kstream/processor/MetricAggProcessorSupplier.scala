@@ -17,7 +17,6 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.codahale.metrics.Gauge
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
@@ -26,7 +25,6 @@ import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore
-import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries.MetricRegistryExtension
 
 class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
@@ -56,7 +54,6 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       }
 
       def get(key: String): TrendMetric = store.get(key)
-      def size: Long = store.approximateNumEntries
     }
 
   }
@@ -68,19 +65,18 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     *
     * @param trendMetricStoreName - name of the key-value state store
     */
-  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint]   {
+  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
     private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
 
 
-    metricRegistry.getOrAddGauge(s"metricprocessor.trendcount", new Gauge[Long] {
-      override def getValue: Long = trendMetricStore.approximateNumEntries()
-    })
+    val trendsCount = metricRegistry.counter("metricprocessor.trendcount")
 
 
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)
       trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
+      trendsCount.inc(trendMetricStore.approximateNumEntries())
     }
 
     /**
@@ -113,8 +109,12 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
 
     private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {
       findMatchingMetric(value).map {
-        case AggregationType.Histogram => TrendMetric.createTrendMetric(Interval.all, value, HistogramMetricFactory)
-        case AggregationType.Count => TrendMetric.createTrendMetric(Interval.all, value, CountMetricFactory)
+        case AggregationType.Histogram =>
+          trendsCount.inc()
+          TrendMetric.createTrendMetric(Interval.all, value, HistogramMetricFactory)
+        case AggregationType.Count =>
+          trendsCount.inc()
+          TrendMetric.createTrendMetric(Interval.all, value, CountMetricFactory)
       }
     }
   }
