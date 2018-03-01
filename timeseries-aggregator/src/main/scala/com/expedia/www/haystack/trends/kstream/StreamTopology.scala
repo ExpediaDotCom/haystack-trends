@@ -116,6 +116,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       .withStringKeys
       .withValues(TrendMetricSerde)
       .inMemory()
+      .maxEntries(65535)
 
     val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
