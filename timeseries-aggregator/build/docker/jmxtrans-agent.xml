@@ -100,8 +100,8 @@
                attributes="50thPercentile,99thPercentile,OneMinuteRate"
                resultAlias="count-metric.compute.time.#attribute#"/>
 
-        <query objectName="metrics:name=metricprocessor.trendcount"
-               resultAlias="metricprocessor.trendcount.#attribute#"/>
+        <query objectName="metrics:name=*"
+               resultAlias="%name%.#attribute#"/>
 
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">

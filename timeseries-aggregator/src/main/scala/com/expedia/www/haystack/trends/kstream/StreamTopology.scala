@@ -142,14 +142,14 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
         TOPOLOGY_SINK_NAME,
         new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
-    } else {
-      builder.addSink(
-        TOPOLOGY_SINK_NAME,
-        projectConfiguration.kafkaConfig.producerConfig.topic,
-        new StringSerializer,
-        metricTankSerde.serializer(),
-        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
+    builder.addSink(
+      TOPOLOGY_SINK_NAME,
+      projectConfiguration.kafkaConfig.producerConfig.topic,
+      new StringSerializer,
+      metricTankSerde.serializer(),
+      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+
 
     builder
   }
