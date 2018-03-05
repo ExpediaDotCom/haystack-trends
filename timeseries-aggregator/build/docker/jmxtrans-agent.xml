@@ -69,6 +69,10 @@
         <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-max"
                resultAlias="kstreams.process.latency_max"/>
 
+        <query objectName="kafka.streams:type=stream-in-memory-lru-state-metrics,client-id=*"
+               resultAlias="kstreams.process.lru_state_metrics.#attribute#"/>
+
+
         <!-- service mbeans -->
         <query objectName="metrics:name=metricpoint.deser.failure" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.deser.failure.#attribute#"/>
