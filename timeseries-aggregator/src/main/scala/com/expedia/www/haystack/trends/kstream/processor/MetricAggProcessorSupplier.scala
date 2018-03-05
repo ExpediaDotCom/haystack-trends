@@ -78,7 +78,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)
-      trendsCount = metricRegistry.counter(s"metricprocessor.${context.partition()}.trendcount")
+      trendsCount = metricRegistry.counter(s"metricprocessor.${context.taskId()}.trendcount")
       trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
       trendsCount.inc(trendMetricStore.approximateNumEntries())
     }
