@@ -56,21 +56,8 @@
                attribute="records-consumed-rate" resultAlias="kafka-consumer.records-consumed.rate"/>
 
         <!-- kafka streams mbeans -->
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="poll-rate"
-               resultAlias="kstreams.poll.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="commit-rate"
-               resultAlias="kstreams.commit.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="punctuate-rate"
-               resultAlias="kstreams.punctuate.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-rate"
-               resultAlias="kstreams.process.rate"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-avg"
-               resultAlias="kstreams.process.latency_avg"/>
-        <query objectName="kafka.streams:type=stream-metrics,client-id=*" attribute="process-latency-max"
-               resultAlias="kstreams.process.latency_max"/>
-
-        <query objectName="kafka.streams:type=stream-in-memory-lru-state-metrics,client-id=*"
-               resultAlias="kstreams.process.lru_state_metrics.#attribute#"/>
+        <query objectName="kafka.streams:type=*,client-id=*"
+               resultAlias="kstreams.%type%..#attribute#"/>
 
 
         <!-- service mbeans -->
