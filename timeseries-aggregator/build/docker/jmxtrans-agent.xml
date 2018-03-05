@@ -57,7 +57,11 @@
 
         <!-- kafka streams mbeans -->
         <query objectName="kafka.streams:type=*,client-id=*"
-               resultAlias="kstreams.%type%..#attribute#"/>
+               resultAlias="kstreams.%type%.#attribute#"/>
+        <query objectName="kafka.streams:type=*,client-id=*,task-id=*,in-memory-lru-state-id=trend-metric-store"
+               resultAlias="kstreams.%type%.%task-id%.trend-metric-store.#attribute#"/>
+        <query objectName="kafka.streams:type=*,client-id=*,task-id=*,processor-node-id=*"
+               resultAlias="kstreams.%type%.%task-id%.%processor-node-id%.#attribute#"/>
 
 
         <!-- service mbeans -->
