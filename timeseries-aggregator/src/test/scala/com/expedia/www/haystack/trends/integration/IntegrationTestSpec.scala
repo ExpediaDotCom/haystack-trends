@@ -61,7 +61,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
-    embeddedKafkaCluster.createTopics(INPUT_TOPIC, OUTPUT_TOPIC)
+    embeddedKafkaCluster.createTopic(INPUT_TOPIC,1,1)
+    embeddedKafkaCluster.createTopic(OUTPUT_TOPIC,1,1)
 
     PRODUCER_CONFIG.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")

@@ -151,6 +151,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
 
+
     builder
   }
 
