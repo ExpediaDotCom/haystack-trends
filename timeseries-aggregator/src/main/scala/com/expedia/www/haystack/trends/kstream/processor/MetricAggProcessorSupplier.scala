@@ -72,7 +72,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
 
 
-    private var trendsCount: Counter = ???
+    private var trendsCount: Counter = _
 
 
     @SuppressWarnings(Array("unchecked"))
