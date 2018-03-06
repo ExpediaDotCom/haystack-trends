@@ -155,6 +155,7 @@ class TimeSeriesAggregatorTopologySpec extends IntegrationTestSpec {
       projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true).anyTimes()
       projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
       projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
+      projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration
