@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory
 class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfiguration) extends ProcessorSupplier[String, MetricPoint] {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
-  private var sendOldValues: Boolean = false
   private val metricPointExternalKafkaSuccessMeter = metricRegistry.meter("metricpoint.kafka-external.success")
   private val metricPointExternalKafkaFailureMeter = metricRegistry.meter("metricpoint.kafka-external.failure")
 
