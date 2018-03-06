@@ -44,7 +44,8 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private val TOPOLOGY_SOURCE_NAME = "metricpoint-source"
-  private val TOPOLOGY_SINK_NAME = "metricpoint-aggegated-sink"
+  private val TOPOLOGY_EXTERNAL_SINK_NAME = "metricpoint-aggegated-sink-external"
+  private val TOPOLOGY_INTERNAL_SINK_NAME = "metricpoint-aggegated-sink-internal"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
   private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private var streams: KafkaStreams = _
@@ -139,13 +140,13 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
       builder.addProcessor(
-        TOPOLOGY_SINK_NAME,
+        TOPOLOGY_EXTERNAL_SINK_NAME,
         new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
 
     builder.addSink(
-        TOPOLOGY_SINK_NAME,
+      TOPOLOGY_INTERNAL_SINK_NAME,
         projectConfiguration.kafkaConfig.producerConfig.topic,
         new StringSerializer,
         metricTankSerde.serializer(),
