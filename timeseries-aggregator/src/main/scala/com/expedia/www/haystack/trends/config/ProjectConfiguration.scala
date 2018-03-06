@@ -63,6 +63,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether period in metric point service & operation name needs to be replaced
+    */
+  def stateStoreCacheSize: Int = {
+    config.getInt("statestore.cache.size")
+  }
+
+  /**
+    *
     * @return state store stream config while aggregating
     */
   def stateStoreConfig: Map[String, String] = {

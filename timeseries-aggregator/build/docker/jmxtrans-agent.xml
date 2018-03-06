@@ -80,7 +80,7 @@
                attributes="50thPercentile,99thPercentile,OneMinuteRate"
                resultAlias="count-metric.compute.time.#attribute#"/>
 
-        <query objectName="metrics:name=*"
+        <query objectName="metrics:name=metricprocessor.*"
                resultAlias="%name%.#attribute#"/>
 
     </queries>
