@@ -23,6 +23,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMe
 import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries
+import com.expedia.www.haystack.trends.entities.TimeWindow
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class TrendMetricSpec extends FeatureSpec {
@@ -69,7 +70,7 @@ class TrendMetricSpec extends FeatureSpec {
       val metricPointAfterWatermark: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTime + intervals.head.timeInSeconds * (TrendMetric.trendMetricConfig(intervals.head)._1 + 1))
       trendMetric.compute(metricPointAfterWatermark)
       val aggMetrics = trendMetric.getComputedMetricPoints
-      aggMetrics.size shouldEqual 1 * 7   // HistogramMetric
+      aggMetrics.size shouldEqual 1 * 7 // HistogramMetric
 
       Then("values for histogram should same as expected")
       expectedMetric.getRunningHistogram.getMean shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("mean")).get.value
@@ -78,6 +79,11 @@ class TrendMetricSpec extends FeatureSpec {
       expectedMetric.getRunningHistogram.getValueAtPercentile(99) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_99")).get.value
       expectedMetric.getRunningHistogram.getValueAtPercentile(95) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_95")).get.value
       expectedMetric.getRunningHistogram.getValueAtPercentile(50) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_50")).get.value
+
+      Then("timestamp of the evicted metric should equal the endtime of that window")
+      aggMetrics.map(metricPoint => {
+        metricPoint.epochTimeInSeconds shouldEqual TimeWindow(firstMetricPoint.epochTimeInSeconds, intervals.head).endTime
+      })
     }
 
     scenario("should get count aggregated MetricPoint post watermarked metrics") {
@@ -127,7 +133,7 @@ class TrendMetricSpec extends FeatureSpec {
       metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 1
 
       When("computing a zero value MetricPoint")
-      trendMetric.compute(zeroValueMetricPoint)     //to prevent hdr histogram from breaking
+      trendMetric.compute(zeroValueMetricPoint) //to prevent hdr histogram from breaking
 
       Then("metric for invalid value should get incremented")
       metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 2

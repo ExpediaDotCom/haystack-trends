@@ -20,8 +20,11 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
@@ -60,6 +63,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether period in metric point service & operation name needs to be replaced
+    */
+  def stateStoreCacheSize: Int = {
+    config.getInt("statestore.cache.size")
+  }
+
+  /**
+    *
     * @return state store stream config while aggregating
     */
   def stateStoreConfig: Map[String, String] = {
@@ -89,30 +100,45 @@ class ProjectConfiguration {
       })
     }
 
+    def getExternalKafkaProps(producerConfig: Config): Option[Properties] = {
+
+      if (producerConfig.getBoolean("enable.external.kafka.produce")) {
+        val props = new Properties()
+        val kafkaProducerProps = producerConfig.getConfig("props")
+
+        kafkaProducerProps.entrySet() forEach {
+          kv => {
+            props.setProperty(kv.getKey, kv.getValue.unwrapped().toString)
+          }
+        }
+
+        props.put(KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+        props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[MetricPointSerializer].getCanonicalName)
+
+        require(props.getProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG).nonEmpty)
+        Option(props)
+      } else {
+        Option.empty
+      }
+    }
+
     val kafka = config.getConfig("kafka")
     val producerConfig = kafka.getConfig("producer")
     val consumerConfig = kafka.getConfig("consumer")
     val streamsConfig = kafka.getConfig("streams")
 
     val props = new Properties
-
     // add stream specific properties
     addProps(streamsConfig, props)
-
-    // producer specific properties
-    addProps(producerConfig, props, (k) => StreamsConfig.producerPrefix(k))
-
-    // consumer specific properties
-    addProps(consumerConfig, props, (k) => StreamsConfig.consumerPrefix(k))
-
     // validate props
     verifyRequiredProps(props)
 
     val timestampExtractor = Class.forName(props.getProperty("timestamp.extractor",
       "org.apache.kafka.streams.processor.WallclockTimestampExtractor"))
 
-    KafkaConfiguration(new StreamsConfig(props),
-      produceTopic = producerConfig.getString("topic"),
+    KafkaConfiguration(
+      new StreamsConfig(props),
+      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")) ,
       consumeTopic = consumerConfig.getString("topic"),
       if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
       else AutoOffsetReset.LATEST

@@ -61,7 +61,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
-    embeddedKafkaCluster.createTopics(INPUT_TOPIC, OUTPUT_TOPIC)
+    embeddedKafkaCluster.createTopic(INPUT_TOPIC,1,1)
+    embeddedKafkaCluster.createTopic(OUTPUT_TOPIC,1,1)
 
     PRODUCER_CONFIG.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
@@ -79,6 +80,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
     STREAMS_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     STREAMS_CONFIG.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
+    STREAMS_CONFIG.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, "1")
     STREAMS_CONFIG.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "300")
     STREAMS_CONFIG.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
 

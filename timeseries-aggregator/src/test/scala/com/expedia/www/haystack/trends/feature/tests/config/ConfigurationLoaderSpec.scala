@@ -73,7 +73,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "mdm")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.produceTopic shouldBe kafkaProduceTopic
+      kafkaConfig.producerConfig.topic shouldBe kafkaProduceTopic
     }
 
     scenario("should load the state store configs from base.conf") {
@@ -89,6 +89,18 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       projectConfig.loggingDelayInSeconds shouldBe 60
       stateStoreConfigs("cleanup.policy") shouldBe "compact,delete"
       stateStoreConfigs("retention.ms") shouldBe "14400000"
+    }
+
+    scenario("should load the external kafka configs from base.conf") {
+
+      Given("A config file at base config file containing kafka ")
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new ProjectConfiguration()
+
+      Then("It should create the write configuration object based on the file contents")
+      projectConfig.kafkaConfig.producerConfig.enableExternalKafka shouldBe true
+      projectConfig.kafkaConfig.producerConfig.props.get.getProperty("bootstrap.servers") shouldBe "kafkasvc:9092"
     }
   }
 }

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
-import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
+import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.common.serialization.Serdes.StringSerde
@@ -44,7 +44,8 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
   private val LOGGER = LoggerFactory.getLogger(classOf[StreamTopology])
   private val running = new AtomicBoolean(false)
   private val TOPOLOGY_SOURCE_NAME = "metricpoint-source"
-  private val TOPOLOGY_SINK_NAME = "metricpoint-aggegated-sink"
+  private val TOPOLOGY_EXTERNAL_SINK_NAME = "metricpoint-aggegated-sink-external"
+  private val TOPOLOGY_INTERNAL_SINK_NAME = "metricpoint-aggegated-sink-internal"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
   private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private var streams: KafkaStreams = _
@@ -114,6 +115,11 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     val trendMetricStoreBuilder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),new StringSerde,TrendMetricSerde)
 
+    val trendMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME)
+      .withStringKeys
+      .withValues(TrendMetricSerde)
+      .inMemory()
+      .maxEntries(projectConfiguration.stateStoreCacheSize)
 
     val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
@@ -127,11 +133,12 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     topology.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
-      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),
+      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement),
       TOPOLOGY_SOURCE_NAME)
 
 
     topology.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     topology.addSink(
       TOPOLOGY_SINK_NAME,
@@ -141,6 +148,20 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     topology
+    if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
+      builder.addProcessor(
+        TOPOLOGY_EXTERNAL_SINK_NAME,
+        new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    }
+
+    builder.addSink(
+      TOPOLOGY_INTERNAL_SINK_NAME,
+        projectConfiguration.kafkaConfig.producerConfig.topic,
+        new StringSerializer,
+        metricTankSerde.serializer(),
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    builder
   }
 
   /**

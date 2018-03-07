@@ -23,14 +23,14 @@ import org.apache.kafka.streams.processor.TimestampExtractor
 
 /**
   * @param streamsConfig      config object to be used for initializing KafkaStreams
-  * @param produceTopic       producer topic
+  * @param producerConfig     producer config
   * @param consumeTopic       consumer topic
   * @param autoOffsetReset    auto offset reset policy
   * @param timestampExtractor timestamp extractor
   * @param closeTimeoutInMs   timeout for closing kafka streams in ms
   */
 case class KafkaConfiguration(streamsConfig: StreamsConfig,
-                              produceTopic: String,
+                              producerConfig: KafkaProduceConfiguration,
                               consumeTopic: String,
                               autoOffsetReset: AutoOffsetReset,
                               timestampExtractor: TimestampExtractor,

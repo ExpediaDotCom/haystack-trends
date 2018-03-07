@@ -70,12 +70,6 @@ class ProjectConfiguration {
     // add stream specific properties
     addProps(streamsConfig, props)
 
-    // producer specific properties
-    addProps(producerConfig, props, (k) => StreamsConfig.producerPrefix(k))
-
-    // consumer specific properties
-    addProps(consumerConfig, props, (k) => StreamsConfig.consumerPrefix(k))
-
     // validate props
     verifyRequiredProps(props)
 
