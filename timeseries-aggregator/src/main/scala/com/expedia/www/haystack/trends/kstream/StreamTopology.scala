@@ -113,13 +113,8 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       metricTankSerde.deserializer(),
       projectConfiguration.kafkaConfig.consumeTopic)
 
-    val trendMetricStoreBuilder = Stores.keyValueStoreBuilder(Stores.inMemoryKeyValueStore(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME),new StringSerde,TrendMetricSerde)
+    val trendMetricStoreBuilder = Stores.keyValueStoreBuilder(Stores.lruMap(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.stateStoreCacheSize), new StringSerde, TrendMetricSerde)
 
-    val trendMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME)
-      .withStringKeys
-      .withValues(TrendMetricSerde)
-      .inMemory()
-      .maxEntries(projectConfiguration.stateStoreCacheSize)
 
     val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
@@ -130,7 +125,6 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
           .withLoggingDisabled()
       }
     }
-
     topology.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
       new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement),
@@ -138,30 +132,22 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
 
     topology.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
-    builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    topology.addSink(
-      TOPOLOGY_SINK_NAME,
-      projectConfiguration.kafkaConfig.produceTopic,
-      new StringSerializer,
-      metricTankSerde.serializer(),
-      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    topology
     if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
-      builder.addProcessor(
+      topology.addProcessor(
         TOPOLOGY_EXTERNAL_SINK_NAME,
         new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
 
-    builder.addSink(
+    topology.addSink(
       TOPOLOGY_INTERNAL_SINK_NAME,
-        projectConfiguration.kafkaConfig.producerConfig.topic,
-        new StringSerializer,
-        metricTankSerde.serializer(),
-        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
-    builder
+      projectConfiguration.kafkaConfig.producerConfig.topic,
+      new StringSerializer,
+      metricTankSerde.serializer(),
+      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    topology
   }
 
   /**
