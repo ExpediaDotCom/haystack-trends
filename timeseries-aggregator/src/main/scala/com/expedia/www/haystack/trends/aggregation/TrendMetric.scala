@@ -116,8 +116,8 @@ object TrendMetric {
   val trendMetricConfig = Map(
     Interval.ONE_MINUTE -> (1, 1),
     Interval.FIVE_MINUTE -> (1, 1),
-    Interval.FIFTEEN_MINUTE -> (1, 1),
-    Interval.ONE_HOUR -> (1, 1))
+    Interval.FIFTEEN_MINUTE -> (0, 1),
+    Interval.ONE_HOUR -> (0, 1))
 
   def createTrendMetric(intervals: List[Interval],
                         firstMetricPoint: MetricPoint,

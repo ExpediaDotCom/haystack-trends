@@ -42,8 +42,8 @@ class CountTrendsSpec extends IntegrationTestSpec {
       val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - numberOfWatermarkedWindows - 1
       // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point
       val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) - numberOfWatermarkedWindows
-      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) - numberOfWatermarkedWindows
-      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) - numberOfWatermarkedWindows
+      val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15)
+      val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60)
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints-1
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
