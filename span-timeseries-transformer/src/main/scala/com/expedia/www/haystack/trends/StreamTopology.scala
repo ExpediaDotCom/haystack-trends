@@ -127,7 +127,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
   }
 
   private def mapToMetricPointKeyValue(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
-    generateMetricPoints(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
+    generateMetricPoints(transformerConfiguration.blacklistedServices)(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
       .getOrElse(Nil)
       .map {
         metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.enableMetricPointPeriodReplacement), metricPoint)

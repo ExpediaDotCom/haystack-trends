@@ -17,8 +17,8 @@
 package com.expedia.www.haystack.trends.config.entities
 
 /**
-  * @param enableMetricPointPeriodReplacement       config for enabling period replacement in metric point key
-  * @param enableMetricPointServiceLevelGeneration  config for also generating service level trends
+  * @param enableMetricPointPeriodReplacement      config for enabling period replacement in metric point key
+  * @param enableMetricPointServiceLevelGeneration config for also generating service level trends
   */
 case class TransformerConfiguration(enableMetricPointPeriodReplacement: Boolean,
-                                    enableMetricPointServiceLevelGeneration: Boolean)
+                                    enableMetricPointServiceLevelGeneration: Boolean, blacklistedServices: List[String])

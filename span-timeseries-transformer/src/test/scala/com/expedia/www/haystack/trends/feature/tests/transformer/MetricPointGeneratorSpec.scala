@@ -43,11 +43,11 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
         .setServiceName(serviceName)
-        .setStartTime(System.currentTimeMillis() * 1000)   // in micro seconds
+        .setStartTime(System.currentTimeMillis() * 1000) // in micro seconds
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, true).getOrElse(List())
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, true).getOrElse(List())
 
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
       metricPoints should not be empty
@@ -85,9 +85,9 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, true)
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = true)
 
-      Then("It should return a metricPoint creation exception")
+      Then("It should return a metricPoint validation exception")
       metricPoints.isFailure shouldBe true
       metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
     }
@@ -105,7 +105,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span, false)
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("it should create metricPoints with service name as one its keys")
       metricPoints.isFailure shouldEqual false
@@ -113,6 +113,26 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) should not be None
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) shouldEqual Some(serviceName)
       })
+    }
+
+    scenario("a span object with a blacklisted service Name") {
+      val operationName = "testSpan"
+      val blacklistedServiceName = "testService"
+
+      Given("a valid span with a blacklisted service name")
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setServiceName(blacklistedServiceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
+        .build()
+
+      When("its asked to map to metricPoints")
+      val metricPoints = generateMetricPoints(blacklistedServices = List(blacklistedServiceName))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+
+      Then("It should return a metricPoint validation exception")
+      metricPoints.isFailure shouldBe true
+      metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
     }
   }
 }
