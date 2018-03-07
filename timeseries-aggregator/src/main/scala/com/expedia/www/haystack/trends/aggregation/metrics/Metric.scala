@@ -44,12 +44,14 @@ abstract class Metric(interval: Interval) extends MetricsSupport {
     * This function returns the metric points which contains the current snapshot of the metric
     *
     * @param publishingTimestamp : timestamp in seconds which the consumer wants to be used as the timestamps of these published metricpoints
+    * @param metricName : the name of the metricpoints to be generated
+    * @param tags : tags to be associated with the metricPoints
     * @return list of published metricpoints
     */
-  def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint]
+  def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint]
 
-  protected def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
-    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
+  protected def appendTags(tags: Map[String, String], interval: Interval, statValue: StatValue): Map[String, String] = {
+    tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
   }
 
 }

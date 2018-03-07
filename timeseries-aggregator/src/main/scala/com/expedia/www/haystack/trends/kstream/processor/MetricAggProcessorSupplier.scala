@@ -105,7 +105,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
         }
 
         //retrieve the computed metrics and push it to the kafka topic.
-        trendMetric.getComputedMetricPoints.foreach(metricPoint => {
+        trendMetric.getComputedMetricPoints(value).foreach(metricPoint => {
           context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
         })
       })

@@ -20,13 +20,18 @@ package com.expedia.www.haystack.trends.integration
 import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.integration.utils.{EmbeddedKafkaCluster, IntegrationTestUtils}
+import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
+import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
+import org.easymock.EasyMock
 import org.scalatest._
 import org.scalatest.easymock.EasyMockSugar
 
@@ -61,8 +66,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
-    embeddedKafkaCluster.createTopic(INPUT_TOPIC,1,1)
-    embeddedKafkaCluster.createTopic(OUTPUT_TOPIC,1,1)
+    embeddedKafkaCluster.createTopic(INPUT_TOPIC, 1, 1)
+    embeddedKafkaCluster.createTopic(OUTPUT_TOPIC, 1, 1)
 
     PRODUCER_CONFIG.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
@@ -93,6 +98,42 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
   def currentTimeInSecs: Long = {
     System.currentTimeMillis() / 1000l
+  }
+
+  protected val stateStoreConfigs = Map("cleanup.policy" -> "compact,delete")
+
+
+  protected def mockProjectConfig: ProjectConfiguration = {
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, None, false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val projectConfiguration = mock[ProjectConfiguration]
+
+    expecting {
+      projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
+      projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs).anyTimes()
+      projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true).anyTimes()
+      projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
+      projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
+      projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
+    }
+    EasyMock.replay(projectConfiguration)
+    projectConfiguration
+  }
+
+  protected def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricPoint]],
+                                               expectedOneMinAggregatedPoints: Int,
+                                               expectedFiveMinAggregatedPoints: Int,
+                                               expectedFifteenMinAggregatedPoints: Int,
+                                               expectedOneHourAggregatedPoints: Int): Assertion = {
+
+    val oneMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.ONE_MINUTE.toString()))
+    val fiveMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.FIVE_MINUTE.toString()))
+    val fifteenMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.FIFTEEN_MINUTE.toString()))
+    val oneHourAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.ONE_HOUR.toString()))
+
+    oneMinAggMetricPoints.size shouldEqual expectedOneMinAggregatedPoints
+    fiveMinAggMetricPoints.size shouldEqual expectedFiveMinAggregatedPoints
+    fifteenMinAggMetricPoints.size shouldEqual expectedFifteenMinAggregatedPoints
+    oneHourAggMetricPoints.size shouldEqual expectedOneHourAggregatedPoints
   }
 
   protected def produceMetricPointsAsync(maxMetricPoints: Int,

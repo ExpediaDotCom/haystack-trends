@@ -38,28 +38,22 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
 
   def this(interval: Interval) = this(interval, new Histogram(Int.MaxValue, 0))
 
-  var latestMetricPoint: Option[MetricPoint] = None
 
-  override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
+  override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
     import com.expedia.www.haystack.trends.entities.StatValue._
-    latestMetricPoint match {
-      case Some(metricPoint) =>
-        val result = Map(
-          MEAN -> histogram.getMean.toLong,
-          MIN -> histogram.getMinValue,
-          PERCENTILE_95 -> histogram.getValueAtPercentile(95),
-          PERCENTILE_99 -> histogram.getValueAtPercentile(99),
-          STDDEV -> histogram.getStdDeviation.toLong,
-          MEDIAN -> histogram.getValueAtPercentile(50),
-          MAX -> histogram.getMaxValue
-        ).map {
-          case (stat, value) =>
-            MetricPoint(metricPoint.metric, MetricType.Gauge, appendTags(metricPoint, interval, stat), value, publishingTimestamp)
-        }
-        result.toList
-
-      case None => List()
+    val result = Map(
+      MEAN -> histogram.getMean.toLong,
+      MIN -> histogram.getMinValue,
+      PERCENTILE_95 -> histogram.getValueAtPercentile(95),
+      PERCENTILE_99 -> histogram.getValueAtPercentile(99),
+      STDDEV -> histogram.getStdDeviation.toLong,
+      MEDIAN -> histogram.getValueAtPercentile(50),
+      MAX -> histogram.getMaxValue
+    ).map {
+      case (stat, value) =>
+        MetricPoint(metricName, MetricType.Gauge, appendTags(tags, interval, stat), value, publishingTimestamp)
     }
+    result.toList
   }
 
   def getRunningHistogram: Histogram = {
@@ -69,7 +63,6 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
     val timerContext = HistogramMetricComputeTimer.time()
     histogram.recordValue(metricPoint.value.toInt)
-    latestMetricPoint = Some(metricPoint)
     timerContext.close()
     this
   }

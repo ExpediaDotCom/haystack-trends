@@ -34,7 +34,7 @@ class CountMetricSpec extends FeatureSpec {
     When("MetricPoints are processed")
     metricPoints.map(metricPoint => metric.compute(metricPoint))
 
-    val countMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.epochTimeInSeconds)
+    val countMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
 
     Then("it should return a single aggregated metric point")
