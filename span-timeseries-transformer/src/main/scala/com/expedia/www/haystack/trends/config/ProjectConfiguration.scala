@@ -38,7 +38,9 @@ class ProjectConfiguration {
     */
   def transformerConfiguration: TransformerConfiguration = {
     TransformerConfiguration(config.getBoolean("enable.metricpoint.period.replacement"),
-      config.getBoolean("enable.metricpoint.service.level.generation"))
+      config.getBoolean("enable.metricpoint.service.level.generation"),
+      config.getStringList("blacklist.services").asScala.toList
+    )
   }
 
   /**

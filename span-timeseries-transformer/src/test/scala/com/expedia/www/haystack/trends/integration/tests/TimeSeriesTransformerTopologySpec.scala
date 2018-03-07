@@ -47,15 +47,15 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val errorFlag = false
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
-      val transformerConfig = TransformerConfiguration(true, true)
+      val transformerConfig = TransformerConfiguration(enableMetricPointPeriodReplacement = true, enableMetricPointServiceLevelGeneration = true, List())
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
       new StreamTopology(kafkaConfig, transformerConfig).start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints
-      metricPoints.size shouldBe(spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
+      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints
+      metricPoints.size shouldBe (spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
 
       val records: List[KeyValue[String, MetricPoint]] =
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, metricPoints.size, 15000).asScala.toList // get metricPoints from Kafka's output topic
