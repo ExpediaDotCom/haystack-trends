@@ -90,10 +90,10 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     *
     * @return list of evicted metricPoints
     */
-  def getComputedMetricPoints: List[MetricPoint] = {
+  def getComputedMetricPoints(incomingMetricPoint: MetricPoint): List[MetricPoint] = {
     val metricPoints = computedMetrics.flatMap {
       case (publishTime, metric) =>
-        metric.mapToMetricPoints(publishTime)
+        metric.mapToMetricPoints(incomingMetricPoint.metric, incomingMetricPoint.tags, publishTime)
     }
     computedMetrics = List[(Long, Metric)]()
     metricPoints

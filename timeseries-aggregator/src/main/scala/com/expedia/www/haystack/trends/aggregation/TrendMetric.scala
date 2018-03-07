@@ -85,11 +85,10 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     *
     * @return list of evicted metricPoints
     */
-  def getComputedMetricPoints: List[MetricPoint] = {
+  def getComputedMetricPoints(incomingMetricPoint: MetricPoint): List[MetricPoint] = {
     List(trendMetricsMap.flatMap {
-      case (_, windowedMetric) => {
-        windowedMetric.getComputedMetricPoints
-      }
+      case (_, windowedMetric) =>
+        windowedMetric.getComputedMetricPoints(incomingMetricPoint)
     }).flatten
   }
 
@@ -103,7 +102,7 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
       shouldLog = false
       return true
     }
-    return false
+    false
   }
 }
 
@@ -124,7 +123,8 @@ object TrendMetric {
                         firstMetricPoint: MetricPoint,
                         metricFactory: MetricFactory): TrendMetric = {
     currentEpochTimeInSec = 0 // reset for every unique metric point
-    shouldLog = true          //  this enable to log data to state store for the very first time
+    shouldLog = true
+    //  this enable to log data to state store for the very first time
     val trendMetricMap = createMetricsForEachInterval(intervals, firstMetricPoint, metricFactory)
     new TrendMetric(trendMetricMap, metricFactory)
   }

@@ -50,7 +50,7 @@ class HistogramMetricSpec extends FeatureSpec {
 
       When("MetricPoints are processed")
       metricPoints.map(metricPoint => metric.compute(metricPoint))
-      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.epochTimeInSeconds)
+      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
 
       Then("aggregated metric name should be the same as the MetricPoints name")

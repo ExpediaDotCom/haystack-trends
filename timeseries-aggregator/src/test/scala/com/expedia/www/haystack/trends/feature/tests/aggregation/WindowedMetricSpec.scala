@@ -60,7 +60,7 @@ class WindowedMetricSpec extends FeatureSpec {
       metricPoints.foreach(metricPoint => expectedMetric.compute(metricPoint))
 
       Then("should return 0 MetricPoints if we try to get it before interval")
-      val aggregatedMetricPointsBefore: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsBefore: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
       aggregatedMetricPointsBefore.size shouldBe 0
 
       When("adding a MetricPoint outside of first Interval")
@@ -68,7 +68,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
       windowedMetric.compute(newMetricPointAfterFirstInterval)
 
-      val aggregatedMetricPointsAfterFirstInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsAfterFirstInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
       //Have to fix dev code and then all the validation test
       Then("should return the metric points for the previous interval")
@@ -78,7 +78,7 @@ class WindowedMetricSpec extends FeatureSpec {
       expectedMetric.compute(newMetricPointAfterFirstInterval)
       val newMetricPointAfterSecondInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals(1).timeInSeconds)
       windowedMetric.compute(newMetricPointAfterSecondInterval)
-      val aggregatedMetricPointsAfterSecondInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsAfterSecondInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
       //Have to fix dev code and then all the validation test
       Then("should return the metric points for the second interval")
@@ -103,7 +103,7 @@ class WindowedMetricSpec extends FeatureSpec {
       When("adding a MetricPoint outside of max Interval")
       val newMetricPointAfterMaxInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals.last.timeInSeconds)
       windowedMetric.compute(newMetricPointAfterMaxInterval)
-      val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
       Then("should return valid values for all count intervals")
 

@@ -28,11 +28,11 @@ import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.clients.admin.AdminClient
-import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.KafkaStreams.StateListener
+import org.apache.kafka.streams.processor.TopologyBuilder
 import org.apache.kafka.streams.state.Stores
-import org.apache.kafka.streams.{KafkaStreams, StreamsConfig, Topology}
+import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters
@@ -100,12 +100,12 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
     }
   }
 
-  private def topology(): Topology = {
+  private def topology(): TopologyBuilder = {
 
     val metricTankSerde = new MetricTankSerde(projectConfiguration.enableMetricPointPeriodReplacement)
-    val topology = new Topology()
+    val builder = new TopologyBuilder()
 
-    topology.addSource(
+    builder.addSource(
       projectConfiguration.kafkaConfig.autoOffsetReset,
       TOPOLOGY_SOURCE_NAME,
       projectConfiguration.kafkaConfig.timestampExtractor,
@@ -113,41 +113,45 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
       metricTankSerde.deserializer(),
       projectConfiguration.kafkaConfig.consumeTopic)
 
-    val trendMetricStoreBuilder = Stores.keyValueStoreBuilder(Stores.lruMap(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.stateStoreCacheSize), new StringSerde, TrendMetricSerde)
-
+    val trendMetricStoreBuilder = Stores.create(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME)
+      .withStringKeys
+      .withValues(TrendMetricSerde)
+      .inMemory()
+      .maxEntries(projectConfiguration.stateStoreCacheSize)
 
     val trendMetricStore = {
       if (projectConfiguration.enableStateStoreLogging) {
         trendMetricStoreBuilder
-          .withLoggingEnabled(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
+          .enableLogging(JavaConverters.mapAsJavaMap(projectConfiguration.stateStoreConfig))
+          .build()
       } else {
         trendMetricStoreBuilder
-          .withLoggingDisabled()
+          .disableLogging()
+          .build()
       }
     }
-    topology.addProcessor(
+
+    builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
       new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement),
       TOPOLOGY_SOURCE_NAME)
 
-
-    topology.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
-
+    builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
     if (projectConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
-      topology.addProcessor(
+      builder.addProcessor(
         TOPOLOGY_EXTERNAL_SINK_NAME,
         new ExternalKafkaProcessorSupplier(projectConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
 
-    topology.addSink(
+    builder.addSink(
       TOPOLOGY_INTERNAL_SINK_NAME,
-      projectConfiguration.kafkaConfig.producerConfig.topic,
-      new StringSerializer,
-      metricTankSerde.serializer(),
-      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
-    topology
+        projectConfiguration.kafkaConfig.producerConfig.topic,
+        new StringSerializer,
+        metricTankSerde.serializer(),
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    builder
   }
 
   /**

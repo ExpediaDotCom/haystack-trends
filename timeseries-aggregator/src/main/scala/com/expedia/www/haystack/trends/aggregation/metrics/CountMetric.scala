@@ -38,16 +38,12 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
 
   private val CountMetricComputeTimer: Timer = metricRegistry.timer("count.metric.compute.time")
 
-  var latestMetricPoint: Option[MetricPoint] = None
 
-  override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
-    latestMetricPoint match {
-      case Some(metricPoint) =>
-        List(
-          MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, publishingTimestamp)
-        )
-      case None => List()
-    }
+  override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
+    List(
+      MetricPoint(metricName, MetricType.Count, appendTags(tags, interval, StatValue.COUNT), currentCount, publishingTimestamp)
+    )
+
   }
 
   def getCurrentCount: Long = {
@@ -58,7 +54,6 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
   override def compute(metricPoint: MetricPoint): CountMetric = {
     val timerContext = CountMetricComputeTimer.time()
     currentCount += metricPoint.value.toLong
-    latestMetricPoint = Some(metricPoint)
     timerContext.close()
     this
   }

@@ -57,19 +57,19 @@ class TrendMetricSpec extends FeatureSpec {
       expectedMetric.compute(firstMetricPoint)
 
       Then("should return 0 MetricPoints if we try to get within (watermark + 1) metrics")
-      trendMetric.getComputedMetricPoints.size shouldBe 0
+      trendMetric.getComputedMetricPoints(firstMetricPoint).size shouldBe 0
       var i = TrendMetric.trendMetricConfig(intervals.head)._1
       while (i > 0) {
         val secondMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 2, currentTime + intervals.head.timeInSeconds * i)
         trendMetric.compute(secondMetricPoint)
-        trendMetric.getComputedMetricPoints.size shouldEqual 0
+        trendMetric.getComputedMetricPoints(secondMetricPoint).size shouldEqual 0
         i = i - 1
       }
 
       When("adding another MetricPoint after watermark")
       val metricPointAfterWatermark: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTime + intervals.head.timeInSeconds * (TrendMetric.trendMetricConfig(intervals.head)._1 + 1))
       trendMetric.compute(metricPointAfterWatermark)
-      val aggMetrics = trendMetric.getComputedMetricPoints
+      val aggMetrics = trendMetric.getComputedMetricPoints(metricPointAfterWatermark)
       aggMetrics.size shouldEqual 1 * 7 // HistogramMetric
 
       Then("values for histogram should same as expected")
@@ -109,7 +109,7 @@ class TrendMetricSpec extends FeatureSpec {
       When("adding another MetricPoint after watermark")
       val metricPointAfterWatermark: MetricPoint = MetricPoint(COUNT_METRIC_NAME, MetricType.Gauge, keys, 10, currentTime + intervals.last.timeInSeconds * (TrendMetric.trendMetricConfig(intervals.head)._1 + 1))
       trendMetric.compute(metricPointAfterWatermark)
-      val aggMetrics = trendMetric.getComputedMetricPoints
+      val aggMetrics = trendMetric.getComputedMetricPoints(metricPointAfterWatermark)
 
       Then("values for count should same as expected")
       expectedMetric.getCurrentCount shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("FiveMinute")).get.value

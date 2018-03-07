@@ -26,8 +26,8 @@ import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
 import org.apache.kafka.streams.StreamsConfig
-import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
+import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap

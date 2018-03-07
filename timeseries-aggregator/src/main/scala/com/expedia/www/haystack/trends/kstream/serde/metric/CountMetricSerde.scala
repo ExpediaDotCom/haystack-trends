@@ -24,7 +24,7 @@ object CountMetricSerde extends MetricSerde {
     val packer = MessagePack.newDefaultBufferPacker()
     val metricData = Map[Value, Value](
       ValueFactory.newString(currentCountKey) -> ValueFactory.newInteger(countMetric.getCurrentCount),
-      ValueFactory.newString(intervalKey) -> ValueFactory.newString(metric.getMetricInterval.name)
+      ValueFactory.newString(intervalKey) -> ValueFactory.newString(countMetric.getMetricInterval.name)
     )
     packer.packValue(ValueFactory.newMap(metricData.asJava))
     packer.toByteArray
