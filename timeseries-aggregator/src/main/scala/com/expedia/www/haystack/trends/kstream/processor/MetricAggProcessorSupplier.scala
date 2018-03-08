@@ -79,15 +79,17 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)
-      trendsCount = metricRegistry.counter(s"metricprocessor.${context.taskId()}.trendcount")
+      trendsCount = metricRegistry.counter(s"metricprocessor.trendcount.${context.taskId()}")
       trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
+      trendsCount.dec(trendsCount.getCount)
       trendsCount.inc(trendMetricStore.approximateNumEntries())
+      LOGGER.info(s"Triggering init for metric agg processor for task id ${context.taskId()}")
     }
 
     /**
       * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
-      * @param key   - key in the kafka record - should be metricPoint.getKey
+      * @param key         - key in the kafka record - should be metricPoint.getKey
       * @param metricPoint - metricPoint
       */
     def process(key: String, metricPoint: MetricPoint): Unit = {
