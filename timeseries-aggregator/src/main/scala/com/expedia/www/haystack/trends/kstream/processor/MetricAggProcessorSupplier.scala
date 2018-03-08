@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.codahale.metrics.Counter
+import com.codahale.metrics.{Counter, Meter}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
@@ -73,6 +73,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
 
 
     private var trendsCount: Counter = _
+    private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricprocessor.invalid")
 
 
     @SuppressWarnings(Array("unchecked"))
@@ -87,28 +88,33 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
       * @param key   - key in the kafka record - should be metricPoint.getKey
-      * @param value - metricPoint
+      * @param metricPoint - metricPoint
       */
-    def process(key: String, value: MetricPoint): Unit = {
-      if (key == null) return
-      // first get the matching windows
+    def process(key: String, metricPoint: MetricPoint): Unit = {
+      if (key != null || metricPoint.value > 0) {
 
-      Option(trendMetricStore.get(key)).orElse(createTrendMetric(value)).foreach(trendMetric => {
-        trendMetric.compute(value)
 
-        /*
+        // first get the matching windows
+
+        Option(trendMetricStore.get(key)).orElse(createTrendMetric(metricPoint)).foreach(trendMetric => {
+          trendMetric.compute(metricPoint)
+
+          /*
          we finally put the updated trend metric back to the store since we want the changelog the state store with the latest state of the trend metric, if we don't put the metric
          back and update the mutable metric, the kstreams would not capture the change and app wouldn't be able to restore to the same state when the app comes back again.
          */
-        if (trendMetric.shouldLogToStateStore) {
-          trendMetricStore.put(key, trendMetric)
-        }
+          if (trendMetric.shouldLogToStateStore) {
+            trendMetricStore.put(key, trendMetric)
+          }
 
-        //retrieve the computed metrics and push it to the kafka topic.
-        trendMetric.getComputedMetricPoints(value).foreach(metricPoint => {
-          context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
+          //retrieve the computed metrics and push it to the kafka topic.
+          trendMetric.getComputedMetricPoints(metricPoint).foreach(metricPoint => {
+            context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
+          })
         })
-      })
+      } else {
+        invalidMetricPointMeter.mark()
+      }
     }
 
     private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {

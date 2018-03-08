@@ -109,9 +109,7 @@ object WindowedMetric {
 
   def createWindowedMetric(firstMetricPoint: MetricPoint, metricFactory: MetricFactory, watermarkedWindows: Int, interval: Interval): WindowedMetric = {
     val windowedMetricMap = mutable.TreeMap[TimeWindow, Metric]()
-    val metric = metricFactory.createMetric(interval)
-    metric.compute(firstMetricPoint)
-    windowedMetricMap.put(TimeWindow.apply(firstMetricPoint.epochTimeInSeconds, interval), metric)
+    windowedMetricMap.put(TimeWindow.apply(firstMetricPoint.epochTimeInSeconds, interval), metricFactory.createMetric(interval))
     new WindowedMetric(windowedMetricMap, metricFactory, watermarkedWindows, interval)
   }
 
