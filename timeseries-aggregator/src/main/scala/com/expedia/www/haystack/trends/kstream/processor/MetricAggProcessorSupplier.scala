@@ -91,7 +91,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       * @param metricPoint - metricPoint
       */
     def process(key: String, metricPoint: MetricPoint): Unit = {
-      if (key != null || metricPoint.value > 0) {
+      if (key != null && metricPoint.value > 0) {
 
 
         // first get the matching windows
