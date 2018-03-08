@@ -1,7 +1,9 @@
 package com.expedia.www.haystack.trends.feature.tests.processor
 
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
+import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
 import org.apache.kafka.streams.kstream.internals.KTableValueGetter
@@ -22,7 +24,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true)
       val keyValueStore: KeyValueStore[String, TrendMetric] = mock[KeyValueStore[String, TrendMetric]]
       val processorContext = mock[ProcessorContext]
-      expecting{
+      expecting {
         keyValueStore.get("metrics").andReturn(trendMetric)
         processorContext.getStateStore(windowedMetricStoreName).andReturn(keyValueStore)
       }
@@ -30,7 +32,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       EasyMock.replay(processorContext)
 
       When("metric processor is initialised with processor context")
-      val kTableValueGetter : KTableValueGetter[String, TrendMetric] = metricAggProcessorSupplier.view().get()
+      val kTableValueGetter: KTableValueGetter[String, TrendMetric] = metricAggProcessorSupplier.view().get()
       kTableValueGetter.init(processorContext)
 
       Then("same windowed metric should be retrieved with the given key")
@@ -49,5 +51,30 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       Then("no AggregationType should be returned")
       aggregationType shouldEqual None
     }
+
+    scenario("jmx metric (metricpoints.invalid) should be set for invalid MetricPoints") {
+      val DURATION_METRIC_NAME = "duration"
+      val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, null, 10, currentTimeInSecs)
+      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
+      val metricAggProcessor = new MetricAggProcessorSupplier(windowedMetricStoreName, true).get
+      val metricsRegistry = MetricsRegistries.metricRegistry
+
+      Given("metric points with invalid values")
+      val negativeValueMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, null, -1, currentTimeInSecs)
+      val zeroValueMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, null, 0, currentTimeInSecs)
+
+      When("computing a negative value MetricPoint")
+      metricAggProcessor.process(negativeValueMetricPoint.metric, negativeValueMetricPoint)
+
+      Then("metric for invalid value should get incremented")
+      metricsRegistry.getMeters.get("metricprocessor.invalid").getCount shouldEqual 1
+
+      When("computing a zero value MetricPoint")
+      metricAggProcessor.process(negativeValueMetricPoint.metric, zeroValueMetricPoint)
+
+      Then("metric for invalid value should get incremented")
+      metricsRegistry.getMeters.get("metricprocessor.invalid").getCount shouldEqual 2
+    }
   }
+
 }

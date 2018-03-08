@@ -39,7 +39,6 @@ import scala.util.Try
 class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], metricFactory: MetricFactory) extends MetricsSupport {
 
   private val trendMetricComputeTimer: Timer = metricRegistry.timer("trendmetric.compute.time")
-  private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricpoints.invalid")
   private val metricPointComputeFailureMeter: Meter = metricRegistry.meter("metricpoints.compute.failure")
 
   def getMetricFactory: MetricFactory = {
@@ -56,14 +55,10 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     val timerContext = trendMetricComputeTimer.time()
     Try {
       //discarding values which are less than 0 assuming they are invalid metric points
-      if (incomingMetricPoint.value > 0) {
-        trendMetricsMap.foreach(trendMetrics => {
-          val windowedMetric = trendMetrics._2
-          windowedMetric.compute(incomingMetricPoint)
-        })
-      } else {
-        invalidMetricPointMeter.mark()
-      }
+      trendMetricsMap.foreach(trendMetrics => {
+        val windowedMetric = trendMetrics._2
+        windowedMetric.compute(incomingMetricPoint)
+      })
     }.recover {
       case failure: Throwable =>
         metricPointComputeFailureMeter.mark()
