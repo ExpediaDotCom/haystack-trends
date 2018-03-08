@@ -115,28 +115,4 @@ class TrendMetricSpec extends FeatureSpec {
       expectedMetric.getCurrentCount shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("FiveMinute")).get.value
     }
 
-    scenario("jmx metric (metricpoints.invalid) should be set for invalid MetricPoints") {
-      val DURATION_METRIC_NAME = "duration"
-      val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 10, currentTimeInSecs)
-      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
-      val trendMetric: TrendMetric = TrendMetric.createTrendMetric(intervals, validMetricPoint, HistogramMetricFactory)
-      val metricsRegistry = MetricsRegistries.metricRegistry
-
-      Given("metric points with invalid values")
-      val negativeValueMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, -1, currentTimeInSecs)
-      val zeroValueMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 0, currentTimeInSecs)
-
-      When("computing a negative value MetricPoint")
-      trendMetric.compute(negativeValueMetricPoint)
-
-      Then("metric for invalid value should get incremented")
-      metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 1
-
-      When("computing a zero value MetricPoint")
-      trendMetric.compute(zeroValueMetricPoint) //to prevent hdr histogram from breaking
-
-      Then("metric for invalid value should get incremented")
-      metricsRegistry.getMeters.get("metricpoints.invalid").getCount shouldEqual 2
-    }
-  }
 }
