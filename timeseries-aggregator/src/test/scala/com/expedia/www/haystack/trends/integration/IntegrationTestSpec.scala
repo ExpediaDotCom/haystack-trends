@@ -87,6 +87,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     STREAMS_CONFIG.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
     STREAMS_CONFIG.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, "1")
     STREAMS_CONFIG.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "300")
+    STREAMS_CONFIG.put(StreamsConfig.REPLICATION_FACTOR_CONFIG,"1")
     STREAMS_CONFIG.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
 
     IntegrationTestUtils.purgeLocalStreamsState(STREAMS_CONFIG)
