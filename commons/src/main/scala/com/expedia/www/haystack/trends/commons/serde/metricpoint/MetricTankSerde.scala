@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends.commons.serde.metricpoint
 
 import java.nio.ByteBuffer
 import java.util
+import java.util.UUID
 
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
@@ -67,6 +68,8 @@ class MetricPointDeserializer(enableMetricPointReplacement: Boolean) extends Des
 
   override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
 
+
+
   /**
     * converts the messagepack bytes into MetricPoint object
     *
@@ -79,17 +82,21 @@ class MetricPointDeserializer(enableMetricPointReplacement: Boolean) extends Des
 
       val metricData = unpacker.unpackValue().asMapValue().map()
       MetricPoint(
-        metric = metricData.get(ValueFactory.newString(metricKey)).asStringValue().toString,
+        metric = createMetricNameFromMetricKey(metricData.get(ValueFactory.newString(metricKey)).asStringValue().toString),
         `type` = MetricType.withName(metricData.get(ValueFactory.newString(typeKey)).asStringValue().toString),
         value = metricData.get(ValueFactory.newString(valueKey)).asFloatValue().toFloat,
         epochTimeInSeconds = metricData.get(ValueFactory.newString(timeKey)).asIntegerValue().toLong,
-        tags = createTagsFromMetricKey(metricData.get(ValueFactory.newString(idKey)).asStringValue.toString, enableMetricPointReplacement))
+        tags = createTagsFromMetricKey(metricData.get(ValueFactory.newString(metricKey)).asStringValue.toString, enableMetricPointReplacement))
     } catch {
       case ex: Exception =>
         /* may be log and add metric */
         metricPointDeserFailureMeter.mark()
         null
     }
+  }
+
+ private def createMetricNameFromMetricKey(metricKey: String): String = {
+    metricKey.split("\\.").last
   }
 
   private def createTagsFromMetricKey(metricKey: String, enablePeriodReplacement: Boolean): Map[String, String] = {
@@ -129,11 +136,11 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
       val packer = MessagePack.newDefaultBufferPacker()
 
       val metricData = Map[Value, Value](
-        ValueFactory.newString(idKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
+        ValueFactory.newString(idKey) -> ValueFactory.newString(UUID.randomUUID().toString),
         ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
         ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
         ValueFactory.newString(intervalKey) -> new ImmutableSignedLongValueImpl(retrieveInterval(metricPoint)),
-        ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.metric),
+        ValueFactory.newString(metricKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
         ValueFactory.newString(valueKey) -> ValueFactory.newFloat(metricPoint.value),
         ValueFactory.newString(timeKey) -> new ImmutableSignedLongValueImpl(metricPoint.epochTimeInSeconds),
         ValueFactory.newString(typeKey) -> ValueFactory.newString(metricPoint.`type`.toString)
