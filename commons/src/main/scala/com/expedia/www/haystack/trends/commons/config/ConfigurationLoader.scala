@@ -18,13 +18,15 @@ package com.expedia.www.haystack.trends.commons.config
 
 import java.io.File
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
 object ConfigurationLoader {
 
   private val ENV_NAME_PREFIX = "HAYSTACK_PROP_"
+  private val LOGGER = LoggerFactory.getLogger(ConfigurationLoader.getClass)
 
   /**
     * Load and return the configuration
@@ -35,10 +37,13 @@ object ConfigurationLoader {
 
     val baseConfig = ConfigFactory.load("config/base.conf")
 
-    sys.env.get("HAYSTACK_OVERRIDES_CONFIG_PATH") match {
+    val config = sys.env.get("HAYSTACK_OVERRIDES_CONFIG_PATH") match {
       case Some(path) => ConfigFactory.parseFile(new File(path)).withFallback(baseConfig)
       case _ => loadFromEnvVars().withFallback(baseConfig)
     }
+
+    LOGGER.info(config.root().render(ConfigRenderOptions.defaults().setOriginComments(false)))
+    config
   }
 
   /**
