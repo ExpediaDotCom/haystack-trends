@@ -69,14 +69,10 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
     * @param e throwable object
     */
   override def uncaughtException(t: Thread, e: Throwable): Unit = {
-    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${
-      t.getName
-    }", e)
+    LOGGER.error(s"uncaught exception occurred running kafka streams for thread=${t.getName}", e)
     // it may happen that uncaught exception gets called by multiple threads at the same time,
     // so we let one of them close the kafka streams and restart it
-    if (closeKafkaStreams()) {
-      start() // start all over again
-    }
+    HealthController.setUnhealthy()
   }
 
   /**
@@ -147,10 +143,10 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     builder.addSink(
       TOPOLOGY_INTERNAL_SINK_NAME,
-        projectConfiguration.kafkaConfig.producerConfig.topic,
-        new StringSerializer,
-        metricTankSerde.serializer(),
-        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+      projectConfiguration.kafkaConfig.producerConfig.topic,
+      new StringSerializer,
+      metricTankSerde.serializer(),
+      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     builder
   }
 
