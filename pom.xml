@@ -58,6 +58,7 @@
         <protobuf.version>3.3.1</protobuf.version>
         <msgpack.version>0.8.13</msgpack.version>
         <hdrhistogram.version>1.2.1</hdrhistogram.version>
+        <commons-codec.version>1.4</commons-codec.version>
         <easymock.version>3.4</easymock.version>
         <haystack.logback.metrics.appender.version>0.1.12</haystack.logback.metrics.appender.version>
 
@@ -114,6 +115,11 @@
             <artifactId>easymock</artifactId>
             <version>${easymock.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.version}</version>
         </dependency>
 
         <dependency>
