@@ -136,7 +136,7 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
       val packer = MessagePack.newDefaultBufferPacker()
 
       val metricData = Map[Value, Value](
-        ValueFactory.newString(idKey) -> ValueFactory.newString(md5.digest(s"$DEFAULT_ORG_ID.metricPoint.getMetricPointKey(enableMetricPointReplacement)".getBytes)),
+        ValueFactory.newString(idKey) -> ValueFactory.newString(md5.digest(s"$DEFAULT_ORG_ID.${metricPoint.getMetricPointKey(enableMetricPointReplacement)}".getBytes)),
         ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
         ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
         ValueFactory.newString(intervalKey) -> new ImmutableSignedLongValueImpl(retrieveInterval(metricPoint)),
