@@ -1,4 +1,10 @@
+sudo: required
+dist: trusty
+
 language: java
+
+jdk:
+  - oraclejdk8
 
 services:
   - docker
@@ -8,6 +14,10 @@ env:
     - BRANCH=${TRAVIS_BRANCH}
     - TAG=${TRAVIS_TAG}
     - SHA=${TRAVIS_COMMIT}
+
+cache:
+  directories:
+    - $HOME/.m2
 
 script:
   # build, create docker image
