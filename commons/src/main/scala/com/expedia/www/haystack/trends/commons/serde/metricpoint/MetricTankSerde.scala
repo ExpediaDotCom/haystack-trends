@@ -19,11 +19,11 @@
 package com.expedia.www.haystack.trends.commons.serde.metricpoint
 
 import java.nio.ByteBuffer
-import java.security.MessageDigest
 import java.util
 
 import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
+import org.apache.commons.codec.digest.DigestUtils
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack.Code
 import org.msgpack.core.{MessagePack, MessagePacker}
@@ -125,8 +125,6 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
   private val typeKey = "Mtype"
   private val tagsKey = "Tags"
   private[commons] val intervalKey = "Interval"
-  val md5 = MessageDigest.getInstance("MD5")
-
   def this() = this(true)
 
   override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
@@ -136,7 +134,7 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
       val packer = MessagePack.newDefaultBufferPacker()
 
       val metricData = Map[Value, Value](
-        ValueFactory.newString(idKey) -> ValueFactory.newString(md5.digest(s"$DEFAULT_ORG_ID.${metricPoint.getMetricPointKey(enableMetricPointReplacement)}".getBytes)),
+        ValueFactory.newString(idKey) -> ValueFactory.newString(s"$DEFAULT_ORG_ID.${DigestUtils.md5Hex(metricPoint.getMetricPointKey(enableMetricPointReplacement).getBytes)}"),
         ValueFactory.newString(nameKey) -> ValueFactory.newString(metricPoint.getMetricPointKey(enableMetricPointReplacement)),
         ValueFactory.newString(orgIdKey) -> ValueFactory.newInteger(DEFAULT_ORG_ID),
         ValueFactory.newString(intervalKey) -> new ImmutableSignedLongValueImpl(retrieveInterval(metricPoint)),
@@ -156,6 +154,7 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
         null
     }
   }
+
 
   //Retrieves the interval in case its present in the tags else uses the default interval
   def retrieveInterval(metricPoint: MetricPoint): Int = {
