@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/ExpediaDotCom/haystack-trends.svg?branch=master)](https://travis-ci.org/ExpediaDotCom/haystack-trends)
+[![codecov](https://codecov.io/gh/ExpediaDotCom/haystack-trends/branch/master/graph/badge.svg)](https://codecov.io/gh/ExpediaDotCom/haystack-trends)
 
 # Haystack Trends
 
