@@ -1,26 +1,27 @@
 .PHONY: all span-timeseries-transformer timeseries-aggregator release
 
 PWD := $(shell pwd)
+MAVEN := ./mvnw
 
 clean:
-	mvn clean
+	${MAVEN} clean
 
 build: clean
-	mvn install package
+	${MAVEN} install package
 
 all: clean  span-timeseries-transformer timeseries-aggregator  report-coverage
 
 
 report-coverage:
-	mvn scoverage:report-only
+	${MAVEN} scoverage:report-only
 
 
 span-timeseries-transformer:
-	mvn package scoverage:integration-check -pl span-timeseries-transformer -am
+	${MAVEN} package scoverage:integration-check -pl span-timeseries-transformer -am
 
 
 timeseries-aggregator:
-	mvn package scoverage:integration-check -pl timeseries-aggregator -am
+	${MAVEN} package scoverage:integration-check -pl timeseries-aggregator -am
 
 # build all and release
 release: all

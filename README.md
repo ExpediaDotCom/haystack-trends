@@ -56,7 +56,6 @@ The raw and aggregated metric points are of the same json schema but are pushed 
 #### Prerequisite: 
 
 * Make sure you have Java 1.8
-* Make sure you have maven 3.3.9 or higher
 * Make sure you have docker 1.13 or higher
 
 #### Build
