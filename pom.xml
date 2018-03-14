@@ -100,7 +100,6 @@
         </dependency>
 
 
-
         <!-- required by scalatest-maven-plugin to generate HTML report -->
 
         <dependency>
@@ -302,7 +301,7 @@
                             </goals>
                             <configuration>
                                 <environmentVariables>
-                                   <HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>testTopic</HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>
+                                    <HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>testTopic</HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC>
                                 </environmentVariables>
                                 <wildcardSuites>${featureTestClasses}</wildcardSuites>
                             </configuration>
@@ -315,6 +314,7 @@
                             </goals>
                             <configuration>
                                 <wildcardSuites>${integrationTestClasses}</wildcardSuites>
+                                <parallel>false</parallel>
                             </configuration>
                         </execution>
                     </executions>
