@@ -38,8 +38,8 @@ object ConfigurationLoader {
     val baseConfig = ConfigFactory.load("config/base.conf")
 
     val config = sys.env.get("HAYSTACK_OVERRIDES_CONFIG_PATH") match {
-      case Some(path) => ConfigFactory.parseFile(new File(path)).withFallback(baseConfig)
-      case _ => loadFromEnvVars().withFallback(baseConfig)
+      case Some(path) => ConfigFactory.parseFile(new File(path)).withFallback(baseConfig).resolve()
+      case _ => loadFromEnvVars().withFallback(baseConfig).resolve()
     }
 
     LOGGER.info(config.root().render(ConfigRenderOptions.defaults().setOriginComments(false)))
