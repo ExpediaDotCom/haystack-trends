@@ -13,8 +13,8 @@ combination `service_name` and `operation_name` contained in the spans (refer to
 
 > 2 and 3 would only work if the error tag is present in the span.
 
-More trends can be computed by adding a [transformer](https://github.com/ExpediaDotCom/haystack-trends/tree/master/span-timeseries-transformer/src/main/scala/com/expedia/www/haystack/metricpoints/transformer)
-to create the metric point and adding an [aggregation-rule](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator/src/main/scala/com/expedia/www/haystack/metricpoints/aggregation/rules) for it
+More trends can be computed by adding a [transformer](https://github.com/ExpediaDotCom/haystack-trends/tree/master/span-timeseries-transformer/src/main/scala/com/expedia/www/haystack/trends/transformer)
+to create the metric point and adding an [aggregation-rule](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator/src/main/scala/com/expedia/www/haystack/trends/aggregation/rules) for it
 
 ## Required Reading
  
@@ -33,19 +33,19 @@ for reading spans, converting them to metric points and pushing raw metric point
 * [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator) - this app is responsible 
 for reading metric points, aggregating them based on rules and pushing the aggregated metric points to kafka
 
-The timeseries metric points are opentsdb complient and can be directly consumed by opentsdb kafka [plugin](https://github.com/OpenTSDB/opentsdb-rpc-kafka)
+The timeseries metric points are metrictank complient and can be directly consumed by [metrictank](https://github.com/grafana/metrictank), one can write their own serde if they want to push the metrics out in some other timeseries format.
 
-Sample MetricPoint : 
+Sample [MetricPoint](https://github.com/ExpediaDotCom/haystack-trends/blob/master/commons/src/main/scala/com/expedia/www/haystack/trends/commons/entities/MetricPoint.scala) : 
 ```json
 {
-	"type": "Metric",
+	"type": "count",
 	"metric": "duration",
 	"tags": {
 		"client": "expweb",
 		"operationName": "getOffers"
 	},
-	"timestamp": 1492641000,
-	"value": 420
+	"epochTimeInSeconds": 1492641000,
+	"value": 420.02
 }
 ```
  
