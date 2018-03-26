@@ -32,7 +32,7 @@ for reading spans, converting them to metric points and pushing raw metric point
 * [timeseries-aggregator](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator) - this app is responsible 
 for reading metric points, aggregating them based on rules and pushing the aggregated metric points to kafka
 
-The timeseries metric points are metrictank complient and can be directly consumed by metrictank, one can write their own serde if they want to push the metrics out in some other timeseries format.
+The timeseries metric points are metrictank complient and can be directly consumed by [metrictank](https://github.com/grafana/metrictank), one can write their own serde if they want to push the metrics out in some other timeseries format.
 
 Sample [MetricPoint](https://github.com/ExpediaDotCom/haystack-trends/blob/master/commons/src/main/scala/com/expedia/www/haystack/trends/commons/entities/MetricPoint.scala) : 
 ```json
