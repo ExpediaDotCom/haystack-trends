@@ -1,6 +1,6 @@
 package com.expedia.www.haystack.trends.entities
 
-import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.Interval.Interval
 
 
 /**

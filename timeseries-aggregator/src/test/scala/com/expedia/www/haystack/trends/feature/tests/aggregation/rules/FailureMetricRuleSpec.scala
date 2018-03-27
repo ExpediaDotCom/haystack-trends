@@ -18,9 +18,9 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.rules
 
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.rules.FailureMetricRule
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class FailureMetricRuleSpec extends FeatureSpec with FailureMetricRule {

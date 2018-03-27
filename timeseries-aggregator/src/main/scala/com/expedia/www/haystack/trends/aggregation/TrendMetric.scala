@@ -19,11 +19,11 @@
 package com.expedia.www.haystack.trends.aggregation
 
 import com.codahale.metrics.{Meter, Timer}
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.MetricFactory
-import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import org.slf4j.LoggerFactory
 

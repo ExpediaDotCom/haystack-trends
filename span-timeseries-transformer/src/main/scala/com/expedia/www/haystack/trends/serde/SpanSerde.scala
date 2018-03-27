@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.serde
 import java.util
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 
 object SpanSerde extends Serde[Span] with MetricsSupport {

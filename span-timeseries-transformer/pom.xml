@@ -57,12 +57,19 @@
         </dependency>
         <dependency>
             <groupId>com.expedia.www</groupId>
-            <artifactId>haystack-trends-commons</artifactId>
-            <version>${project.version}</version>
+            <artifactId>haystack-commons</artifactId>
         </dependency>
         <dependency>
             <groupId>com.expedia.www</groupId>
             <artifactId>haystack-logback-metrics-appender</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-streams</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.msgpack</groupId>
+            <artifactId>msgpack-core</artifactId>
         </dependency>
     </dependencies>
 

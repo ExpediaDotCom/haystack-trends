@@ -1,7 +1,7 @@
 package com.expedia.www.haystack.trends
 
 import com.codahale.metrics.JmxReporter
-import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
+import com.expedia.www.haystack.commons.logger.LoggerUtils
 import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.slf4j.LoggerFactory
 

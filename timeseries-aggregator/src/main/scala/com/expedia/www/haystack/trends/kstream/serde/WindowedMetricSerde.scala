@@ -20,10 +20,10 @@ package com.expedia.www.haystack.trends.kstream.serde
 
 import java.util
 
+import com.expedia.www.haystack.commons.entities.Interval
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.metrics.{AggregationType, CountMetricFactory, HistogramMetricFactory, Metric}
 import com.expedia.www.haystack.trends.aggregation.{TrendMetric, WindowedMetric}
-import com.expedia.www.haystack.trends.commons.entities.Interval
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.entities.TimeWindow
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import org.msgpack.core.MessagePack

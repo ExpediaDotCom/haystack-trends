@@ -78,7 +78,6 @@
     <modules>
         <module>span-timeseries-transformer</module>
         <module>timeseries-aggregator</module>
-        <module>commons</module>
     </modules>
 
     <properties>
@@ -98,6 +97,7 @@
         <commons-codec.version>1.4</commons-codec.version>
         <easymock.version>3.4</easymock.version>
         <haystack.logback.metrics.appender.version>0.1.12</haystack.logback.metrics.appender.version>
+        <haystack.commons.version>1.0.0-SNAPSHOT</haystack.commons.version>
 
 
         <!--Compiler Properties -->
@@ -236,7 +236,11 @@
                 <artifactId>metrics-core</artifactId>
                 <version>${metrics-core.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.expedia.www</groupId>
+                <artifactId>haystack-commons</artifactId>
+                <version>${haystack.commons.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.expedia.www</groupId>
                 <artifactId>haystack-logback-metrics-appender</artifactId>

@@ -20,8 +20,8 @@ package com.expedia.www.haystack.trends.integration
 import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import org.apache.kafka.clients.consumer.ConsumerConfig

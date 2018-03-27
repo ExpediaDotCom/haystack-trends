@@ -18,7 +18,7 @@
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
-import com.expedia.www.haystack.trends.commons.entities.TagKeys
+import com.expedia.www.haystack.commons.entities.TagKeys
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanStatusMetricPointTransformer
 

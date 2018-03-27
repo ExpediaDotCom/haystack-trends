@@ -18,10 +18,10 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
-import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.entities.TimeWindow
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 

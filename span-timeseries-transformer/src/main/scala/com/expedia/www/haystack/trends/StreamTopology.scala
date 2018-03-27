@@ -23,9 +23,9 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
-import com.expedia.www.haystack.trends.commons.health.HealthController
-import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.health.HealthController
+import com.expedia.www.haystack.commons.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.serde.SpanSerde
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer

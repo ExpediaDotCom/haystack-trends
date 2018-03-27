@@ -17,8 +17,8 @@
 package com.expedia.www.haystack.trends
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 
