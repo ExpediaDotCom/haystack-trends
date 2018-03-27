@@ -25,8 +25,10 @@ class MetricPointSpec extends UnitTestSpec {
 
   val DURATION_METRIC_NAME = "duration"
   val SERVICE_NAME_WITH_DOT = "dummy.service.name"
+  val SERVICE_NAME_WITH_SPACE = "dummy service name"
   val SERVICE_NAME_WITH_COLON = "dummy:service-name"
   val OPERATION_NAME_WITH_DOT = "dummy.operation.name"
+  val OPERATION_NAME_WITH_SPACE = "dummy operation name"
   val OPERATION_NAME_WITH_COLON = "dummy:operation-name"
 
   "MetricPoint entity" should {
@@ -43,7 +45,7 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
-        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT.replace(".", "___") + "." +
+        "haystack." + TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT.replace(".", "___") + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT.replace(".", "___") + "." +
           DURATION_METRIC_NAME
     }
@@ -60,7 +62,7 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with period replaced with underscore")
       metricPointKey shouldEqual
-        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT + "." +
+        "haystack." + TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_DOT + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_DOT + "." +
           DURATION_METRIC_NAME
     }
@@ -77,8 +79,25 @@ class MetricPointSpec extends UnitTestSpec {
 
       Then("metric point key should have value with only period replaced with underscore and colon retained")
       metricPointKey shouldEqual
-        "haystack."+TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_COLON.replace(".", "___") + "." +
+        "haystack." + TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_COLON.replace(".", "___") + "." +
           TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_COLON.replace(".", "___") + "." +
+          DURATION_METRIC_NAME
+    }
+
+    "replace space with dashes in tag values for metric point key" in {
+
+      Given("metric point with operation name having a space")
+      val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME_WITH_SPACE,
+        TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME_WITH_SPACE)
+      val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs)
+
+      When("we get the metric point key")
+      val metricPointKey = metricPoint.getMetricPointKey(true)
+
+      Then("metric point key should have value with only space replaced with dashes")
+      metricPointKey shouldEqual
+        "haystack." + TagKeys.OPERATION_NAME_KEY + "." + OPERATION_NAME_WITH_SPACE.replace(" ", "---") + "." +
+          TagKeys.SERVICE_NAME_KEY + "." + SERVICE_NAME_WITH_SPACE.replace(" ", "---") + "." +
           DURATION_METRIC_NAME
     }
   }

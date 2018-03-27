@@ -101,7 +101,7 @@ class MetricPointDeserializer(enableMetricPointReplacement: Boolean) extends Des
   private def createTagsFromMetricKey(metricKey: String, enablePeriodReplacement: Boolean): Map[String, String] = {
     metricKey.split("\\.").drop(1).dropRight(1).grouped(2).map {
       if (enablePeriodReplacement) {
-        tuple => tuple(0) -> tuple(1).replace("___", ".")
+        tuple => tuple(0) -> tuple(1).replace("___", ".").replace("---", " ")
       } else {
         tuple => tuple(0) -> tuple(1)
       }
@@ -125,6 +125,7 @@ class MetricPointSerializer(enableMetricPointReplacement: Boolean) extends Seria
   private val typeKey = "Mtype"
   private val tagsKey = "Tags"
   private[commons] val intervalKey = "Interval"
+
   def this() = this(true)
 
   override def configure(map: util.Map[String, _], b: Boolean): Unit = ()
