@@ -17,7 +17,7 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 
 /**
   * This transformer is responsible to generate the total-spans gauge metric

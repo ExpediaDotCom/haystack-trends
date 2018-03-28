@@ -1,9 +1,9 @@
 package com.expedia.www.haystack.trends.feature.tests.processor
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.metrics.MetricsRegistries
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
-import com.expedia.www.haystack.trends.commons.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.commons.metrics.MetricsRegistries
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.processor.MetricAggProcessorSupplier
 import org.apache.kafka.streams.kstream.internals.KTableValueGetter

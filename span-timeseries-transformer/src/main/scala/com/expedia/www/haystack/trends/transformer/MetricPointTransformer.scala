@@ -17,8 +17,8 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, TagKeys}
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 
 
 trait MetricPointTransformer extends MetricsSupport {

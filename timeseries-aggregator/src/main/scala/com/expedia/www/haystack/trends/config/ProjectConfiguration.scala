@@ -19,8 +19,8 @@ package com.expedia.www.haystack.trends.config
 
 import java.util.Properties
 
-import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.trends.commons.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.commons.config.ConfigurationLoader
+import com.expedia.www.haystack.commons.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 
 class ProjectConfiguration {
-  private val config = ConfigurationLoader.loadAppConfig
+  private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
 
   val healthStatusFilePath: String = config.getString("health.status.path")
 
@@ -138,7 +138,7 @@ class ProjectConfiguration {
 
     KafkaConfiguration(
       new StreamsConfig(props),
-      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")) ,
+      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")),
       consumeTopic = consumerConfig.getString("topic"),
       if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
       else AutoOffsetReset.LATEST

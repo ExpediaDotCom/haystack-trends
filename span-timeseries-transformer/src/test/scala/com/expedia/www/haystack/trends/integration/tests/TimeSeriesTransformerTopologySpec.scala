@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.integration.tests
 import java.util.UUID
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer

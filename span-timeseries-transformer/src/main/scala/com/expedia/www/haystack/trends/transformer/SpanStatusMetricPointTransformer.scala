@@ -17,7 +17,7 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
 

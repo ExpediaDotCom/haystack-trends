@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.config.entities.KafkaProduceConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde.metricRegistry
 import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}

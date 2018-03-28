@@ -1,7 +1,7 @@
 package com.expedia.www.haystack.trends
 
 import com.codahale.metrics.JmxReporter
-import com.expedia.www.haystack.trends.commons.logger.LoggerUtils
+import com.expedia.www.haystack.commons.logger.LoggerUtils
 import org.slf4j.LoggerFactory
 
 private class ShutdownHookThread(topology: StreamTopology, jmxReporter: JmxReporter) extends Thread {

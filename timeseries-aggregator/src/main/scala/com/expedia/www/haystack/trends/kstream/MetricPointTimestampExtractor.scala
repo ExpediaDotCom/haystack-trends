@@ -1,6 +1,6 @@
 package com.expedia.www.haystack.trends.kstream
 
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.entities.MetricPoint
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.streams.processor.TimestampExtractor
 

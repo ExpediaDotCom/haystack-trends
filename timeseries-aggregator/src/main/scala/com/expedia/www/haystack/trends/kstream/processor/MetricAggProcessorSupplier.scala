@@ -18,11 +18,11 @@
 package com.expedia.www.haystack.trends.kstream.processor
 
 import com.codahale.metrics.{Counter, Meter}
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
-import com.expedia.www.haystack.trends.commons.entities.{Interval, MetricPoint}
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore

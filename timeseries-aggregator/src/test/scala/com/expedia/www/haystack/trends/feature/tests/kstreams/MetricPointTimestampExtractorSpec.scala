@@ -1,6 +1,6 @@
 package com.expedia.www.haystack.trends.feature.tests.kstreams
 
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.MetricPointTimestampExtractor
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -21,7 +21,7 @@ class MetricPointTimestampExtractorSpec extends FeatureSpec {
       val epochTime = metricPointTimestampExtractor.extract(record, System.currentTimeMillis())
 
       Then("extracted time should equal metric point time")
-      epochTime shouldEqual(currentTimeInSecs)
+      epochTime shouldEqual (currentTimeInSecs)
     }
   }
 }

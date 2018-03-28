@@ -1,7 +1,7 @@
 package com.expedia.www.haystack.trends.feature.tests.kstreams
 
+import com.expedia.www.haystack.commons.health.HealthController
 import com.expedia.www.haystack.trends.StreamTopology
-import com.expedia.www.haystack.trends.commons.health.HealthController
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
