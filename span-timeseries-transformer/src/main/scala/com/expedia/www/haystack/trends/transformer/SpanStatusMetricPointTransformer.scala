@@ -57,7 +57,9 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   }
 
   protected def getErrorField(span: Span): Option[Boolean] = {
-    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(_.getVBool)
+    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(x => {
+      return Option.apply(x.getVBool || "true".equalsIgnoreCase(x.getVStr))
+    })
   }
 }
 
