@@ -39,10 +39,10 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
-      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointServiceOnlyKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         SUCCESS_METRIC_NAME
 
       When("metricPoint is created using the transformer")
@@ -63,7 +63,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
-    scenario("should have a failure-spans metricPoint given span  which is erroneous " +
+    scenario("should have a failure-spans metricPoint given span which is erroneous " +
       "and when service level generation is enabled") {
 
       Given("a erroneous span object")
@@ -124,7 +124,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
 
@@ -166,6 +166,44 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
 
       Then("the metricPoint value should be 1")
       metricPoints(0).value shouldEqual 1
+
+      Then("metric name should be failure-spans")
+      metricPoints.head.metric shouldEqual FAILURE_METRIC_NAME
+    }
+
+    scenario("should have a success-span metricPoint if the error tag is a false string") {
+      Given("a successful span object")
+      val operationName = "testSpan"
+      val serviceName = "testService"
+      val duration = System.currentTimeMillis
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("false"))
+        .build()
+
+      When("metricPoint is created using transformer")
+      val metricPoints = mapSpan(span, true)
+
+      Then("metric name should be success-spans")
+      metricPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
+    }
+
+    scenario("should have a failure-span metricPoint if the error tag is a true string") {
+      Given("a failure span object")
+      val operationName = "testSpan"
+      val serviceName = "testService"
+      val duration = System.currentTimeMillis
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("true"))
+        .build()
+
+      When("metricPoint is created using transformer")
+      val metricPoints = mapSpan(span, true)
 
       Then("metric name should be failure-spans")
       metricPoints.head.metric shouldEqual FAILURE_METRIC_NAME
