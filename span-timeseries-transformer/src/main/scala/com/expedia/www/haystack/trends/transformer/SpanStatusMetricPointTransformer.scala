@@ -17,6 +17,7 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
+import com.expedia.open.tracing.Tag.TagType
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
@@ -28,36 +29,42 @@ import scala.collection.JavaConverters._
 trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   private val spanFailuresMetricPoints = metricRegistry.meter("metricpoint.span.success")
   private val spanSuccessMetricPoints = metricRegistry.meter("metricpoint.span.failure")
+  private val spanAmbiguousMetricPoints = metricRegistry.meter("metricpoint.span.ambiguous")
 
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
+  val AMBIGUOUS_METRIC_NAME = "ambiguous-span"
 
   override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
-    getErrorField(span) match {
-      case Some(errorValue) =>
-        var metricName: String = null
+    var metricName: String = null
 
-        if (errorValue) {
-          spanFailuresMetricPoints.mark()
-          metricName = FAILURE_METRIC_NAME
-        } else {
-          spanSuccessMetricPoints.mark()
-          metricName = SUCCESS_METRIC_NAME
-        }
-
-        var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
-
-        if (serviceOnlyFlag) {
-          metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
-        }
-        metricPoints
-
-      case None => List()
+    val errorValue = getErrorField(span)
+    if (errorValue.isEmpty) {
+      spanAmbiguousMetricPoints.mark()
+      metricName = AMBIGUOUS_METRIC_NAME
+    } else if (errorValue.get) {
+      spanFailuresMetricPoints.mark()
+      metricName = FAILURE_METRIC_NAME
+    } else {
+      spanSuccessMetricPoints.mark()
+      metricName = SUCCESS_METRIC_NAME
     }
+
+    var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+
+    if (serviceOnlyFlag) {
+      metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+    }
+    metricPoints
   }
 
   protected def getErrorField(span: Span): Option[Boolean] = {
-    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(_.getVBool)
+    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(x => {
+      if (TagType.BOOL == x.getType) {
+        return Option.apply(x.getVBool)
+      }
+      return None
+    })
   }
 }
 
