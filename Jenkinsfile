@@ -7,6 +7,7 @@ properties([
         disableConcurrentBuilds()
 ])
 
-stage('Install') {
-    mvn(target: "clean deploy")
-}
+mavenJavaLibraryTemplate (
+    githubOrganization: 'soa-platform',
+    mvnArgs: ''
+)
