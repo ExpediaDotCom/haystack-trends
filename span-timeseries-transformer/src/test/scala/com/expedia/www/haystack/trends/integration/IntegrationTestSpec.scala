@@ -22,7 +22,7 @@ import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.serde.SpanSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig

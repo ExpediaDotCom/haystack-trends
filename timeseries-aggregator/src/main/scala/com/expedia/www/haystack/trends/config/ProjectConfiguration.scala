@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
