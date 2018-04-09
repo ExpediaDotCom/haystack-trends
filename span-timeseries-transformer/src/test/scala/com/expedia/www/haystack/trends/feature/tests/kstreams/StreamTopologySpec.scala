@@ -14,7 +14,7 @@ class StreamTopologySpec extends FeatureSpec {
 
       Given("an invalid kafka configuration")
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
-      val transformerConfig = TransformerConfiguration(true, true, List())
+      val transformerConfig = TransformerConfiguration(true, true, true, List())
 
       When("the stream topology is started")
       val topology = new StreamTopology(kafkaConfig, transformerConfig)

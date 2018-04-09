@@ -51,7 +51,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
   protected var CHANGELOG_TOPIC = s"$APP_ID-trend-metric-store-changelog"
-  protected var embeddedKafkaCluster: EmbeddedKafkaCluster = null
+  protected var embeddedKafkaCluster: EmbeddedKafkaCluster = _
 
   override def beforeAll(): Unit = {
     scheduler = Executors.newScheduledThreadPool(1)
@@ -62,7 +62,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(true)
+    val metricTankSerde = new MetricTankSerde(true, false)
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
@@ -112,6 +112,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
       projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs).anyTimes()
       projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true).anyTimes()
+      projectConfiguration.enableBase64EncodingNames.andReturn(false).anyTimes()
       projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
       projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
       projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()

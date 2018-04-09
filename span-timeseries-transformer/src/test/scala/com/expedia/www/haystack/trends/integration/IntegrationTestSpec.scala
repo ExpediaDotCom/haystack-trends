@@ -63,7 +63,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(true)
+    val metricTankSerde = new MetricTankSerde(true, false)
 
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.createTopic(OUTPUT_TOPIC)

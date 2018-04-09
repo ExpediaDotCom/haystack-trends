@@ -71,6 +71,14 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return whether operation names and service names should be base64 encoded
+    */
+  def enableBase64EncodingNames: Boolean = {
+    config.getBoolean("enable.base64.encoding.names")
+  }
+
+  /**
+    *
     * @return state store stream config while aggregating
     */
   def stateStoreConfig: Map[String, String] = {
