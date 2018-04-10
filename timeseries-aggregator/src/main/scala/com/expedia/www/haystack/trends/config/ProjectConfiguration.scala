@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -67,6 +67,14 @@ class ProjectConfiguration {
     */
   def stateStoreCacheSize: Int = {
     config.getInt("statestore.cache.size")
+  }
+
+  /**
+    *
+    * @return whether operation names and service names should be base64 encoded
+    */
+  def enableBase64EncodingNames: Boolean = {
+    config.getBoolean("enable.base64.encoded.names")
   }
 
   /**

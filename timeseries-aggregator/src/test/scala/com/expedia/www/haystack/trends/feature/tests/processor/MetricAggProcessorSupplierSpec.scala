@@ -21,7 +21,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
 
       Given("a metric aggregator supplier and metric processor")
       val trendMetric = mock[TrendMetric]
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false)
       val keyValueStore: KeyValueStore[String, TrendMetric] = mock[KeyValueStore[String, TrendMetric]]
       val processorContext = mock[ProcessorContext]
       expecting {
@@ -36,14 +36,14 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       kTableValueGetter.init(processorContext)
 
       Then("same windowed metric should be retrieved with the given key")
-      kTableValueGetter.get("metrics") shouldBe (trendMetric)
+      kTableValueGetter.get("metrics") shouldBe trendMetric
     }
 
     scenario("should not return any AggregationType for invalid MetricPoint") {
 
       Given("a metric aggregator supplier and an invalid metric point")
       val metricPoint = MetricPoint("invalid-metric", MetricType.Gauge, null, 80, currentTimeInSecs)
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false)
 
       When("find the AggregationType for the metric point")
       val aggregationType = metricAggProcessorSupplier.findMatchingMetric(metricPoint)
@@ -56,7 +56,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       val DURATION_METRIC_NAME = "duration"
       val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, null, 10, currentTimeInSecs)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
-      val metricAggProcessor = new MetricAggProcessorSupplier(windowedMetricStoreName, true).get
+      val metricAggProcessor = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false).get
       val metricsRegistry = MetricsRegistries.metricRegistry
 
       Given("metric points with invalid values")
@@ -76,5 +76,4 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       metricsRegistry.getMeters.get("metricprocessor.invalid").getCount shouldEqual 2
     }
   }
-
 }

@@ -21,4 +21,6 @@ package com.expedia.www.haystack.trends.config.entities
   * @param enableMetricPointServiceLevelGeneration config for also generating service level trends
   */
 case class TransformerConfiguration(enableMetricPointPeriodReplacement: Boolean,
-                                    enableMetricPointServiceLevelGeneration: Boolean, blacklistedServices: List[String])
+                                    enableMetricPointServiceLevelGeneration: Boolean,
+                                    enableBase64EncodedNames: Boolean,
+                                    blacklistedServices: List[String])

@@ -28,7 +28,7 @@ import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, Process
 import org.apache.kafka.streams.state.KeyValueStore
 import org.slf4j.LoggerFactory
 
-class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
+class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean, enableBase64Encoding: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
   private var sendOldValues: Boolean = false
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
@@ -111,7 +111,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
 
           //retrieve the computed metrics and push it to the kafka topic.
           trendMetric.getComputedMetricPoints(metricPoint).foreach(metricPoint => {
-            context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
+            context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement, enableBase64Encoding), metricPoint)
           })
         })
       } else {
@@ -130,10 +130,4 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       }
     }
   }
-
 }
-
-
-
-
-

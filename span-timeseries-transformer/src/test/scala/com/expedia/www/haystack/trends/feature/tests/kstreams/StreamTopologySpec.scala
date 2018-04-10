@@ -9,12 +9,11 @@ class StreamTopologySpec extends FeatureSpec {
 
   feature("The stream topology should set the app status as unhealthy in case the environment is not setup correctly") {
 
-
     scenario("an invalid kafka configuration") {
 
       Given("an invalid kafka configuration")
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
-      val transformerConfig = TransformerConfiguration(true, true, List())
+      val transformerConfig = TransformerConfiguration(true, true, true, List())
 
       When("the stream topology is started")
       val topology = new StreamTopology(kafkaConfig, transformerConfig)
@@ -24,7 +23,5 @@ class StreamTopologySpec extends FeatureSpec {
       HealthController.isHealthy shouldBe false
       topology.close()
     }
-
-
   }
 }
