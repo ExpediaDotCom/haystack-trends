@@ -87,6 +87,7 @@
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
         <host>${HAYSTACK_GRAPHITE_HOST:monitoring-influxdb-graphite.kube-system.svc}</host>
         <port>${HAYSTACK_GRAPHITE_PORT:2003}</port>
+        <enabled>${HAYSTACK_GRAPHITE_ENABLED:true}</enabled>
         <namePrefix>haystack.trends.timeseries-aggregator.#hostname#.</namePrefix>
     </outputWriter>
     <collectIntervalInSeconds>60</collectIntervalInSeconds>
