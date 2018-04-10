@@ -59,7 +59,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true, false)).toSet
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
@@ -147,7 +147,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints(0).getMetricPointKey(true) shouldBe metricPointKey
+      metricPoints(0).getMetricPointKey(true, false) shouldBe metricPointKey
     }
 
     scenario("should have a failure-spans metricPoint given span  which is erroneous " +

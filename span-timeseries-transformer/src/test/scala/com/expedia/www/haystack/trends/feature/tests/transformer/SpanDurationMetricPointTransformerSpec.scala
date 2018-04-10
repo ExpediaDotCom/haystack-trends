@@ -50,8 +50,8 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
-      metricPointKeys shouldBe (Set(metricPointKey, metricPointServiceOnlyKey))
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true, false)).toSet
+      metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
     scenario("should have duration value in metricPoint for given duration in span " +
@@ -78,7 +78,7 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints.head.getMetricPointKey(true) shouldBe (metricPointKey)
+      metricPoints.head.getMetricPointKey(true, false) shouldBe metricPointKey
     }
   }
 }

@@ -57,7 +57,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
 
       Then("each metricPoint should have a unique combination of keys")
       metricPoints.foreach(metricPoint => {
-        metricPointIds += metricPoint.getMetricPointKey(true)
+        metricPointIds += metricPoint.getMetricPointKey(true, false)
       })
       metricPointIds.size shouldEqual metricPointTransformers.size * 2
 

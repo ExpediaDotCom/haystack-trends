@@ -58,7 +58,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
       metricPoints.head.metric shouldEqual TOTAL_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true, false)).toSet
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
@@ -122,7 +122,7 @@ class SpanReceivedMetricPointTransformerSpec extends FeatureSpec with SpanReceiv
     metricPoints.head.metric shouldEqual TOTAL_METRIC_NAME
 
     Then("returned keys should be as expected")
-    metricPoints.head.getMetricPointKey(true) shouldBe (metricPointKey)
+    metricPoints.head.getMetricPointKey(true, false) shouldBe metricPointKey
   }
 
   scenario("should have a total-count metricPoint given span which is erroneous " +
