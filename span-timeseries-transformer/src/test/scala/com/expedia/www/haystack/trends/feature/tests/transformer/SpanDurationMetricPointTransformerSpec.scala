@@ -18,6 +18,7 @@
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.www.haystack.commons.entities.TagKeys
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanDurationMetricPointTransformer
 
@@ -50,7 +51,7 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true, false)).toSet
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding)).toSet
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
@@ -78,7 +79,7 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints.head.getMetricPointKey(true, false) shouldBe metricPointKey
+      metricPoints.head.getMetricPointKey(new PeriodReplacementEncoding) shouldBe metricPointKey
     }
   }
 }

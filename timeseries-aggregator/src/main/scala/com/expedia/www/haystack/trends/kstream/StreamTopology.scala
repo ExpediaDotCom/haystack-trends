@@ -98,7 +98,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
   private def topology(): TopologyBuilder = {
 
-    val metricTankSerde = new MetricTankSerde(projectConfiguration.enableMetricPointPeriodReplacement, projectConfiguration.enableBase64EncodingNames)
+    val metricTankSerde = new MetricTankSerde(projectConfiguration.encoding)
     val builder = new TopologyBuilder()
 
     builder.addSource(
@@ -129,7 +129,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
-      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement, projectConfiguration.enableBase64EncodingNames),
+      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.encoding),
       TOPOLOGY_SOURCE_NAME)
 
     builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)

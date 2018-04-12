@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
+import com.expedia.www.haystack.commons.entities.encodings.{Encoding, EncodingFactory}
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
@@ -55,10 +56,11 @@ class ProjectConfiguration {
 
   /**
     *
-    * @return whether period in metric point service & operation name needs to be replaced
+    * @return type of encoding to use on metricpoint key names
     */
-  def enableMetricPointPeriodReplacement: Boolean = {
-    config.getBoolean("enable.metricpoint.period.replacement")
+  def encoding: Encoding = {
+    val encodingType = config.getString("metricpoint.encoding.type")
+    EncodingFactory.newInstance(encodingType)
   }
 
   /**
@@ -67,14 +69,6 @@ class ProjectConfiguration {
     */
   def stateStoreCacheSize: Int = {
     config.getInt("statestore.cache.size")
-  }
-
-  /**
-    *
-    * @return whether operation names and service names should be base64 encoded
-    */
-  def enableBase64EncodingNames: Boolean = {
-    config.getBoolean("enable.base64.encoded.names")
   }
 
   /**

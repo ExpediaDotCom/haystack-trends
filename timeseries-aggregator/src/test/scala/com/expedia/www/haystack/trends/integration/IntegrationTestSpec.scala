@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends.integration
 import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
@@ -62,7 +63,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(true, false)
+    val metricTankSerde = new MetricTankSerde(new PeriodReplacementEncoding)
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
@@ -111,8 +112,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     expecting {
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
       projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs).anyTimes()
-      projectConfiguration.enableMetricPointPeriodReplacement.andReturn(true).anyTimes()
-      projectConfiguration.enableBase64EncodingNames.andReturn(false).anyTimes()
+      projectConfiguration.encoding.andReturn(new PeriodReplacementEncoding).anyTimes()
       projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
       projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
       projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
@@ -148,7 +148,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     scheduler.scheduleWithFixedDelay(() => {
       if (idx < maxMetricPoints) {
         val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
-        val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(true, false), metricPoint)).asJava
+        val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(new PeriodReplacementEncoding), metricPoint)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
           keyValue,
@@ -165,7 +165,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
                                    produceTimeInSecs: Long
                                   ): Unit = {
     val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
-    val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(true, false), metricPoint)).asJava
+    val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(new PeriodReplacementEncoding), metricPoint)).asJava
     IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
       INPUT_TOPIC,
       keyValue,

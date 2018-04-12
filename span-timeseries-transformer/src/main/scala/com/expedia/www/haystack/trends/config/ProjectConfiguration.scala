@@ -19,6 +19,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
+import com.expedia.www.haystack.commons.entities.encodings.EncodingFactory
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.streams.StreamsConfig
@@ -37,9 +38,9 @@ class ProjectConfiguration {
     * @return transformer related configs
     */
   def transformerConfiguration: TransformerConfiguration = {
-    TransformerConfiguration(config.getBoolean("enable.metricpoint.period.replacement"),
+    val encodingType = config.getString("metricpoint.encoding.type")
+    TransformerConfiguration(EncodingFactory.newInstance(encodingType),
       config.getBoolean("enable.metricpoint.service.level.generation"),
-      config.getBoolean("enable.base64.encoded.names"),
       config.getStringList("blacklist.services").asScala.toList
     )
   }

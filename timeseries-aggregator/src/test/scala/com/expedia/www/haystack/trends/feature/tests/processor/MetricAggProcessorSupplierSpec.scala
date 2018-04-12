@@ -1,6 +1,7 @@
 package com.expedia.www.haystack.trends.feature.tests.processor
 
 import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.commons.metrics.MetricsRegistries
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
@@ -21,7 +22,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
 
       Given("a metric aggregator supplier and metric processor")
       val trendMetric = mock[TrendMetric]
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, new PeriodReplacementEncoding)
       val keyValueStore: KeyValueStore[String, TrendMetric] = mock[KeyValueStore[String, TrendMetric]]
       val processorContext = mock[ProcessorContext]
       expecting {
@@ -43,7 +44,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
 
       Given("a metric aggregator supplier and an invalid metric point")
       val metricPoint = MetricPoint("invalid-metric", MetricType.Gauge, null, 80, currentTimeInSecs)
-      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false)
+      val metricAggProcessorSupplier = new MetricAggProcessorSupplier(windowedMetricStoreName, new PeriodReplacementEncoding)
 
       When("find the AggregationType for the metric point")
       val aggregationType = metricAggProcessorSupplier.findMatchingMetric(metricPoint)
@@ -56,7 +57,7 @@ class MetricAggProcessorSupplierSpec extends FeatureSpec {
       val DURATION_METRIC_NAME = "duration"
       val validMetricPoint: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, null, 10, currentTimeInSecs)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
-      val metricAggProcessor = new MetricAggProcessorSupplier(windowedMetricStoreName, true, false).get
+      val metricAggProcessor = new MetricAggProcessorSupplier(windowedMetricStoreName, new PeriodReplacementEncoding).get
       val metricsRegistry = MetricsRegistries.metricRegistry
 
       Given("metric points with invalid values")
