@@ -81,7 +81,6 @@ class HistogramMetricSpec extends FeatureSpec {
       verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
     }
 
-
     def verifyHistogramMetricValues(resultingMetricPoints: List[MetricPoint], expectedHistogram: IntHistogram) = {
       val resultingMetricPointsMap: Map[String, Float] =
         resultingMetricPoints.map(resultingMetricPoint => resultingMetricPoint.tags(TagKeys.STATS_KEY) -> resultingMetricPoint.value).toMap

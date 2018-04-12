@@ -22,6 +22,7 @@ import com.codahale.metrics.Timer
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 import org.HdrHistogram.Histogram
 
@@ -36,7 +37,7 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
 
   private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
 
-  def this(interval: Interval) = this(interval, new Histogram(Int.MaxValue, 0))
+  def this(interval: Interval) = this(interval, new Histogram(ProjectConfiguration.histogramMaxValue, ProjectConfiguration.histogramPrecision))
 
 
   override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {

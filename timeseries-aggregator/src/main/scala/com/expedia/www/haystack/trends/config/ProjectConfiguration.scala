@@ -63,6 +63,22 @@ class ProjectConfiguration {
 
   /**
     *
+    * @return max allowable value for a histogram metric
+    */
+  def histogramMaxValue: Int = {
+    config.getInt("histogram.max.value")
+  }
+
+  /**
+    *
+    * @return allowable precision of histogram must be 0 <= value <= 5
+    */
+  def histogramPrecision: Int = {
+    config.getInt("histogram.precision")
+  }
+
+  /**
+    *
     * @return whether period in metric point service & operation name needs to be replaced
     */
   def stateStoreCacheSize: Int = {
