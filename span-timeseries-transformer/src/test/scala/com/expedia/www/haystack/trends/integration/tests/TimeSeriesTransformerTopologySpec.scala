@@ -20,6 +20,7 @@ package com.expedia.www.haystack.trends.integration.tests
 import java.util.UUID
 
 import com.expedia.open.tracing.Span
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
@@ -47,7 +48,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val errorFlag = false
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
-      val transformerConfig = TransformerConfiguration(enableMetricPointPeriodReplacement = true, enableMetricPointServiceLevelGeneration = true, List())
+      val transformerConfig = TransformerConfiguration(encoding = new PeriodReplacementEncoding, enableMetricPointServiceLevelGeneration = true, List())
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
@@ -74,7 +75,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
+      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding)).toSet
       val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)
@@ -113,4 +114,3 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
     }
   }.toList
 }
-

@@ -19,6 +19,7 @@
 package com.expedia.www.haystack.trends.feature.tests.aggregation
 
 import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
@@ -72,12 +73,12 @@ class TrendMetricSpec extends FeatureSpec {
       aggMetrics.size shouldEqual 1 * 7 // HistogramMetric
 
       Then("values for histogram should same as expected")
-      expectedMetric.getRunningHistogram.getMean shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("mean")).get.value
-      expectedMetric.getRunningHistogram.getMaxValue shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("max")).get.value
-      expectedMetric.getRunningHistogram.getMinValue shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("min")).get.value
-      expectedMetric.getRunningHistogram.getValueAtPercentile(99) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_99")).get.value
-      expectedMetric.getRunningHistogram.getValueAtPercentile(95) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_95")).get.value
-      expectedMetric.getRunningHistogram.getValueAtPercentile(50) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("*_50")).get.value
+      expectedMetric.getRunningHistogram.getMean shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("mean")).get.value
+      expectedMetric.getRunningHistogram.getMaxValue shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("max")).get.value
+      expectedMetric.getRunningHistogram.getMinValue shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("min")).get.value
+      expectedMetric.getRunningHistogram.getValueAtPercentile(99) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("*_99")).get.value
+      expectedMetric.getRunningHistogram.getValueAtPercentile(95) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("*_95")).get.value
+      expectedMetric.getRunningHistogram.getValueAtPercentile(50) shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("*_50")).get.value
 
       Then("timestamp of the evicted metric should equal the endtime of that window")
       aggMetrics.map(metricPoint => {
@@ -111,7 +112,7 @@ class TrendMetricSpec extends FeatureSpec {
       val aggMetrics = trendMetric.getComputedMetricPoints(metricPointAfterWatermark)
 
       Then("values for count should same as expected")
-      expectedMetric.getCurrentCount shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(true).contains("FiveMinute")).get.value
+      expectedMetric.getCurrentCount shouldEqual aggMetrics.find(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding).contains("FiveMinute")).get.value
     }
   }
 }

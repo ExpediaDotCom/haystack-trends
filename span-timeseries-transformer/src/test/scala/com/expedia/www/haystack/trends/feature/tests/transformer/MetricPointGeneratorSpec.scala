@@ -18,6 +18,7 @@
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
+import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
 import com.expedia.www.haystack.commons.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.trends.MetricPointGenerator
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
@@ -57,7 +58,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
 
       Then("each metricPoint should have a unique combination of keys")
       metricPoints.foreach(metricPoint => {
-        metricPointIds += metricPoint.getMetricPointKey(true)
+        metricPointIds += metricPoint.getMetricPointKey(new PeriodReplacementEncoding)
       })
       metricPointIds.size shouldEqual metricPointTransformers.size * 2
 

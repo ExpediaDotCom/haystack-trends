@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.commons.health.HealthController
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.serde.SpanSerde
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
@@ -122,7 +122,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
     builder.stream(kafkaConfig.consumeTopic, Consumed.`with`(kafkaConfig.autoOffsetReset).withKeySerde(new StringSerde).withValueSerde(SpanSerde).withTimestampExtractor(kafkaConfig.timestampExtractor))
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde(transformerConfiguration.enableMetricPointPeriodReplacement)))
+    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde(transformerConfiguration.encoding)))
     builder.build()
   }
 
@@ -130,7 +130,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
     generateMetricPoints(transformerConfiguration.blacklistedServices)(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
       .getOrElse(Nil)
       .map {
-        metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.enableMetricPointPeriodReplacement), metricPoint)
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.encoding), metricPoint)
       }.asJava
   }
 

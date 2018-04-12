@@ -18,6 +18,7 @@
 package com.expedia.www.haystack.trends.kstream.processor
 
 import com.codahale.metrics.{Counter, Meter}
+import com.expedia.www.haystack.commons.entities.encodings.Encoding
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
@@ -28,7 +29,7 @@ import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, Process
 import org.apache.kafka.streams.state.KeyValueStore
 import org.slf4j.LoggerFactory
 
-class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPointPeriodReplacement: Boolean) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
+class MetricAggProcessorSupplier(trendMetricStoreName: String, encoding: Encoding) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
   private var sendOldValues: Boolean = false
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
@@ -111,7 +112,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
 
           //retrieve the computed metrics and push it to the kafka topic.
           trendMetric.getComputedMetricPoints(metricPoint).foreach(metricPoint => {
-            context().forward(metricPoint.getMetricPointKey(enableMetricPointPeriodReplacement), metricPoint)
+            context().forward(metricPoint.getMetricPointKey(encoding), metricPoint)
           })
         })
       } else {
@@ -130,10 +131,4 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, enableMetricPoint
       }
     }
   }
-
 }
-
-
-
-
-
