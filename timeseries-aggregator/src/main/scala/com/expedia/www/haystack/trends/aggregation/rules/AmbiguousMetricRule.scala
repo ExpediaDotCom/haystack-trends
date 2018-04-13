@@ -18,19 +18,19 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
-
 /**
-  * This Metric Rule engine applies all the metric rules it extends from right to left(http://jim-mcbeath.blogspot.in/2009/08/scala-class-linearization.html).
-  * it returns None if none of the rules are applicable.
-  * to add another rule, create a rule trait and add it to the with clause in the engine.
-  * If multiple rules match the rightmost rule is applied
+  * This Rule applies a Count aggregation type when the incoming metric point's name is success-span and is of type gauge
   */
-trait MetricRuleEngine extends DurationMetricRule with AmbiguousMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
-
-  def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {
-    isMatched(metricPoint)
+trait AmbiguousMetricRule extends MetricRule {
+  override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
+    if (metricPoint.metric.toLowerCase.contains("ambiguous-span") && metricPoint.`type`.equals(MetricType.Gauge)) {
+      Some(AggregationType.Count)
+    } else {
+      super.isMatched(metricPoint)
+    }
   }
 }
