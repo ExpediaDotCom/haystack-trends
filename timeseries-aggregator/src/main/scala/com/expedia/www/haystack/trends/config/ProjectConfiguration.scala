@@ -20,7 +20,8 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -55,10 +56,11 @@ class ProjectConfiguration {
 
   /**
     *
-    * @return whether period in metric point service & operation name needs to be replaced
+    * @return type of encoder to use on metricpoint key names
     */
-  def enableMetricPointPeriodReplacement: Boolean = {
-    config.getBoolean("enable.metricpoint.period.replacement")
+  def encoder: Encoder = {
+    val encoderType = config.getString("metricpoint.encoder.type")
+    EncoderFactory.newInstance(encoderType)
   }
 
   /**

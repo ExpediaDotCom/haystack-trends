@@ -19,6 +19,7 @@ package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.commons.entities.TagKeys
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanStatusMetricPointTransformer
 
@@ -52,18 +53,18 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints.length shouldEqual 2
 
       Then("the metricPoint value should be 1")
-      metricPoints.head.value shouldEqual 1
+      metricPoints(0).value shouldEqual 1
       metricPoints(1).value shouldEqual 1
 
       Then("metric name should be success-spans")
-      metricPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
+      metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(true)).toSet
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoder)).toSet
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
-    scenario("should have a failure-spans metricPoint given span  which is erroneous " +
+    scenario("should have a failure-spans metricPoint given span which is erroneous " +
       "and when service level generation is enabled") {
 
       Given("a erroneous span object")
@@ -88,7 +89,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(1).value shouldEqual 1
 
       Then("metric name should be failure-spans")
-      metricPoints.head.metric shouldEqual FAILURE_METRIC_NAME
+      metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
     scenario("should return an empty list when error key is missing in span tags " +
@@ -138,10 +139,10 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).value shouldEqual 1
 
       Then("metric name should be success-spans")
-      metricPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
+      metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints.head.getMetricPointKey(true) shouldBe (metricPointKey)
+      metricPoints(0).getMetricPointKey(new PeriodReplacementEncoder) shouldBe metricPointKey
     }
 
     scenario("should have a failure-spans metricPoint given span  which is erroneous " +
@@ -168,7 +169,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).value shouldEqual 1
 
       Then("metric name should be failure-spans")
-      metricPoints.head.metric shouldEqual FAILURE_METRIC_NAME
+      metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
     scenario("should return an empty list when error key is missing in span tags " +

@@ -16,9 +16,12 @@
  */
 package com.expedia.www.haystack.trends.config.entities
 
+import com.expedia.www.haystack.commons.entities.encoders.Encoder
+
 /**
-  * @param enableMetricPointPeriodReplacement      config for enabling period replacement in metric point key
+  * @param encoder                                 config for encoder type in metric point key
   * @param enableMetricPointServiceLevelGeneration config for also generating service level trends
   */
-case class TransformerConfiguration(enableMetricPointPeriodReplacement: Boolean,
-                                    enableMetricPointServiceLevelGeneration: Boolean, blacklistedServices: List[String])
+case class TransformerConfiguration(encoder: Encoder,
+                                    enableMetricPointServiceLevelGeneration: Boolean,
+                                    blacklistedServices: List[String])
