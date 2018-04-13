@@ -122,7 +122,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
     builder.stream(kafkaConfig.consumeTopic, Consumed.`with`(kafkaConfig.autoOffsetReset).withKeySerde(new StringSerde).withValueSerde(SpanSerde).withTimestampExtractor(kafkaConfig.timestampExtractor))
       .flatMap[String, MetricPoint] {
       (_: String, span: Span) => mapToMetricPointKeyValue(span)
-    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde(transformerConfiguration.encoding)))
+    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde(transformerConfiguration.encoder)))
     builder.build()
   }
 
@@ -130,7 +130,7 @@ class StreamTopology(kafkaConfig: KafkaConfiguration, transformerConfiguration: 
     generateMetricPoints(transformerConfiguration.blacklistedServices)(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
       .getOrElse(Nil)
       .map {
-        metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.encoding), metricPoint)
+        metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.encoder), metricPoint)
       }.asJava
   }
 

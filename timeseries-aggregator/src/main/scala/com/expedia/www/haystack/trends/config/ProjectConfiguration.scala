@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.config
 import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.commons.entities.encodings.{Encoding, EncodingFactory}
+import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
@@ -56,11 +56,11 @@ class ProjectConfiguration {
 
   /**
     *
-    * @return type of encoding to use on metricpoint key names
+    * @return type of encoder to use on metricpoint key names
     */
-  def encoding: Encoding = {
-    val encodingType = config.getString("metricpoint.encoding.type")
-    EncodingFactory.newInstance(encodingType)
+  def encoder: Encoder = {
+    val encoderType = config.getString("metricpoint.encoder.type")
+    EncoderFactory.newInstance(encoderType)
   }
 
   /**

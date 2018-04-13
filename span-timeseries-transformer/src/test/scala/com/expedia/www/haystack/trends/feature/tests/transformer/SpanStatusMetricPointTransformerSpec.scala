@@ -19,7 +19,7 @@ package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.commons.entities.TagKeys
-import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.SpanStatusMetricPointTransformer
 
@@ -60,7 +60,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoding)).toSet
+      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoder)).toSet
       metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
     }
 
@@ -148,7 +148,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints(0).getMetricPointKey(new PeriodReplacementEncoding) shouldBe metricPointKey
+      metricPoints(0).getMetricPointKey(new PeriodReplacementEncoder) shouldBe metricPointKey
     }
 
     scenario("should have a failure-spans metricPoint given span  which is erroneous " +

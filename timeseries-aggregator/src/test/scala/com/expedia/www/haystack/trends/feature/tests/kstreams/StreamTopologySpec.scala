@@ -1,6 +1,6 @@
 package com.expedia.www.haystack.trends.feature.tests.kstreams
 
-import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.health.HealthController
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
@@ -24,7 +24,7 @@ class StreamTopologySpec extends FeatureSpec {
       expecting {
         projectConfiguration.kafkaConfig.andReturn(kafkaConfig).times(2)
         projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs)
-        projectConfiguration.encoding.andReturn(new PeriodReplacementEncoding)
+        projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder)
         projectConfiguration.enableStateStoreLogging.andReturn(false)
       }
       EasyMock.replay(projectConfiguration)

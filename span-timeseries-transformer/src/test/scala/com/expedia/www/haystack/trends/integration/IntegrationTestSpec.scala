@@ -22,7 +22,7 @@ import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.serde.SpanSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -64,7 +64,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(new PeriodReplacementEncoding)
+    val metricTankSerde = new MetricTankSerde(new PeriodReplacementEncoder)
 
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.createTopic(OUTPUT_TOPIC)

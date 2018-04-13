@@ -17,7 +17,7 @@
 
 package com.expedia.www.haystack.trends.feature.tests.config
 
-import com.expedia.www.haystack.commons.entities.encodings.PeriodReplacementEncoding
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
@@ -42,8 +42,8 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       When("When the configuration is loaded in project configuration")
       val projectConfig = new ProjectConfiguration()
 
-      Then("the encoding should be correct")
-      projectConfig.encoding shouldBe an[PeriodReplacementEncoding]
+      Then("the encoder should be correct")
+      projectConfig.encoder shouldBe an[PeriodReplacementEncoder]
     }
 
     scenario("should load the kafka config from base.conf") {
