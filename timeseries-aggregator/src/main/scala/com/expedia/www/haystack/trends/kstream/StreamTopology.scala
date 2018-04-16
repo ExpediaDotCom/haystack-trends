@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.expedia.www.haystack.commons.health.HealthController
-import com.expedia.www.haystack.commons.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
@@ -98,7 +98,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
   private def topology(): TopologyBuilder = {
 
-    val metricTankSerde = new MetricTankSerde(projectConfiguration.enableMetricPointPeriodReplacement)
+    val metricTankSerde = new MetricTankSerde(projectConfiguration.encoder)
     val builder = new TopologyBuilder()
 
     builder.addSource(
@@ -129,7 +129,7 @@ class StreamTopology(projectConfiguration: ProjectConfiguration) extends StateLi
 
     builder.addProcessor(
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME,
-      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.enableMetricPointPeriodReplacement),
+      new MetricAggProcessorSupplier(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, projectConfiguration.encoder),
       TOPOLOGY_SOURCE_NAME)
 
     builder.addStateStore(trendMetricStore, TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)

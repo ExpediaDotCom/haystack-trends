@@ -17,6 +17,7 @@
 
 package com.expedia.www.haystack.trends.feature.tests.config
 
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.ProjectConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
@@ -40,14 +41,13 @@ class ConfigurationLoaderSpec extends FeatureSpec {
     scenario("should load the metric point enable period replacement config from base.conf") {
 
       Given("A config file at base config file containing config for enable period replacement")
-      val enableMetricPointPeriodReplacement = true
       val enableMetricPointServiceLevelGeneration = true
 
       When("When the configuration is loaded in project configuration")
       val projectConfig = new ProjectConfiguration()
 
-      Then("the enableMetricPointPeriodReplacement should be correct")
-      projectConfig.transformerConfiguration.enableMetricPointPeriodReplacement shouldEqual enableMetricPointPeriodReplacement
+      Then("the encoder should be correct")
+      projectConfig.transformerConfiguration.encoder shouldBe an[PeriodReplacementEncoder]
       projectConfig.transformerConfiguration.enableMetricPointServiceLevelGeneration shouldEqual enableMetricPointServiceLevelGeneration
     }
 
