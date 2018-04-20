@@ -17,6 +17,7 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
+import com.expedia.open.tracing.Tag.TagType
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
@@ -33,33 +34,35 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   val FAILURE_METRIC_NAME = "failure-span"
 
   override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
-    getErrorField(span) match {
-      case Some(errorValue) =>
-        var metricName: String = null
+    var metricName: String = null
 
-        if (errorValue) {
-          spanFailuresMetricPoints.mark()
-          metricName = FAILURE_METRIC_NAME
-        } else {
-          spanSuccessMetricPoints.mark()
-          metricName = SUCCESS_METRIC_NAME
-        }
-
-        var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
-
-        if (serviceOnlyFlag) {
-          metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
-        }
-        metricPoints
-
-      case None => List()
+    if (isError(span)) {
+      spanFailuresMetricPoints.mark()
+      metricName = FAILURE_METRIC_NAME
+    } else {
+      spanSuccessMetricPoints.mark()
+      metricName = SUCCESS_METRIC_NAME
     }
+
+    var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+
+    if (serviceOnlyFlag) {
+      metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+    }
+    metricPoints
   }
 
-  protected def getErrorField(span: Span): Option[Boolean] = {
-    span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(_.getVBool)
+  protected def isError(span: Span): Boolean = {
+    val value = span.getTagsList.asScala.find(tag => tag.getKey.equalsIgnoreCase(TagKeys.ERROR_KEY)).map(x => {
+      if (TagType.BOOL == x.getType) {
+        return x.getVBool
+      } else if (TagType.STRING == x.getType) {
+        return "true".equalsIgnoreCase(x.getVStr)
+      }
+      return false
+    })
+    value.getOrElse(false)
   }
 }
 
 object SpanStatusMetricPointTransformer extends SpanStatusMetricPointTransformer
-
