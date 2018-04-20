@@ -59,7 +59,7 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
       } else if (TagType.STRING == x.getType) {
         return "true".equalsIgnoreCase(x.getVStr)
       }
-      return false
+      return true
     })
     value.getOrElse(false)
   }

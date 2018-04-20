@@ -112,7 +112,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
-    scenario("should have a success-span metricPoint if the error tag exists but is not a boolean or string") {
+    scenario("should have a failure-span metricPoint if the error tag exists but is not a boolean or string") {
       Given("a failure span object")
       val operationName = "testSpan"
       val serviceName = "testService"
@@ -128,7 +128,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       val metricPoints = mapSpan(span, true)
 
       Then("metric name should be failure-spans")
-      metricPoints(0).metric shouldEqual SUCCESS_METRIC_NAME
+      metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
     scenario("should return a success span when error key is missing in span tags and when service level generation is enabled") {
