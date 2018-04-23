@@ -15,7 +15,7 @@
  *      limitations under the License.
  *
  */
-package com.expedia.www.haystack.trends.feature.tests.serde
+package com.expedia.www.haystack.trends.feature.tests.kstreams.serde
 
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}

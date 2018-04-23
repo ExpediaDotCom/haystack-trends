@@ -22,7 +22,7 @@ import com.codahale.metrics.Timer
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.entities.StatValue
+import com.expedia.www.haystack.trends.aggregation.entities.StatValue
 import com.expedia.www.haystack.trends.kstream.serde.metric.{CountMetricSerde, MetricSerde}
 
 /**

@@ -76,7 +76,6 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
     private var trendsCount: Counter = _
     private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricprocessor.invalid")
 
-
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)

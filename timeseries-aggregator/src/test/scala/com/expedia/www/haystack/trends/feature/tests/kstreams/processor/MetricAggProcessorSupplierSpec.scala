@@ -1,4 +1,4 @@
-package com.expedia.www.haystack.trends.feature.tests.processor
+package com.expedia.www.haystack.trends.feature.tests.kstreams.processor
 
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder

@@ -1,4 +1,4 @@
-package com.expedia.www.haystack.trends.feature.tests.serde
+package com.expedia.www.haystack.trends.feature.tests.kstreams.serde
 
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
