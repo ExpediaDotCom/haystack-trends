@@ -1,10 +1,11 @@
-package org.apache.kafka.streams.state.internals
+package com.expedia.www.haystack.trends.kstream.store
 
 import java.util
 
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.common.serialization.Serdes.StringSerde
+import org.apache.kafka.streams.state.internals.InMemoryLRUCacheStoreSupplier
 import org.apache.kafka.streams.state.{KeyValueStore, StoreBuilder}
 
 import scala.collection.JavaConverters._
@@ -38,14 +39,9 @@ class HaystackStoreBuilder(storeName: String, maxCacheSize: Int) extends StoreBu
   }
 
   override def build(): KeyValueStore[String, TrendMetric] = {
-    if (changeLogEnabled) {
-      new InMemoryKeyValueLoggedStore[String, TrendMetric](new MemoryNavigableLRUCache(storeName, maxCacheSize, new StringSerde, TrendMetricSerde), new StringSerde, TrendMetricSerde)
-    }
-    else {
-      new MemoryNavigableLRUCache(storeName, maxCacheSize, new StringSerde, TrendMetricSerde)
-    }
+    val lRUCacheStoreSupplier = new InMemoryLRUCacheStoreSupplier[String, TrendMetric](storeName, maxCacheSize, new StringSerde, TrendMetricSerde, loggingEnabled(), logConfig())
+    lRUCacheStoreSupplier.get().asInstanceOf[KeyValueStore[String, TrendMetric]]
   }
-
 
 
   override def withLoggingDisabled(): StoreBuilder[KeyValueStore[String, TrendMetric]] = {

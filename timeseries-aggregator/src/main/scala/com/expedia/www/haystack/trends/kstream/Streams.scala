@@ -24,9 +24,9 @@ import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSer
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
+import com.expedia.www.haystack.trends.kstream.store.HaystackStoreBuilder
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.state.internals.HaystackStoreBuilder
 import org.apache.kafka.streams.state.{KeyValueStore, StoreBuilder}
 import org.slf4j.LoggerFactory
 
