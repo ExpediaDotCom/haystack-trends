@@ -2,7 +2,7 @@ package com.expedia.www.haystack.trends.feature.tests.kstreams
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.health.HealthController
-import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import com.expedia.www.haystack.trends.config.AppConfiguration$
 import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.kstream.StreamTopology
@@ -20,7 +20,7 @@ class StreamTopologySpec extends FeatureSpec {
       Given("an invalid kafka configuration")
       val kafkaConfig = KafkaConfiguration(null, null, null, null, null, 0l)
       val stateStoreConfigs = new HashMap[String, String]
-      val projectConfiguration = mock[ProjectConfiguration]
+      val projectConfiguration = mock[AppConfiguration]
       expecting {
         projectConfiguration.kafkaConfig.andReturn(kafkaConfig).times(2)
         projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs)

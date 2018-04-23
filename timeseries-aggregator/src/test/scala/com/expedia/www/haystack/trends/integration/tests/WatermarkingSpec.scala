@@ -2,7 +2,6 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
-import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 
@@ -21,6 +20,7 @@ class WatermarkingSpec extends IntegrationTestSpec {
       val expectedFifteenMinAggregatedPoints: Int = 0
       val expectedOneHourAggregatedPoints: Int = 0
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
+      val streamsRunner = createStreamRunner()
 
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
@@ -30,8 +30,7 @@ class WatermarkingSpec extends IntegrationTestSpec {
       produceMetricPoint(METRIC_NAME, 130l, 4l)
       produceMetricPoint(METRIC_NAME, 310l, 5l)
       produceMetricPoint(METRIC_NAME, 610l, 6l)
-
-      new StreamTopology(mockProjectConfig).start()
+      streamsRunner.start()
 
       Then("we should read all aggregated metricPoint from 'output' topic")
       val waitTimeMs = 15000

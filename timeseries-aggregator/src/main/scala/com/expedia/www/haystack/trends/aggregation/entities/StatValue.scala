@@ -1,4 +1,4 @@
-package com.expedia.www.haystack.trends.entities
+package com.expedia.www.haystack.trends.aggregation.entities
 
 /**
   * This enumeration contains all the supported statistics we want to emit for a given histogram metric

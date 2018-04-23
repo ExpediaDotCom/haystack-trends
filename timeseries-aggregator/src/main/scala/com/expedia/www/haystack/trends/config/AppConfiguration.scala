@@ -33,7 +33,7 @@ import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 
-class ProjectConfiguration {
+class AppConfiguration {
   private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
 
   val healthStatusFilePath: String = config.getString("health.status.path")
@@ -165,4 +165,4 @@ class ProjectConfiguration {
   }
 }
 
-object ProjectConfiguration extends ProjectConfiguration
+object AppConfiguration extends AppConfiguration

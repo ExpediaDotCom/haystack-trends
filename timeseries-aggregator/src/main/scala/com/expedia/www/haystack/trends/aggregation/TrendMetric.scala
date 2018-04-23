@@ -24,7 +24,7 @@ import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.MetricFactory
-import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import com.expedia.www.haystack.trends.config.AppConfiguration$
 import org.slf4j.LoggerFactory
 
 import scala.util.Try
@@ -67,7 +67,7 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     }
 
     // check whether time to log to state store
-    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > ProjectConfiguration.loggingDelayInSeconds) {
+    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > AppConfiguration.loggingDelayInSeconds) {
       currentEpochTimeInSec = incomingMetricPoint.epochTimeInSeconds
       shouldLog = true
     }

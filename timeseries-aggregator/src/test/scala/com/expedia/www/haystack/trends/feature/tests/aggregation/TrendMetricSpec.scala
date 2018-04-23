@@ -23,7 +23,7 @@ import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncod
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
-import com.expedia.www.haystack.trends.entities.TimeWindow
+import com.expedia.www.haystack.trends.aggregation.entities.TimeWindow
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class TrendMetricSpec extends FeatureSpec {
