@@ -16,6 +16,15 @@
  */
 package com.expedia.www.haystack.trends.feature
 
+import java.util.Properties
+
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
+import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
+import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.Topology.AutoOffsetReset
+import org.apache.kafka.streams.processor.WallclockTimestampExtractor
+import org.easymock.EasyMock
 import org.scalatest._
 import org.scalatest.easymock.EasyMockSugar
 
@@ -24,5 +33,26 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
 
   def currentTimeInSecs: Long = {
     System.currentTimeMillis() / 1000l
+  }
+
+  protected def mockAppConfig: AppConfiguration = {
+    val kafkaConsumeTopic = "test-consume"
+    val kafkaProduceTopic = "test-produce"
+    val streamsConfig = new Properties()
+    streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
+    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "test-kafka-broker")
+
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), KafkaProduceConfiguration(kafkaProduceTopic, None, false), kafkaConsumeTopic, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val projectConfiguration = mock[AppConfiguration]
+
+    expecting {
+      projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
+      projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder).anyTimes()
+      projectConfiguration.enableStateStoreLogging.andReturn(false).anyTimes()
+      projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
+      projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
+    }
+    EasyMock.replay(projectConfiguration)
+    projectConfiguration
   }
 }

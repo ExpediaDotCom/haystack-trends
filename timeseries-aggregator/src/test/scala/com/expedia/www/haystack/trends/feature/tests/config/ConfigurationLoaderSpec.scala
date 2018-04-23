@@ -18,7 +18,7 @@
 package com.expedia.www.haystack.trends.feature.tests.config
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
-import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class ConfigurationLoaderSpec extends FeatureSpec {
@@ -31,7 +31,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       val healthStatusFilePath = "/app/isHealthy"
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("the healthStatusFilePath should be correct")
       projectConfig.healthStatusFilePath shouldEqual healthStatusFilePath
@@ -43,7 +43,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       val enableMetricPointPeriodReplacement = true
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("the encoder should be correct")
       projectConfig.encoder shouldBe an[PeriodReplacementEncoder]
@@ -54,7 +54,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       Given("A config file at base config file containing kafka ")
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("It should create the write configuration object based on the file contents")
       val kafkaConfig = projectConfig.kafkaConfig
@@ -68,7 +68,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       Given("A config file at base config file containing config for kafka")
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("It should override the configuration object based on the environment variable if it exists")
 
@@ -82,7 +82,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       Given("A config file at base config file containing kafka ")
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("It should create the write configuration object based on the file contents")
       val stateStoreConfigs = projectConfig.stateStoreConfig
@@ -97,7 +97,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       Given("A config file at base config file containing kafka ")
 
       When("When the configuration is loaded in project configuration")
-      val projectConfig = new ProjectConfiguration()
+      val projectConfig = new AppConfiguration()
 
       Then("It should create the write configuration object based on the file contents")
       projectConfig.kafkaConfig.producerConfig.enableExternalKafka shouldBe true

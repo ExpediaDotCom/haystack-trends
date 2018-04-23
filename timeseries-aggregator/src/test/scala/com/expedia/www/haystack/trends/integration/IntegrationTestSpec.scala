@@ -22,14 +22,17 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFutur
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.health.HealthStatusController
+import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
-import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
+import com.expedia.www.haystack.trends.kstream.Streams
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.{EmbeddedKafkaCluster, IntegrationTestUtils}
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import org.easymock.EasyMock
@@ -88,14 +91,14 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     STREAMS_CONFIG.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, "0")
     STREAMS_CONFIG.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, "1")
     STREAMS_CONFIG.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "300")
-    STREAMS_CONFIG.put(StreamsConfig.REPLICATION_FACTOR_CONFIG,"1")
+    STREAMS_CONFIG.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, "1")
     STREAMS_CONFIG.put(StreamsConfig.STATE_DIR_CONFIG, "/tmp/kafka-streams")
 
     IntegrationTestUtils.purgeLocalStreamsState(STREAMS_CONFIG)
   }
 
   override def afterEach(): Unit = {
-    embeddedKafkaCluster.deleteTopicsAndWait(INPUT_TOPIC, OUTPUT_TOPIC)
+    embeddedKafkaCluster.deleteTopics(INPUT_TOPIC, OUTPUT_TOPIC)
   }
 
   def currentTimeInSecs: Long = {
@@ -105,9 +108,9 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val stateStoreConfigs = Map("cleanup.policy" -> "compact,delete")
 
 
-  protected def mockProjectConfig: ProjectConfiguration = {
+  protected def mockAppConfig: AppConfiguration = {
     val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, None, false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
-    val projectConfiguration = mock[ProjectConfiguration]
+    val projectConfiguration = mock[AppConfiguration]
 
     expecting {
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
@@ -177,5 +180,14 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
                         value: Long = Math.abs(Random.nextInt()),
                         timestamp: Long = currentTimeInSecs): MetricPoint = {
     MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
+  }
+
+  protected def createStreamRunner(): StreamsRunner = {
+    val appConfig = mockAppConfig
+    val streams = new Streams(appConfig)
+    val factory = new StreamsFactory(streams, appConfig.kafkaConfig.streamsConfig, Some(appConfig.kafkaConfig.consumeTopic))
+    new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
+
+
   }
 }

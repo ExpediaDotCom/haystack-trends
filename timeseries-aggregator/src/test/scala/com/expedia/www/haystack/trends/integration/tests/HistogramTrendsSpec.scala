@@ -19,7 +19,6 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
-import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.scalatest.Sequential
@@ -45,10 +44,11 @@ class HistogramTrendsSpec extends IntegrationTestSpec {
       val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15) * 7
       val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60) * 7
       val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
+      val streamsRunner = createStreamRunner()
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, MAX_METRICPOINTS * 60)
-      new StreamTopology(mockProjectConfig).start()
+      streamsRunner.start()
 
       Then("we should read all aggregated metricPoint from 'output' topic")
       val waitTimeMs = 15000

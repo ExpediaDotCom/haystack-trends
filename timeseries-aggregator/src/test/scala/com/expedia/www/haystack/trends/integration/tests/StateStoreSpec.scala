@@ -19,7 +19,6 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
-import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.clients.admin.{AdminClient, Config}
 import org.apache.kafka.common.config.ConfigResource
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
@@ -39,11 +38,13 @@ class StateStoreSpec extends IntegrationTestSpec {
 
     "have state store (change log) configuration be set by the topology" in {
       Given("a set of metricPoints with type metric and state store specific configurations")
-      val METRIC_NAME = "received-span" // CountMetric
+      val METRIC_NAME = "received-span"
+      // CountMetric
+      val streamsRunner = createStreamRunner()
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
       produceMetricPointsAsync(3, 10.milli, METRIC_NAME, 3 * 60)
-      new StreamTopology(mockProjectConfig).start()
+      streamsRunner.start()
 
       Then("we should see the state store topic created with specified properties")
       val waitTimeMs = 15000

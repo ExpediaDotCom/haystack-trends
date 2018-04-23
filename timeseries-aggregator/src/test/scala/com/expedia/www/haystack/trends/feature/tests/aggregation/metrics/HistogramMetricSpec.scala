@@ -21,7 +21,7 @@ package com.expedia.www.haystack.trends.feature.tests.aggregation.metrics
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
-import com.expedia.www.haystack.trends.entities._
+import com.expedia.www.haystack.trends.aggregation.entities._
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import org.HdrHistogram.IntHistogram
 
