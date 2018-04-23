@@ -38,12 +38,12 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setDuration(duration)
         .setOperationName(operationName)
         .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setType(Tag.TagType.BOOL).setVBool(false))
         .build()
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
-      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointServiceOnlyKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         SUCCESS_METRIC_NAME
 
       When("metricPoint is created using the transformer")
@@ -75,7 +75,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setDuration(duration)
         .setOperationName(operationName)
         .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(true))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setType(Tag.TagType.BOOL).setVBool(true))
         .build()
 
       When("metricPoint is created using transformer")
@@ -92,8 +92,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
-    scenario("should return an empty list when error key is missing in span tags " +
-      "and when service level generation is enabled") {
+    scenario("should return an ambiguous result when error key is missing in span tags and when service level generation is enabled") {
 
       Given("a span object which missing error tag")
       val operationName = "testSpan"
@@ -108,8 +107,15 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       When("metricPoint is created using transformer")
       val metricPoints = mapSpan(span, true)
 
-      Then("should not return metricPoints")
-      metricPoints.length shouldEqual 0
+      Then("should only have 2 metricPoint")
+      metricPoints.length shouldEqual 2
+
+      Then("the metricPoint value should be 1")
+      metricPoints(0).value shouldEqual 1
+      metricPoints(1).value shouldEqual 1
+
+      Then("metric name should be ambiguous-spans")
+      metricPoints(0).metric shouldEqual AMBIGUOUS_METRIC_NAME
     }
 
     scenario("should have a success-spans metricPoint given span which is successful " +
@@ -123,9 +129,9 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setDuration(duration)
         .setOperationName(operationName)
         .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setType(Tag.TagType.BOOL).setVBool(false))
         .build()
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
+      val metricPointKey = "haystack." + TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
         TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
         SUCCESS_METRIC_NAME
 
@@ -156,7 +162,7 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
         .setDuration(duration)
         .setOperationName(operationName)
         .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(true))
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setType(Tag.TagType.BOOL).setVBool(true))
         .build()
 
       When("metricPoint is created using transformer")
@@ -171,9 +177,44 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       Then("metric name should be failure-spans")
       metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
+    scenario("should have a success-span metricPoint if the error tag is a false string") {
+      Given("a successful span object")
+      val operationName = "testSpan"
+      val serviceName = "testService"
+      val duration = System.currentTimeMillis
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("false"))
+        .build()
 
-    scenario("should return an empty list when error key is missing in span tags " +
-      "and when service level generation is disabled") {
+      When("metricPoint is created using transformer")
+      val metricPoints = mapSpan(span, true)
+
+      Then("metric name should be success-spans")
+      metricPoints.head.metric shouldEqual SUCCESS_METRIC_NAME
+    }
+
+    scenario("should have a failure-span metricPoint if the error tag is a true string") {
+      Given("a failure span object")
+      val operationName = "testSpan"
+      val serviceName = "testService"
+      val duration = System.currentTimeMillis
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("true"))
+        .build()
+
+      When("metricPoint is created using transformer")
+      val metricPoints = mapSpan(span, true)
+
+      Then("metric name should be failure-spans")
+      metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
+    }
+    scenario("should return an ambiguous result when error key is missing in span tags and when service level generation is disabled") {
 
       Given("a span object which missing error tag")
       val operationName = "testSpan"
@@ -189,7 +230,13 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       val metricPoints = mapSpan(span, false)
 
       Then("should not return metricPoints")
-      metricPoints.length shouldEqual 0
+      metricPoints.length shouldEqual 1
+
+      Then("the metricPoint value should be 1")
+      metricPoints(0).value shouldEqual 1
+
+      Then("metric name should be ambiguous-spans")
+      metricPoints(0).metric shouldEqual AMBIGUOUS_METRIC_NAME
     }
   }
 }
