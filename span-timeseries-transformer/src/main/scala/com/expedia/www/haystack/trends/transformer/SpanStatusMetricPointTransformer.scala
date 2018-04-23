@@ -17,7 +17,7 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
 
 import scala.collection.JavaConverters._
 
@@ -26,19 +26,31 @@ import scala.collection.JavaConverters._
   * This transformer generates a success or a failure metric y
   */
 trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
+  private val spanFailuresMetricPoints = metricRegistry.meter("metricpoint.span.success")
+  private val spanSuccessMetricPoints = metricRegistry.meter("metricpoint.span.failure")
 
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
     getErrorField(span) match {
       case Some(errorValue) =>
+        var metricName: String = null
 
         if (errorValue) {
-          List(MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          spanFailuresMetricPoints.mark()
+          metricName = FAILURE_METRIC_NAME
         } else {
-          List(MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+          spanSuccessMetricPoints.mark()
+          metricName = SUCCESS_METRIC_NAME
         }
+
+        var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+
+        if (serviceOnlyFlag) {
+          metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+        }
+        metricPoints
 
       case None => List()
     }

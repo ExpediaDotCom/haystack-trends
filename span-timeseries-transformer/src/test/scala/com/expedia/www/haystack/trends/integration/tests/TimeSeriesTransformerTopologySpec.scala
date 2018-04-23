@@ -20,14 +20,17 @@ package com.expedia.www.haystack.trends.integration.tests
 import java.util.UUID
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.health.HealthStatusController
+import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
-import com.expedia.www.haystack.trends.{MetricPointGenerator, StreamTopology}
+import com.expedia.www.haystack.trends.{MetricPointGenerator, Streams}
 import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 
@@ -47,13 +50,19 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val errorFlag = false
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+      val transformerConfig = TransformerConfiguration(encoder = new PeriodReplacementEncoder, enableMetricPointServiceLevelGeneration = true, List())
+      val streams = new Streams(kafkaConfig, transformerConfig)
+      val factory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+      val streamsRunner = new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
+
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
-      new StreamTopology(kafkaConfig).start()
+      streamsRunner.start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(MetricPointTransformer.allTransformers)(span).getOrElse(List())) // directly call transformers to get metricPoints
+      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints
+      metricPoints.size shouldBe (spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
 
       val records: List[KeyValue[String, MetricPoint]] =
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, metricPoints.size, 15000).asScala.toList // get metricPoints from Kafka's output topic
@@ -72,7 +81,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey).toSet
+      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoder)).toSet
       val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)
@@ -110,6 +119,5 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       span
     }
   }.toList
-
 }
 

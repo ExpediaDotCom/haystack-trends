@@ -18,8 +18,8 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
+import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 
 trait MetricRule {
   def isMatched(metricPoint: MetricPoint): Option[AggregationType] = None

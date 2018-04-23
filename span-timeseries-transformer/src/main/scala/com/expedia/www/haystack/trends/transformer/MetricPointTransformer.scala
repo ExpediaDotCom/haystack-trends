@@ -17,16 +17,17 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 
 
-trait MetricPointTransformer {
+trait MetricPointTransformer extends MetricsSupport {
 
 
-  def mapSpan(span: Span): List[MetricPoint]
+  def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint]
 
   protected def getDataPointTimestamp(span: Span): Long = {
-    span.getStartTime / 1000
+    span.getStartTime / 1000000
   }
 
   /**
@@ -39,12 +40,16 @@ trait MetricPointTransformer {
     */
   protected def createCommonMetricTags(span: Span): Map[String, String] = {
     Map(
-      TagKeys.OPERATION_NAME_KEY -> span.getOperationName,
-      TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
+      TagKeys.SERVICE_NAME_KEY -> span.getServiceName,
+      TagKeys.OPERATION_NAME_KEY -> span.getOperationName)
+  }
+
+  protected def createServiceOnlyMetricTags(span: Span): Map[String, String] = {
+    Map(TagKeys.SERVICE_NAME_KEY -> span.getServiceName)
   }
 }
 
 object MetricPointTransformer {
-  val allTransformers = List(SpanDurationMetricPointTransformer,SpanStatusMetricPointTransformer,SpanReceivedMetricPointTransformer)
+  val allTransformers = List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer)
 }
 

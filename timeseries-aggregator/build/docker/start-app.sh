@@ -11,6 +11,9 @@ JAVA_OPTS="${JAVA_OPTS} \
 -Xmx${JAVA_XMX} \
 -Xms${JAVA_XMS} \
 -Dapplication.name=${APP_NAME} \
+-Dcom.sun.management.jmxremote.authenticate=false \
+-Dcom.sun.management.jmxremote.ssl=false \
+-Dcom.sun.management.jmxremote.port=1098 \
 -Dapplication.home=${APP_HOME}"
 
 exec java ${JAVA_OPTS} -jar "${APP_HOME}/${APP_NAME}.jar"

@@ -19,19 +19,85 @@ package com.expedia.www.haystack.trends.config
 
 import java.util.Properties
 
-import com.expedia.www.haystack.trends.commons.config.ConfigurationLoader
-import com.expedia.www.haystack.trends.config.entities.KafkaConfiguration
+import com.expedia.www.haystack.commons.config.ConfigurationLoader
+import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
+import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
+import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.processor.TimestampExtractor
 import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.HashMap
 
-object ProjectConfiguration {
-  private val config = ConfigurationLoader.loadAppConfig
+class ProjectConfiguration {
+  private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
 
   val healthStatusFilePath: String = config.getString("health.status.path")
+
+  /**
+    *
+    * @return delay in logging to state store
+    */
+  def loggingDelayInSeconds: Long = {
+    config.getLong("statestore.logging.delay.seconds")
+  }
+
+  /**
+    *
+    * @return whether logging for state store is enabled
+    */
+  def enableStateStoreLogging: Boolean = {
+    config.getBoolean("statestore.enable.logging")
+  }
+
+  /**
+    *
+    * @return type of encoder to use on metricpoint key names
+    */
+  def encoder: Encoder = {
+    val encoderType = config.getString("metricpoint.encoder.type")
+    EncoderFactory.newInstance(encoderType)
+  }
+
+  /**
+    *
+    * @return max allowable value for a histogram metric
+    */
+  def histogramMaxValue: Int = {
+    config.getInt("histogram.max.value")
+  }
+
+  /**
+    *
+    * @return allowable precision of histogram must be 0 <= value <= 5
+    */
+  def histogramPrecision: Int = {
+    config.getInt("histogram.precision")
+  }
+
+  /**
+    *
+    * @return whether period in metric point service & operation name needs to be replaced
+    */
+  def stateStoreCacheSize: Int = {
+    config.getInt("statestore.cache.size")
+  }
+
+  /**
+    *
+    * @return state store stream config while aggregating
+    */
+  def stateStoreConfig: Map[String, String] = {
+    val stateStoreConfigs = config.getConfig("state.store")
+    if (stateStoreConfigs.isEmpty) {
+      new HashMap[String, String]
+    }
+    stateStoreConfigs.entrySet().asScala.map(entry => entry.getKey -> entry.getValue.unwrapped().toString).toMap
+  }
 
   /**
     *
@@ -52,30 +118,45 @@ object ProjectConfiguration {
       })
     }
 
+    def getExternalKafkaProps(producerConfig: Config): Option[Properties] = {
+
+      if (producerConfig.getBoolean("enable.external.kafka.produce")) {
+        val props = new Properties()
+        val kafkaProducerProps = producerConfig.getConfig("props")
+
+        kafkaProducerProps.entrySet() forEach {
+          kv => {
+            props.setProperty(kv.getKey, kv.getValue.unwrapped().toString)
+          }
+        }
+
+        props.put(KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
+        props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[MetricPointSerializer].getCanonicalName)
+
+        require(props.getProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG).nonEmpty)
+        Option(props)
+      } else {
+        Option.empty
+      }
+    }
+
     val kafka = config.getConfig("kafka")
     val producerConfig = kafka.getConfig("producer")
     val consumerConfig = kafka.getConfig("consumer")
     val streamsConfig = kafka.getConfig("streams")
 
     val props = new Properties
-
     // add stream specific properties
     addProps(streamsConfig, props)
-
-    // producer specific properties
-    addProps(producerConfig, props, (k) => StreamsConfig.producerPrefix(k))
-
-    // consumer specific properties
-    addProps(consumerConfig, props, (k) => StreamsConfig.consumerPrefix(k))
-
     // validate props
     verifyRequiredProps(props)
 
     val timestampExtractor = Class.forName(props.getProperty("timestamp.extractor",
       "org.apache.kafka.streams.processor.WallclockTimestampExtractor"))
 
-    KafkaConfiguration(new StreamsConfig(props),
-      produceTopic = producerConfig.getString("topic"),
+    KafkaConfiguration(
+      new StreamsConfig(props),
+      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")),
       consumeTopic = consumerConfig.getString("topic"),
       if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
       else AutoOffsetReset.LATEST
@@ -83,3 +164,5 @@ object ProjectConfiguration {
       kafka.getLong("close.timeout.ms"))
   }
 }
+
+object ProjectConfiguration extends ProjectConfiguration

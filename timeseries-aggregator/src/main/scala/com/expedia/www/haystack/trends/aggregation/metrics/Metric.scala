@@ -18,16 +18,18 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, TagKeys}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities.StatValue.StatValue
 import com.expedia.www.haystack.trends.kstream.serde.metric.MetricSerde
 
-abstract class Metric(interval: Interval) {
+abstract class Metric(interval: Interval) extends MetricsSupport {
 
   /**
     * function to compute the incoming metric-point
+    *
     * @param value - incoming metric point
     * @return : returns the metric (in most cases it should return the same object(this) but returning a metric gives the metric implementation class to create an immutable metric)
     */
@@ -40,13 +42,16 @@ abstract class Metric(interval: Interval) {
 
   /**
     * This function returns the metric points which contains the current snapshot of the metric
+    *
     * @param publishingTimestamp : timestamp in seconds which the consumer wants to be used as the timestamps of these published metricpoints
+    * @param metricName : the name of the metricpoints to be generated
+    * @param tags : tags to be associated with the metricPoints
     * @return list of published metricpoints
     */
-  def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint]
+  def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint]
 
-  protected def appendTags(metricPoint: MetricPoint, interval: Interval, statValue: StatValue): Map[String, String] = {
-    metricPoint.tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
+  protected def appendTags(tags: Map[String, String], interval: Interval, statValue: StatValue): Map[String, String] = {
+    tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
   }
 
 }
@@ -58,7 +63,6 @@ object AggregationType extends Enumeration {
   type AggregationType = Value
   val Count, Histogram = Value
 }
-
 
 
 /**

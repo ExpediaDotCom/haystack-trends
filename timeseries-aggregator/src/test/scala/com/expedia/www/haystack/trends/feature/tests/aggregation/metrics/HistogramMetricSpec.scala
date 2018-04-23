@@ -18,9 +18,9 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.metrics
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities._
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import org.HdrHistogram.IntHistogram
@@ -50,7 +50,7 @@ class HistogramMetricSpec extends FeatureSpec {
 
       When("MetricPoints are processed")
       metricPoints.map(metricPoint => metric.compute(metricPoint))
-      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.epochTimeInSeconds)
+      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
 
       Then("aggregated metric name should be the same as the MetricPoints name")
@@ -81,7 +81,6 @@ class HistogramMetricSpec extends FeatureSpec {
       verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
     }
 
-
     def verifyHistogramMetricValues(resultingMetricPoints: List[MetricPoint], expectedHistogram: IntHistogram) = {
       val resultingMetricPointsMap: Map[String, Float] =
         resultingMetricPoints.map(resultingMetricPoint => resultingMetricPoint.tags(TagKeys.STATS_KEY) -> resultingMetricPoint.value).toMap
@@ -89,6 +88,7 @@ class HistogramMetricSpec extends FeatureSpec {
       resultingMetricPointsMap(StatValue.MEAN.toString) shouldEqual expectedHistogram.getMean.toLong
       resultingMetricPointsMap(StatValue.MAX.toString) shouldEqual expectedHistogram.getMaxValue
       resultingMetricPointsMap(StatValue.MIN.toString) shouldEqual expectedHistogram.getMinValue
+      resultingMetricPointsMap(StatValue.PERCENTILE_95.toString) shouldEqual expectedHistogram.getValueAtPercentile(95)
       resultingMetricPointsMap(StatValue.PERCENTILE_99.toString) shouldEqual expectedHistogram.getValueAtPercentile(99)
       resultingMetricPointsMap(StatValue.STDDEV.toString) shouldEqual expectedHistogram.getStdDeviation.toLong
       resultingMetricPointsMap(StatValue.MEDIAN.toString) shouldEqual expectedHistogram.getValueAtPercentile(50)

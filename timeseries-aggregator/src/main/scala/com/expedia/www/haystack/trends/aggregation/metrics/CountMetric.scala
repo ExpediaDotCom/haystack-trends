@@ -18,15 +18,17 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import com.codahale.metrics.Timer
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.entities.StatValue
 import com.expedia.www.haystack.trends.kstream.serde.metric.{CountMetricSerde, MetricSerde}
 
 /**
   * This is a base metric which can compute the count of the given events
-  * @param interval : interval for the metric
+  *
+  * @param interval     : interval for the metric
   * @param currentCount : current count, the current count should be 0 for a new metric but can be passed when we want to restore a given metric after the application crashed
   */
 
@@ -34,16 +36,14 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
 
   def this(interval: Interval) = this(interval, 0)
 
-  var latestMetricPoint: Option[MetricPoint] = None
+  private val CountMetricComputeTimer: Timer = metricRegistry.timer("count.metric.compute.time")
 
-  override def mapToMetricPoints(publishingTimestamp: Long): List[MetricPoint] = {
-    latestMetricPoint match {
-      case Some(metricPoint) =>
-        List(
-          MetricPoint(metricPoint.metric, MetricType.Count, appendTags(metricPoint, interval, StatValue.COUNT), currentCount, publishingTimestamp)
-        )
-      case None => List()
-    }
+
+  override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
+    List(
+      MetricPoint(metricName, MetricType.Count, appendTags(tags, interval, StatValue.COUNT), currentCount, publishingTimestamp)
+    )
+
   }
 
   def getCurrentCount: Long = {
@@ -52,8 +52,9 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
 
 
   override def compute(metricPoint: MetricPoint): CountMetric = {
+    val timerContext = CountMetricComputeTimer.time()
     currentCount += metricPoint.value.toLong
-    latestMetricPoint = Some(metricPoint)
+    timerContext.close()
     this
   }
 }

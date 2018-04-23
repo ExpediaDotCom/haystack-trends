@@ -18,8 +18,9 @@
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
 import com.expedia.open.tracing.{Span, Tag}
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
+import com.expedia.www.haystack.commons.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.trends.MetricPointGenerator
-import com.expedia.www.haystack.trends.commons.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.{SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer}
@@ -43,26 +44,27 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .setDuration(System.currentTimeMillis())
         .setOperationName(operationName)
         .setServiceName(serviceName)
+        .setStartTime(System.currentTimeMillis() * 1000) // in micro seconds
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span).getOrElse(List())
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, true).getOrElse(List())
 
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
       metricPoints should not be empty
       val metricPointTransformers = getMetricPointTransformers
-      metricPoints.size shouldEqual metricPointTransformers.size
+      metricPoints.size shouldEqual metricPointTransformers.size * 2
       var metricPointIds = Set[String]()
 
       Then("each metricPoint should have a unique combination of keys")
       metricPoints.foreach(metricPoint => {
-        metricPointIds += metricPoint.getMetricPointKey
+        metricPointIds += metricPoint.getMetricPointKey(new PeriodReplacementEncoder)
       })
-      metricPointIds.size shouldEqual metricPointTransformers.size
+      metricPointIds.size shouldEqual metricPointTransformers.size * 2
 
-      Then("each metricPoint should have the timestamps which is equal to the span timestamp")
+      Then("each metricPoint should have the timestamps in seconds and which should equal to the span timestamp")
       metricPoints.foreach(metricPoint => {
-        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime
+        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime / 1000000
       })
 
       Then("each metricPoint should have the metric type as Metric")
@@ -84,34 +86,11 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span)
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = true)
 
-      Then("It should return a metricPoint creation exception")
+      Then("It should return a metricPoint validation exception")
       metricPoints.isFailure shouldBe true
       metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
-    }
-
-
-    scenario("a span object with a valid operation Name") {
-      val operationName = "testSpan"
-      val serviceName = "testService"
-
-      Given("a valid span")
-      val span = Span.newBuilder()
-        .setDuration(System.currentTimeMillis())
-        .setOperationName(operationName)
-        .setServiceName(serviceName)
-        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
-        .build()
-
-      When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span).getOrElse(List())
-
-      Then("it should create metricPoints with operation name as one its keys")
-      metricPoints.map(metricPoint => {
-        metricPoint.tags.get(TagKeys.OPERATION_NAME_KEY) should not be None
-        metricPoint.tags.get(TagKeys.OPERATION_NAME_KEY) shouldEqual Some(operationName)
-      })
     }
 
     scenario("a span object with a valid service Name") {
@@ -127,7 +106,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(getMetricPointTransformers)(span)
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("it should create metricPoints with service name as one its keys")
       metricPoints.isFailure shouldEqual false
@@ -135,6 +114,26 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) should not be None
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) shouldEqual Some(serviceName)
       })
+    }
+
+    scenario("a span object with a blacklisted service Name") {
+      val operationName = "testSpan"
+      val blacklistedServiceName = "testService"
+
+      Given("a valid span with a blacklisted service name")
+      val span = Span.newBuilder()
+        .setDuration(System.currentTimeMillis())
+        .setOperationName(operationName)
+        .setServiceName(blacklistedServiceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
+        .build()
+
+      When("its asked to map to metricPoints")
+      val metricPoints = generateMetricPoints(blacklistedServices = List(blacklistedServiceName))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+
+      Then("It should return a metricPoint validation exception")
+      metricPoints.isFailure shouldBe true
+      metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
     }
   }
 }

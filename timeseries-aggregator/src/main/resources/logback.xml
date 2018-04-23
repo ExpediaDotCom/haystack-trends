@@ -10,12 +10,26 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss:SSS} %thread, %level, %logger{70}, "%msg"%n
+                %d{yyyy-MM-dd HH:mm:ss:SSS} %thread, %level, %logger{70},  "%msg" %replace(%ex){'[\n]+', '\\n'}%nopex%n
             </Pattern>
         </layout>
     </appender>
 
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>${HAYSTACK_LOG_QUEUE_SIZE:-500}</queueSize>
+        <discardingThreshold>${HAYSTACK_LOG_DISCARD_THRESHOLD:-0}</discardingThreshold>
+        <appender-ref ref="STDOUT" />
+    </appender>
+
+    <appender name="EmitToGraphiteLogbackAppender"
+              class="com.expedia.www.haystack.metrics.appenders.logback.EmitToGraphiteLogbackAppender">
+        <host>${HAYSTACK_GRAPHITE_HOST}</host>
+        <port>${HAYSTACK_GRAPHITE_PORT}</port>
+        <subsystem>timeseries-aggregator</subsystem>
+    </appender>
+
     <root level="${HAYSTACK_LOG_LEVEL:-INFO}">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="EmitToGraphiteLogbackAppender" />
     </root>
 </configuration>

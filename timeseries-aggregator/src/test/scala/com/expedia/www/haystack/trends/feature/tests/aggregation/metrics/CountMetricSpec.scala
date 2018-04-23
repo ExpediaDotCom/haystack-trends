@@ -1,8 +1,8 @@
 package com.expedia.www.haystack.trends.feature.tests.aggregation.metrics
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, Metric}
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType, TagKeys}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import com.expedia.www.haystack.trends.entities._
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
@@ -34,7 +34,7 @@ class CountMetricSpec extends FeatureSpec {
     When("MetricPoints are processed")
     metricPoints.map(metricPoint => metric.compute(metricPoint))
 
-    val countMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.epochTimeInSeconds)
+    val countMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
 
     Then("it should return a single aggregated metric point")

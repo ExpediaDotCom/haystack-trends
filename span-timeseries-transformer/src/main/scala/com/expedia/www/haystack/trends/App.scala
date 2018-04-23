@@ -18,35 +18,55 @@
 
 package com.expedia.www.haystack.trends
 
-import com.codahale.metrics.JmxReporter
-import com.expedia.www.haystack.trends.commons.health.{HealthController, UpdateHealthStatusFile}
-import com.expedia.www.haystack.trends.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.config.ProjectConfiguration._
+import java.util.function.Supplier
 
-object App extends MetricsSupport {
+import com.expedia.www.haystack.commons.health.{HealthStatusController, UpdateHealthStatusFile}
+import com.expedia.www.haystack.commons.kstreams.app.{Main, StateChangeListener, StreamsFactory, StreamsRunner}
+import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.netflix.servo.util.VisibleForTesting
+import org.apache.kafka.streams.Topology
 
-  private var topology: StreamTopology = _
-  private var jmxReporter: JmxReporter = _
+object App extends Main {
 
-  def main(args: Array[String]): Unit = {
-    HealthController.addListener(new UpdateHealthStatusFile(healthStatusFilePath))
+  /**
+    * Creates a valid instance of StreamsRunner.
+    *
+    * StreamsRunner is created with a valid StreamsFactory instance and a listener that observes
+    * state changes of the kstreams application.
+    *
+    * StreamsFactory in turn is created with a Topology Supplier and kafka.StreamsConfig. Any failure in
+    * StreamsFactory is gracefully handled by StreamsRunner to shut the application off
+    *
+    * Core logic of this application is in the `Streams` instance - which is a topology supplier. The
+    * topology of this application is built in this class.
+    *
+    * @return A valid instance of `StreamsRunner`
+    */
 
-    startJmxReporter()
-    topology = new StreamTopology(kafkaConfig)
-    topology.start()
+  override def createStreamsRunner(): StreamsRunner = {
+    val appConfiguration = new AppConfiguration()
 
-    Runtime.getRuntime.addShutdownHook(new ShutdownHookThread)
+    val healthStatusController = new HealthStatusController
+    healthStatusController.addListener(new UpdateHealthStatusFile(appConfiguration.healthStatusFilePath))
+
+    val stateChangeListener = new StateChangeListener(healthStatusController)
+
+    createStreamsRunner(appConfiguration, stateChangeListener)
   }
 
-  private def startJmxReporter() = {
-    jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
-    jmxReporter.start()
-  }
+  @VisibleForTesting
+  private[trends] def createStreamsRunner(appConfiguration: AppConfiguration,
+                                          stateChangeListener: StateChangeListener): StreamsRunner = {
+    //create the topology provider
+    val kafkaConfig = appConfiguration.kafkaConfig
+    val streams: Supplier[Topology] = new Streams(appConfiguration.kafkaConfig, appConfiguration.transformerConfiguration)
 
-  private class ShutdownHookThread extends Thread {
-    override def run(): Unit = {
-      if(topology != null) topology.close()
-      if(jmxReporter != null) jmxReporter.close()
-    }
+    val streamsFactory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+
+    new StreamsRunner(streamsFactory, stateChangeListener)
   }
 }
+
+
+
+

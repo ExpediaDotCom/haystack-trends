@@ -17,25 +17,35 @@
 package com.expedia.www.haystack.trends
 
 import com.expedia.open.tracing.Span
+import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
 
 import scala.util.{Failure, Success, Try}
 
-trait MetricPointGenerator {
+trait MetricPointGenerator extends MetricsSupport {
+
+  private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
+  private val metricPointGenerationTimer = metricRegistry.timer("metricpoint.generation.time")
 
   /**
     * This function is responsible for generating all the metric points which can be created given a span
     *
     * @param transformers list of transformers to be applied
+    * @param blacklistedServices list of services which are blacklisted - typically the ones which have a lot of operation names and can result in many unique trends
     * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
-  def generateMetricPoints(transformers: Seq[MetricPointTransformer])(span: Span): Try[List[MetricPoint]] = {
-    validate(span).map { validatedSpan =>
-      transformers.flatMap(transformer => transformer.mapSpan(validatedSpan)).toList
+  def generateMetricPoints(blacklistedServices: List[String])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): Try[List[MetricPoint]] = {
+    val context = metricPointGenerationTimer.time()
+    val metricPoints = {
+      validate(blacklistedServices)(span).map { validatedSpan =>
+        transformers.flatMap(transformer => transformer.mapSpan(validatedSpan, serviceOnlyFlag)).toList
+      }
     }
+    context.close()
+    metricPoints
   }
 
   /**
@@ -46,13 +56,16 @@ trait MetricPointGenerator {
     * @param span incoming span
     * @return Try object which should return either the span as is or a validation exception
     */
-  private def validate(span: Span): Try[Span] = {
-    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
+  private def validate(blackListedServices: List[String])(span: Span): Try[Span] = {
+    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty || blackListedServices.contains(span.getServiceName)) {
+      SpanValidationErrors.mark()
       Failure(new SpanValidationException)
     } else {
       Success(span)
     }
+
   }
+
 }
 
 

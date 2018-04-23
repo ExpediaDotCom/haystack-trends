@@ -1,5 +1,7 @@
 .PHONY: integration_test release
 
+MAVEN := ../mvnw
+
 export DOCKER_ORG := expediadotcom
 export DOCKER_IMAGE_NAME := haystack-timeseries-aggregator
 
@@ -7,7 +9,7 @@ docker_build:
 	docker build -t $(DOCKER_IMAGE_NAME) -f build/docker/Dockerfile .
 
 integration_test:
-	mvn scoverage:integration-check
+	${MAVEN} scoverage:integration-check
 
 # build jar, docker image and run integration tests
 all: docker_build integration_test

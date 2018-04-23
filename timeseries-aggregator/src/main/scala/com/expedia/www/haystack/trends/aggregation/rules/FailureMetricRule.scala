@@ -18,9 +18,9 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
 
 /**
   * This Rule applies a Count aggregation type when the incoming metric point's name is failure-span and is of type gauge

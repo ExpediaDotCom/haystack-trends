@@ -18,11 +18,10 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation
 
+import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.WindowedMetric
-import com.expedia.www.haystack.trends.aggregation.metrics.{HistogramMetric, HistogramMetricFactory}
-import com.expedia.www.haystack.trends.entities.Interval.Interval
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.entities.Interval
+import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, HistogramMetric, HistogramMetricFactory}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class WindowedMetricSpec extends FeatureSpec {
@@ -42,7 +41,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
   feature("Creating a WindowedMetric") {
 
-    scenario("should get aggregated MetricPoints post first Interval and second Interval") {
+    scenario("should get aggregated MetricPoints post watermarked metrics") {
 
       Given("some duration MetricPoints")
       val durations: List[Long] = List(10, 140)
@@ -51,8 +50,7 @@ class WindowedMetricSpec extends FeatureSpec {
       val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Histogram")
-      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
-
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(metricPoints.head, HistogramMetricFactory, watermarkedWindows = 1, Interval.ONE_MINUTE)
 
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
@@ -62,7 +60,7 @@ class WindowedMetricSpec extends FeatureSpec {
       metricPoints.foreach(metricPoint => expectedMetric.compute(metricPoint))
 
       Then("should return 0 MetricPoints if we try to get it before interval")
-      val aggregatedMetricPointsBefore: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsBefore: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
       aggregatedMetricPointsBefore.size shouldBe 0
 
       When("adding a MetricPoint outside of first Interval")
@@ -70,8 +68,7 @@ class WindowedMetricSpec extends FeatureSpec {
 
       windowedMetric.compute(newMetricPointAfterFirstInterval)
 
-      val aggregatedMetricPointsAfterFirstInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
-
+      val aggregatedMetricPointsAfterFirstInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
       //Have to fix dev code and then all the validation test
       Then("should return the metric points for the previous interval")
@@ -81,7 +78,7 @@ class WindowedMetricSpec extends FeatureSpec {
       expectedMetric.compute(newMetricPointAfterFirstInterval)
       val newMetricPointAfterSecondInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals(1).timeInSeconds)
       windowedMetric.compute(newMetricPointAfterSecondInterval)
-      val aggregatedMetricPointsAfterSecondInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsAfterSecondInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
       //Have to fix dev code and then all the validation test
       Then("should return the metric points for the second interval")
@@ -97,28 +94,26 @@ class WindowedMetricSpec extends FeatureSpec {
 
 
       When("creating a WindowedMetric and passing some MetricPoints")
-      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(intervals, metricPoints.head, HistogramMetricFactory)
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(metricPoints.head, HistogramMetricFactory, watermarkedWindows = 1, Interval.ONE_MINUTE)
 
       metricPoints.indices.foreach(i => if (i > 0) {
         windowedMetric.compute(metricPoints(i))
       })
 
       When("adding a MetricPoint outside of max Interval")
-
-
       val newMetricPointAfterMaxInterval: MetricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, 80, currentTimeInSecs + intervals.last.timeInSeconds)
       windowedMetric.compute(newMetricPointAfterMaxInterval)
-      val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints
+      val aggregatedMetricPointsAfterMaxInterval: List[MetricPoint] = windowedMetric.getComputedMetricPoints(metricPoints.last)
 
-      Then("should return valid values for all histogram types")
+      Then("should return valid values for all count intervals")
 
-      val expectedOneMinuteMetric: HistogramMetric = new HistogramMetric(Interval.ONE_MINUTE)
+      val expectedOneMinuteMetric: CountMetric = new CountMetric(Interval.ONE_MINUTE)
       metricPoints.foreach(metricPoint => expectedOneMinuteMetric.compute(metricPoint))
 
-      val expectedFifteenMinuteMetric: HistogramMetric = new HistogramMetric(Interval.FIFTEEN_MINUTE)
+      val expectedFifteenMinuteMetric: CountMetric = new CountMetric(Interval.FIFTEEN_MINUTE)
       metricPoints.foreach(metricPoint => expectedFifteenMinuteMetric.compute(metricPoint))
 
-      val expectedOneHourMetric: HistogramMetric = new HistogramMetric(Interval.ONE_HOUR)
+      val expectedOneHourMetric: CountMetric = new CountMetric(Interval.ONE_HOUR)
       metricPoints.foreach(metricPoint => expectedOneHourMetric.compute(metricPoint))
     }
   }

@@ -17,16 +17,25 @@
 package com.expedia.www.haystack.trends.transformer
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.trends.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 
 /**
   * This transformer is responsible to generate the total-spans gauge metric
   */
 trait SpanReceivedMetricPointTransformer extends MetricPointTransformer {
+  private val spanReceivedMetricPoints = metricRegistry.meter("metricpoint.span.received")
+
   val TOTAL_METRIC_NAME = "received-span"
 
-  override def mapSpan(span: Span): List[MetricPoint] = {
-    List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
+    spanReceivedMetricPoints.mark()
+    var metricPoints = List(MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+
+    if (serviceOnlyFlag) {
+      metricPoints = metricPoints :+ MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+    }
+
+    metricPoints
   }
 }
 

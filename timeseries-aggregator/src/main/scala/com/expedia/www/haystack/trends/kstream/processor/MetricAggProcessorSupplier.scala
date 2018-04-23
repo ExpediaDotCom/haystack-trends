@@ -1,105 +1,134 @@
+/*
+ *
+ *     Copyright 2017 Expedia, Inc.
+ *
+ *      Licensed under the Apache License, Version 2.0 (the "License");
+ *      you may not use this file except in compliance with the License.
+ *      You may obtain a copy of the License at
+ *
+ *          http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *      Unless required by applicable law or agreed to in writing, software
+ *      distributed under the License is distributed on an "AS IS" BASIS,
+ *      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *      See the License for the specific language governing permissions and
+ *      limitations under the License.
+ *
+ */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.expedia.www.haystack.trends.aggregation.WindowedMetric
+import com.codahale.metrics.{Counter, Meter}
+import com.expedia.www.haystack.commons.entities.encoders.Encoder
+import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
-import com.expedia.www.haystack.trends.commons.entities.MetricPoint
-import com.expedia.www.haystack.trends.entities.Interval
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
 import org.apache.kafka.streams.state.KeyValueStore
+import org.slf4j.LoggerFactory
 
-class MetricAggProcessorSupplier(windowedMetricStoreName: String) extends KStreamAggProcessorSupplier[String, String, MetricPoint, WindowedMetric] with MetricRuleEngine {
-
+class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
   private var sendOldValues: Boolean = false
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   def get: Processor[String, MetricPoint] = {
-    new MetricAggProcessor(windowedMetricStoreName)
+    new MetricAggProcessor(trendMetricStoreName)
   }
+
 
   def enableSendingOldValues() {
     sendOldValues = true
   }
 
-  override def view(): KTableValueGetterSupplier[String, WindowedMetric] = new KTableValueGetterSupplier[String, WindowedMetric]() {
+  override def view(): KTableValueGetterSupplier[String, TrendMetric] = new KTableValueGetterSupplier[String, TrendMetric]() {
 
-    override def get(): KTableValueGetter[String, WindowedMetric] = new WindowedMetricAggregateValueGetter()
+    override def get(): KTableValueGetter[String, TrendMetric] = new TrendMetricAggregateValueGetter()
 
-    override def storeNames(): Array[String] = Array[String](windowedMetricStoreName)
+    override def storeNames(): Array[String] = Array[String](trendMetricStoreName)
 
-    private class WindowedMetricAggregateValueGetter extends KTableValueGetter[String, WindowedMetric] {
+    private class TrendMetricAggregateValueGetter extends KTableValueGetter[String, TrendMetric] {
 
-      private var store: KeyValueStore[String, WindowedMetric] = _
+      private var store: KeyValueStore[String, TrendMetric] = _
 
       @SuppressWarnings(Array("unchecked")) def init(context: ProcessorContext) {
-        store = context.getStateStore(windowedMetricStoreName).asInstanceOf[KeyValueStore[String, WindowedMetric]]
+        store = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
       }
 
-      def get(key: String): WindowedMetric = store.get(key)
+      def get(key: String): TrendMetric = store.get(key)
     }
 
   }
 
   /**
-    * This is the Processor which contains the map of unique trends consumed from the assigned partition and the corresponding windowed metric for each trend
+    * This is the Processor which contains the map of unique trends consumed from the assigned partition and the corresponding trend metric for each trend
     * Each trend is uniquely identified by the metricPoint key - which is a combination of the name and the list of tags. Its backed by a state store which keeps this map and has the
     * ability to restore the map if/when the app restarts or when the assigned kafka partitions change
     *
-    * @param windowedMetricStoreName - name of the key-value state store
+    * @param trendMetricStoreName - name of the key-value state store
     */
-  private class MetricAggProcessor(windowedMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
-    private var windowedMetricStore: KeyValueStore[String, WindowedMetric] = _
+  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
+    private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
+
+
+    private var trendsCount: Counter = _
+    private val invalidMetricPointMeter: Meter = metricRegistry.meter("metricprocessor.invalid")
 
 
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {
       super.init(context)
-      windowedMetricStore = context.getStateStore(windowedMetricStoreName).asInstanceOf[KeyValueStore[String, WindowedMetric]]
+      trendsCount = metricRegistry.counter(s"metricprocessor.trendcount.${context.taskId()}")
+      trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
+      trendsCount.dec(trendsCount.getCount)
+      trendsCount.inc(trendMetricStore.approximateNumEntries())
+      LOGGER.info(s"Triggering init for metric agg processor for task id ${context.taskId()}")
     }
-
 
     /**
-      * tries to fetch the windowed metric based on the key, if it exists it updates the windowed metric else it tries to create a new windowed metric and adds it to the store      *
+      * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
-      * @param key   - key in the kafka record - should be metricPoint.getKey
-      * @param value - metricPoint
+      * @param key         - key in the kafka record - should be metricPoint.getKey
+      * @param metricPoint - metricPoint
       */
-    def process(key: String, value: MetricPoint): Unit = {
-      if (key == null) return
-      // first get the matching windows
+    def process(key: String, metricPoint: MetricPoint): Unit = {
+      if (key != null && metricPoint.value > 0) {
 
-      Option(windowedMetricStore.get(key)).orElse(createWindowedMetric(value)).foreach(windowedMetric => {
-        windowedMetric.compute(value)
 
-        /*
-         we finally put the updated windowed metric back to the store since we want the changelog the state store with the latest state of the windowed metric, if we don't put the metric
+        // first get the matching windows
+
+        Option(trendMetricStore.get(key)).orElse(createTrendMetric(metricPoint)).foreach(trendMetric => {
+          trendMetric.compute(metricPoint)
+
+          /*
+         we finally put the updated trend metric back to the store since we want the changelog the state store with the latest state of the trend metric, if we don't put the metric
          back and update the mutable metric, the kstreams would not capture the change and app wouldn't be able to restore to the same state when the app comes back again.
          */
-        windowedMetricStore.put(key, windowedMetric)
+          if (trendMetric.shouldLogToStateStore) {
+            trendMetricStore.put(key, trendMetric)
+          }
 
-
-        //retrieve the computed metrics and push it to the kafka topic.
-        windowedMetric.getComputedMetricPoints.foreach(metricPoint => {
-          context().forward(metricPoint.metric, metricPoint)
+          //retrieve the computed metrics and push it to the kafka topic.
+          trendMetric.getComputedMetricPoints(metricPoint).foreach(metricPoint => {
+            context().forward(metricPoint.getMetricPointKey(encoder), metricPoint)
+          })
         })
-      })
+      } else {
+        invalidMetricPointMeter.mark()
+      }
     }
 
-    private def createWindowedMetric(value: MetricPoint): Option[WindowedMetric] = {
+    private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {
       findMatchingMetric(value).map {
-        case AggregationType.Histogram => WindowedMetric.createWindowedMetric(Interval.all, value, HistogramMetricFactory)
-        case AggregationType.Count => WindowedMetric.createWindowedMetric(Interval.all, value, CountMetricFactory)
+        case AggregationType.Histogram =>
+          trendsCount.inc()
+          TrendMetric.createTrendMetric(Interval.all, value, HistogramMetricFactory)
+        case AggregationType.Count =>
+          trendsCount.inc()
+          TrendMetric.createTrendMetric(Interval.all, value, CountMetricFactory)
       }
-
-
     }
   }
-
-
 }
-
-
-
-
-

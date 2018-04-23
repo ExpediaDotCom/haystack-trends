@@ -2,10 +2,11 @@ package com.expedia.www.haystack.trends.kstream.serde.metric
 
 import java.nio.ByteBuffer
 
+import com.expedia.www.haystack.commons.entities.Interval
+import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.aggregation.metrics.{HistogramMetric, Metric}
-import com.expedia.www.haystack.trends.entities.Interval
-import com.expedia.www.haystack.trends.entities.Interval.Interval
-import org.HdrHistogram.IntHistogram
+import com.expedia.www.haystack.trends.config.ProjectConfiguration
+import org.HdrHistogram.Histogram
 import org.msgpack.core.MessagePack
 import org.msgpack.value.{Value, ValueFactory}
 
@@ -39,7 +40,6 @@ object HistogramMetricSerde extends MetricSerde {
     val metric = MessagePack.newDefaultUnpacker(data).unpackValue().asMapValue().map()
     val serializedHistogram = metric.get(ValueFactory.newString(intHistogramKey)).asBinaryValue().asByteArray
     val interval: Interval = Interval.fromName(metric.get(ValueFactory.newString(intervalKey)).asStringValue().toString)
-    new HistogramMetric(interval, IntHistogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), Int.MaxValue))
+    new HistogramMetric(interval, Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), ProjectConfiguration.histogramMaxValue))
   }
-
 }

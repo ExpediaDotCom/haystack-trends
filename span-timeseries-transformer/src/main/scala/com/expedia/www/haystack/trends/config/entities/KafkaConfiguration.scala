@@ -17,8 +17,8 @@
 package com.expedia.www.haystack.trends.config.entities
 
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 /**
   * @param streamsConfig      config object to be used for initializing KafkaStreams

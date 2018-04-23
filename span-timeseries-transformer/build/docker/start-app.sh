@@ -10,6 +10,9 @@ JAVA_OPTS="${JAVA_OPTS} \
 -XX:+UseParNewGC \
 -Xmx${JAVA_XMX} \
 -Xms${JAVA_XMS} \
+-Dcom.sun.management.jmxremote.authenticate=false \
+-Dcom.sun.management.jmxremote.ssl=false \
+-Dcom.sun.management.jmxremote.port=1098 \
 -Dapplication.name=${APP_NAME} \
 -Dapplication.home=${APP_HOME}"
 

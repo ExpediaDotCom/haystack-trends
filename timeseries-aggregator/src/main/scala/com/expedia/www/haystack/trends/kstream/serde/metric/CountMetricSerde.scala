@@ -1,8 +1,8 @@
 package com.expedia.www.haystack.trends.kstream.serde.metric
 
+import com.expedia.www.haystack.commons.entities.Interval
+import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, Metric}
-import com.expedia.www.haystack.trends.entities.Interval
-import com.expedia.www.haystack.trends.entities.Interval.Interval
 import org.msgpack.core.MessagePack
 import org.msgpack.value.{Value, ValueFactory}
 
@@ -24,7 +24,7 @@ object CountMetricSerde extends MetricSerde {
     val packer = MessagePack.newDefaultBufferPacker()
     val metricData = Map[Value, Value](
       ValueFactory.newString(currentCountKey) -> ValueFactory.newInteger(countMetric.getCurrentCount),
-      ValueFactory.newString(intervalKey) -> ValueFactory.newString(metric.getMetricInterval.name)
+      ValueFactory.newString(intervalKey) -> ValueFactory.newString(countMetric.getMetricInterval.name)
     )
     packer.packValue(ValueFactory.newMap(metricData.asJava))
     packer.toByteArray
