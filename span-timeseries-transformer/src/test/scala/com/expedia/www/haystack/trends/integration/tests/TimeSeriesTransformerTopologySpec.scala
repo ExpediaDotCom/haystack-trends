@@ -22,10 +22,12 @@ import java.util.UUID
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.health.HealthStatusController
+import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
-import com.expedia.www.haystack.trends.{MetricPointGenerator, StreamTopology}
+import com.expedia.www.haystack.trends.{MetricPointGenerator, Streams}
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
@@ -49,10 +51,14 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val spans = generateSpans(traceId, spanId, duration, errorFlag, 10000, 8)
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
       val transformerConfig = TransformerConfiguration(encoder = new PeriodReplacementEncoder, enableMetricPointServiceLevelGeneration = true, List())
+      val streams = new Streams(kafkaConfig, transformerConfig)
+      val factory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+      val streamsRunner = new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
+
 
       When("spans with duration and error=false are produced in 'input' topic, and kafka-streams topology is started")
       produceSpansAsync(10.millis, spans)
-      new StreamTopology(kafkaConfig, transformerConfig).start()
+      streamsRunner.start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
       val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints

@@ -16,7 +16,14 @@
  */
 package com.expedia.www.haystack.trends.feature
 
+import java.util.Properties
+
 import com.expedia.open.tracing.Span
+import com.expedia.www.haystack.commons.entities.encoders.Base64Encoder
+import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
+import org.apache.kafka.streams.StreamsConfig
+import org.easymock.EasyMock
 import org.scalatest.easymock.EasyMockSugar
 import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
@@ -30,5 +37,23 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
       .setOperationName(operationName)
       .setServiceName(serviceName)
       .build()
+  }
+
+  protected def mockAppConfig: AppConfiguration = {
+    val kafkaConsumeTopic = "test-consume"
+    val kafkaProduceTopic = "test-produce"
+    val streamsConfig = new Properties()
+    streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
+    streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "test-kafka-broker")
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), kafkaProduceTopic, kafkaConsumeTopic, null, null, 0l)
+    val transformerConfig = TransformerConfiguration(new Base64Encoder, enableMetricPointServiceLevelGeneration = true, List())
+    val appConfiguration = mock[AppConfiguration]
+
+    expecting {
+      appConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
+      appConfiguration.transformerConfiguration.andReturn(transformerConfig).anyTimes()
+    }
+    EasyMock.replay(appConfiguration)
+    appConfiguration
   }
 }
