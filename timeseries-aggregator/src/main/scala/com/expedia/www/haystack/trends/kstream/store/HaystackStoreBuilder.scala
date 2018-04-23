@@ -5,7 +5,6 @@ import java.util
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 import org.apache.kafka.common.serialization.Serdes.StringSerde
-import org.apache.kafka.streams.state.internals.{InMemoryKeyValueLoggedStore, InMemoryLRUCacheStoreSupplier, MemoryNavigableLRUCache}
 import org.apache.kafka.streams.state.{KeyValueStore, StoreBuilder}
 
 import scala.collection.JavaConverters._
