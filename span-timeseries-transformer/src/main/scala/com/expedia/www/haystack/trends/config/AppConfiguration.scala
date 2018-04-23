@@ -28,7 +28,7 @@ import org.apache.kafka.streams.processor.TimestampExtractor
 
 import scala.collection.JavaConverters._
 
-class ProjectConfiguration {
+class AppConfiguration {
   private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
 
   val healthStatusFilePath: String = config.getString("health.status.path")

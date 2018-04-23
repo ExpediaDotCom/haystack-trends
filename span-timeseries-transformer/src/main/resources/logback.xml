@@ -21,15 +21,7 @@
         <appender-ref ref="STDOUT" />
     </appender>
 
-    <appender name="EmitToGraphiteLogbackAppender"
-              class="com.expedia.www.haystack.metrics.appenders.logback.EmitToGraphiteLogbackAppender">
-        <host>${HAYSTACK_GRAPHITE_HOST}</host>
-        <port>${HAYSTACK_GRAPHITE_PORT}</port>
-        <subsystem>span-transformer</subsystem>
-    </appender>
-
     <root level="${HAYSTACK_LOG_LEVEL:-INFO}">
         <appender-ref ref="ASYNC"/>
-        <appender-ref ref="EmitToGraphiteLogbackAppender" />
     </root>
 </configuration>
