@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.aggregation.metrics.{HistogramMetric, Metric}
-import com.expedia.www.haystack.trends.config.AppConfiguration$
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import org.HdrHistogram.Histogram
 import org.msgpack.core.MessagePack
 import org.msgpack.value.{Value, ValueFactory}

@@ -19,7 +19,6 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
-import com.expedia.www.haystack.trends.kstream.StreamTopology
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
 import org.scalatest.Sequential

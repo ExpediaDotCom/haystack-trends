@@ -24,7 +24,7 @@ import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.MetricFactory
-import com.expedia.www.haystack.trends.config.AppConfiguration$
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import org.slf4j.LoggerFactory
 
 import scala.util.Try

@@ -18,7 +18,7 @@
 package com.expedia.www.haystack.trends.feature.tests.config
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
-import com.expedia.www.haystack.trends.config.AppConfiguration$
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class ConfigurationLoaderSpec extends FeatureSpec {

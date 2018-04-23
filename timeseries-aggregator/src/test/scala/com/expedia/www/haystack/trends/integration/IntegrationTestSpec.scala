@@ -27,12 +27,12 @@ import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, Strea
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
-import com.expedia.www.haystack.trends.kstream.StreamTopology
+import com.expedia.www.haystack.trends.kstream.Streams
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.{EmbeddedKafkaCluster, IntegrationTestUtils}
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import org.easymock.EasyMock
@@ -98,7 +98,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def afterEach(): Unit = {
-    embeddedKafkaCluster.deleteTopicsAndWait(INPUT_TOPIC, OUTPUT_TOPIC)
+    embeddedKafkaCluster.deleteTopics(INPUT_TOPIC, OUTPUT_TOPIC)
   }
 
   def currentTimeInSecs: Long = {
@@ -184,7 +184,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
   protected def createStreamRunner(): StreamsRunner = {
     val appConfig = mockAppConfig
-    val streams = new StreamTopology(appConfig)
+    val streams = new Streams(appConfig)
     val factory = new StreamsFactory(streams, appConfig.kafkaConfig.streamsConfig, Some(appConfig.kafkaConfig.consumeTopic))
     new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
 

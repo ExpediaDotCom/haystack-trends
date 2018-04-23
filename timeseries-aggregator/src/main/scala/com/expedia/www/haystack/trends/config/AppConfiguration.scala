@@ -21,14 +21,15 @@ import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
+import com.expedia.www.haystack.commons.kstreams.MetricPointTimestampExtractor
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
 import org.apache.kafka.streams.StreamsConfig
+import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
-import org.apache.kafka.streams.processor.TopologyBuilder.AutoOffsetReset
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
@@ -37,6 +38,10 @@ class AppConfiguration {
   private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
 
   val healthStatusFilePath: String = config.getString("health.status.path")
+  private val kafka = config.getConfig("kafka")
+  private val producerConfig = kafka.getConfig("producer")
+  private val consumerConfig = kafka.getConfig("consumer")
+  private val streamsConfig = kafka.getConfig("streams")
 
   /**
     *
@@ -86,6 +91,7 @@ class AppConfiguration {
   def stateStoreCacheSize: Int = {
     config.getInt("statestore.cache.size")
   }
+
 
   /**
     *
@@ -140,10 +146,15 @@ class AppConfiguration {
       }
     }
 
-    val kafka = config.getConfig("kafka")
-    val producerConfig = kafka.getConfig("producer")
-    val consumerConfig = kafka.getConfig("consumer")
-    val streamsConfig = kafka.getConfig("streams")
+    /**
+      *
+      * @return returns the kafka autoreset configuration
+      */
+    def getKafkaAutoReset: AutoOffsetReset = {
+      if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
+      else AutoOffsetReset.LATEST
+    }
+
 
     val props = new Properties
     // add stream specific properties
@@ -151,18 +162,25 @@ class AppConfiguration {
     // validate props
     verifyRequiredProps(props)
 
-    val timestampExtractor = Class.forName(props.getProperty("timestamp.extractor",
-      "org.apache.kafka.streams.processor.WallclockTimestampExtractor"))
+    val timestampExtractor = Option(props.getProperty("timestamp.extractor")) match {
+      case Some(timeStampExtractorClass) =>
+        Class.forName(timeStampExtractorClass).newInstance().asInstanceOf[TimestampExtractor]
+      case None =>
+        new MetricPointTimestampExtractor
+    }
+
+    //set timestamp extractor
+    props.setProperty("timestamp.extractor", timestampExtractor.getClass.getName)
 
     KafkaConfiguration(
       new StreamsConfig(props),
       producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")),
       consumeTopic = consumerConfig.getString("topic"),
-      if (streamsConfig.hasPath("auto.offset.reset")) AutoOffsetReset.valueOf(streamsConfig.getString("auto.offset.reset").toUpperCase)
-      else AutoOffsetReset.LATEST
-      , timestampExtractor.newInstance().asInstanceOf[TimestampExtractor],
+      getKafkaAutoReset,
+      timestampExtractor,
       kafka.getLong("close.timeout.ms"))
   }
+
 }
 
 object AppConfiguration extends AppConfiguration
