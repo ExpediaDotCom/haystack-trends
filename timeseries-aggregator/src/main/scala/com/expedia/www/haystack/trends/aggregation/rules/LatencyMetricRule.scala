@@ -1,6 +1,6 @@
 /*
  *
- *     Copyright 2017 Expedia, Inc.
+ *     Copyright 2018 Expedia, Inc.
  *
  *      Licensed under the Apache License, Version 2.0 (the "License");
  *      you may not use this file except in compliance with the License.
@@ -18,19 +18,19 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
+import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
-
 /**
-  * This Metric Rule engine applies all the metric rules it extends from right to left(http://jim-mcbeath.blogspot.in/2009/08/scala-class-linearization.html).
-  * it returns None if none of the rules are applicable.
-  * to add another rule, create a rule trait and add it to the with clause in the engine.
-  * If multiple rules match the rightmost rule is applied
+  * This Rule applies a Histogram aggregation type when the incoming metric point's name is latency and is of type gauge
   */
-trait MetricRuleEngine extends LatencyMetricRule with DurationMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
-
-  def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {
-    isMatched(metricPoint)
+trait LatencyMetricRule extends MetricRule {
+  override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
+    if (metricPoint.metric.toLowerCase.contains("latency") && metricPoint.`type`.equals(MetricType.Gauge)) {
+      Some(AggregationType.Histogram)
+    } else {
+      super.isMatched(metricPoint)
+    }
   }
 }
