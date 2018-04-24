@@ -11,7 +11,7 @@ combination `service_name` and `operation_name` contained in the spans (refer to
 3. failure_count `[1min, 5min, 15min, 1hour]`
 4. duration `[mean, median, std-dev, 99 percentile, 95 percentile]`
 
-> 2 and 3 would only work if the error tag is present in the span.
+> *Note:* If an error tag is present and has a value of true, then the span will be treated as a failure. In all other scenarios, it will be treated as a success. 
 
 More trends can be computed by adding a [transformer](https://github.com/ExpediaDotCom/haystack-trends/tree/master/span-timeseries-transformer/src/main/scala/com/expedia/www/haystack/trends/transformer)
 to create the metric point and adding an [aggregation-rule](https://github.com/ExpediaDotCom/haystack-trends/tree/master/timeseries-aggregator/src/main/scala/com/expedia/www/haystack/trends/aggregation/rules) for it
