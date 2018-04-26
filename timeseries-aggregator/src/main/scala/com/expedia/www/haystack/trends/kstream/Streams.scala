@@ -68,14 +68,14 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
         TOPOLOGY_EXTERNAL_SINK_NAME,
         new ExternalKafkaProcessorSupplier(appConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+    } else {
+      topology.addSink(
+        TOPOLOGY_INTERNAL_SINK_NAME,
+        appConfiguration.kafkaConfig.producerConfig.topic,
+        new StringSerializer,
+        metricTankSerde.serializer(),
+        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
-
-    topology.addSink(
-      TOPOLOGY_INTERNAL_SINK_NAME,
-      appConfiguration.kafkaConfig.producerConfig.topic,
-      new StringSerializer,
-      metricTankSerde.serializer(),
-      TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     topology
   }
 
