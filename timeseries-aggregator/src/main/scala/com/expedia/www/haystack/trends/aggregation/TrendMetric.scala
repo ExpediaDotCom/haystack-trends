@@ -67,7 +67,7 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     }
 
     // check whether time to log to state store
-    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > AppConfiguration.loggingDelayInSeconds) {
+    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > AppConfiguration.stateStoreConfig.changeLogDelayInSecs) {
       currentEpochTimeInSec = incomingMetricPoint.epochTimeInSeconds
       shouldLog = true
     }

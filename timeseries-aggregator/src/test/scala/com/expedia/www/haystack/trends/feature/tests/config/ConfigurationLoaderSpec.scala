@@ -85,9 +85,9 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       val projectConfig = new AppConfiguration()
 
       Then("It should create the write configuration object based on the file contents")
-      val stateStoreConfigs = projectConfig.stateStoreConfig
-      projectConfig.enableStateStoreLogging shouldBe true
-      projectConfig.loggingDelayInSeconds shouldBe 60
+      val stateStoreConfigs = projectConfig.stateStoreConfig.changeLogTopicConfiguration
+      projectConfig.stateStoreConfig.enableChangeLogging shouldBe true
+      projectConfig.stateStoreConfig.changeLogDelayInSecs shouldBe 60
       stateStoreConfigs("cleanup.policy") shouldBe "compact,delete"
       stateStoreConfigs("retention.ms") shouldBe "14400000"
     }

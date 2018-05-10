@@ -23,7 +23,7 @@ import com.expedia.www.haystack.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
 import com.expedia.www.haystack.commons.kstreams.MetricPointTimestampExtractor
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
-import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
+import com.expedia.www.haystack.trends.config.entities.{HistogramMetricConfiguration, KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
@@ -32,7 +32,6 @@ import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
 
 class AppConfiguration {
   private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
@@ -43,21 +42,6 @@ class AppConfiguration {
   private val consumerConfig = kafka.getConfig("consumer")
   private val streamsConfig = kafka.getConfig("streams")
 
-  /**
-    *
-    * @return delay in logging to state store
-    */
-  def loggingDelayInSeconds: Long = {
-    config.getLong("statestore.logging.delay.seconds")
-  }
-
-  /**
-    *
-    * @return whether logging for state store is enabled
-    */
-  def enableStateStoreLogging: Boolean = {
-    config.getBoolean("statestore.enable.logging")
-  }
 
   /**
     *
@@ -68,41 +52,37 @@ class AppConfiguration {
     EncoderFactory.newInstance(encoderType)
   }
 
-  /**
-    *
-    * @return max allowable value for a histogram metric
-    */
-  def histogramMaxValue: Int = {
-    config.getInt("histogram.max.value")
-  }
 
   /**
     *
-    * @return allowable precision of histogram must be 0 <= value <= 5
+    * @return configurations specific to creating HDR histogram objects
     */
-  def histogramPrecision: Int = {
-    config.getInt("histogram.precision")
+  def histogramMetricConfiguration: HistogramMetricConfiguration = {
+    HistogramMetricConfiguration(config.getInt("histogram.precision"), config.getInt("histogram.max.value"))
   }
-
-  /**
-    *
-    * @return whether period in metric point service & operation name needs to be replaced
-    */
-  def stateStoreCacheSize: Int = {
-    config.getInt("statestore.cache.size")
-  }
-
 
   /**
     *
     * @return state store stream config while aggregating
     */
-  def stateStoreConfig: Map[String, String] = {
+  def stateStoreConfig: StateStoreConfiguration = {
+
     val stateStoreConfigs = config.getConfig("state.store")
-    if (stateStoreConfigs.isEmpty) {
-      new HashMap[String, String]
+
+
+    val cacheSize = stateStoreConfigs.getInt("cache.size")
+    val enableChangeLog = stateStoreConfigs.getBoolean("enable.logging")
+    val changeLogDelayInSecs = stateStoreConfigs.getInt("logging.delay.seconds")
+
+    val changeLogTopicConfiguration = if (stateStoreConfigs.getConfig("changelog.topic").isEmpty) {
+      Map[String, String]()
+    } else {
+      stateStoreConfigs.getConfig("changelog.topic").entrySet().asScala.map(entry => entry.getKey -> entry.getValue.unwrapped().toString).toMap
     }
-    stateStoreConfigs.entrySet().asScala.map(entry => entry.getKey -> entry.getValue.unwrapped().toString).toMap
+
+    StateStoreConfiguration(cacheSize, enableChangeLog, changeLogDelayInSecs, changeLogTopicConfiguration)
+
+
   }
 
   /**
@@ -184,3 +164,5 @@ class AppConfiguration {
 }
 
 object AppConfiguration extends AppConfiguration
+
+

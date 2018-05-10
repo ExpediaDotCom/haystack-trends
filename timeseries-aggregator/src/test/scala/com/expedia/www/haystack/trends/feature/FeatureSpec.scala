@@ -20,7 +20,7 @@ import java.util.Properties
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
@@ -48,9 +48,7 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
     expecting {
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
       projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder).anyTimes()
-      projectConfiguration.enableStateStoreLogging.andReturn(false).anyTimes()
-      projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
-      projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
+      projectConfiguration.stateStoreConfig.andReturn(StateStoreConfiguration(128, false, 60, Map())).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration

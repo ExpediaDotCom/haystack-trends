@@ -40,6 +40,6 @@ object HistogramMetricSerde extends MetricSerde {
     val metric = MessagePack.newDefaultUnpacker(data).unpackValue().asMapValue().map()
     val serializedHistogram = metric.get(ValueFactory.newString(intHistogramKey)).asBinaryValue().asByteArray
     val interval: Interval = Interval.fromName(metric.get(ValueFactory.newString(intervalKey)).asStringValue().toString)
-    new HistogramMetric(interval, Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), AppConfiguration.histogramMaxValue))
+    new HistogramMetric(interval, Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), AppConfiguration.histogramMetricConfiguration.maxValue))
   }
 }

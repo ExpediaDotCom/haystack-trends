@@ -43,13 +43,16 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
   private val kafkaConfig = appConfiguration.kafkaConfig
   private val metricTankSerde = new MetricTankSerde(appConfiguration.encoder)
 
-  private var inMemoryCache = Map[String, TrendMetric]()
-
-
   private def initialize(topology: Topology): Topology = {
 
     //add source - topic where the raw metricpoints are pushed by the span-timeseries-transformer
-    addSource(TOPOLOGY_SOURCE_NAME, topology)
+    topology.addSource(
+      kafkaConfig.autoOffsetReset,
+      TOPOLOGY_SOURCE_NAME,
+      kafkaConfig.timestampExtractor,
+      new StringDeserializer,
+      metricTankSerde.deserializer(),
+      kafkaConfig.consumeTopic)
 
 
     //The processor which performs aggregations on the metrics
@@ -76,29 +79,20 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
         metricTankSerde.serializer(),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
+
     topology
-  }
-
-
-  private def addSource(stepName: String, topology: Topology): Unit = {
-    //add a source
-    topology.addSource(
-      kafkaConfig.autoOffsetReset,
-      stepName,
-      kafkaConfig.timestampExtractor,
-      new StringDeserializer,
-      metricTankSerde.deserializer(),
-      kafkaConfig.consumeTopic)
   }
 
 
   private def createTrendMetricStateStore(): StoreBuilder[KeyValueStore[String, TrendMetric]] = {
 
-    val storeBuilder = new HaystackStoreBuilder(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, appConfiguration.stateStoreCacheSize)
+    val stateStoreConfiguration = appConfiguration.stateStoreConfig
 
-    if (appConfiguration.enableStateStoreLogging) {
+    val storeBuilder = new HaystackStoreBuilder(TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME, stateStoreConfiguration.stateStoreCacheSize)
+
+    if (stateStoreConfiguration.enableChangeLogging) {
       storeBuilder
-        .withLoggingEnabled(JavaConverters.mapAsJavaMap(appConfiguration.stateStoreConfig))
+        .withLoggingEnabled(JavaConverters.mapAsJavaMap(stateStoreConfiguration.changeLogTopicConfiguration))
 
     } else {
       storeBuilder
