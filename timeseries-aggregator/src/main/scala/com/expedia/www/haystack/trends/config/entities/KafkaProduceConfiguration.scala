@@ -19,4 +19,10 @@ package com.expedia.www.haystack.trends.config.entities
 
 import java.util.Properties
 
+/**
+  *This configuration specifies if the stream topology writes the aggregated metrics to an external kafka cluster
+  * @param topic - external topic
+  * @param props - Kafka producer configuration
+  * @param enableExternalKafka - enable/disable external kafka sink
+  */
 case class KafkaProduceConfiguration(topic: String, props: Option[Properties], enableExternalKafka: Boolean)

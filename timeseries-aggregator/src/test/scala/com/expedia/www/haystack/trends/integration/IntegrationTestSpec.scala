@@ -26,7 +26,7 @@ import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
 import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration}
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import com.expedia.www.haystack.trends.kstream.Streams
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -114,11 +114,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
     expecting {
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
-      projectConfiguration.stateStoreConfig.andReturn(stateStoreConfigs).anyTimes()
+      projectConfiguration.stateStoreConfig.andReturn(StateStoreConfiguration(128, enableChangeLogging = true, 60, stateStoreConfigs)).anyTimes()
       projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder).anyTimes()
-      projectConfiguration.enableStateStoreLogging.andReturn(true).anyTimes()
-      projectConfiguration.loggingDelayInSeconds.andReturn(60).anyTimes()
-      projectConfiguration.stateStoreCacheSize.andReturn(128).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration

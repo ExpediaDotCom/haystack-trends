@@ -61,7 +61,7 @@ class TrendMetricSerdeSpec extends FeatureSpec {
           windowedMetric.windowedMetricsMap.map {
             case (timeWindow, metric) =>
               val histogram = metric.asInstanceOf[HistogramMetric]
-              val deserializedHistogram = deserializedMetric.trendMetricsMap(interval).windowedMetricsMap.get(timeWindow).get.asInstanceOf[HistogramMetric]
+              val deserializedHistogram = deserializedMetric.trendMetricsMap(interval).windowedMetricsMap(timeWindow).asInstanceOf[HistogramMetric]
               histogram.getMetricInterval shouldEqual deserializedHistogram.getMetricInterval
               histogram.getRunningHistogram shouldEqual deserializedHistogram.getRunningHistogram
           }

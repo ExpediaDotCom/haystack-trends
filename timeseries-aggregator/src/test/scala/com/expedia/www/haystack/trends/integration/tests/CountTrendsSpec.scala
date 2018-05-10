@@ -44,7 +44,7 @@ class CountTrendsSpec extends IntegrationTestSpec {
       val expectedFiveMinAggregatedPoints: Int = (MAX_METRICPOINTS / 5) - numberOfWatermarkedWindows
       val expectedFifteenMinAggregatedPoints: Int = (MAX_METRICPOINTS / 15)
       val expectedOneHourAggregatedPoints: Int = (MAX_METRICPOINTS / 60)
-      val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints - 1
+      val expectedTotalAggregatedPoints: Int = expectedOneMinAggregatedPoints + expectedFiveMinAggregatedPoints + expectedFifteenMinAggregatedPoints + expectedOneHourAggregatedPoints
       val streamsRunner = createStreamRunner()
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")

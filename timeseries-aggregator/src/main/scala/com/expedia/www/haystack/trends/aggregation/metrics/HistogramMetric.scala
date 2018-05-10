@@ -37,7 +37,7 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
 
   private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
 
-  def this(interval: Interval) = this(interval, new Histogram(AppConfiguration.histogramMaxValue, AppConfiguration.histogramPrecision))
+  def this(interval: Interval) = this(interval, new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue, AppConfiguration.histogramMetricConfiguration.precision))
 
 
   override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
