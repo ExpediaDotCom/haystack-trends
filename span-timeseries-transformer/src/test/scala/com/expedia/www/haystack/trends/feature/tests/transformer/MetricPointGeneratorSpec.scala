@@ -25,16 +25,16 @@ import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.{SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer}
 
+import scala.util.matching.Regex
+
 
 class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
-
 
   private def getMetricPointTransformers = {
     List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer)
   }
 
   feature("The metricPoint generator must generate metricPoints given a span object") {
-
 
     scenario("any valid span object") {
       val operationName = "testSpan"
@@ -91,6 +91,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       Then("It should return a metricPoint validation exception")
       metricPoints.isFailure shouldBe true
       metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
+      metricRegistry.meter("span.validation.failure").getCount shouldBe 1
     }
 
     scenario("a span object with a valid service Name") {
@@ -129,11 +130,40 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List(blacklistedServiceName))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex(blacklistedServiceName)))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("It should return a metricPoint validation exception")
       metricPoints.isFailure shouldBe true
       metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
+      metricRegistry.meter("span.validation.black.listed").getCount shouldBe 1
+    }
+
+    scenario("a span object with a blacklisted regex service Name") {
+      val serviceName = "testService"
+
+      Given("a valid span with a blacklisted service name")
+      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName("testSpan").setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false)).build()
+
+      When("its asked to map to metricPoints")
+      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("^[a-z]*$")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+
+      Then("It should return a metricPoint")
+      metricPoints.isFailure shouldBe false
+    }
+
+    scenario("a span object with a non-blacklisted regex service Name") {
+      val serviceName = "testservice"
+
+      Given("a valid span with a blacklisted service name")
+      val span = Span.newBuilder().setDuration(System.currentTimeMillis()).setOperationName("testSpan").setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false)).build()
+
+      When("its asked to map to metricPoints")
+      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("[a-z]*")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+
+      Then("It should return a metricPoint validation exception")
+      metricPoints.isFailure shouldBe true
     }
   }
 }

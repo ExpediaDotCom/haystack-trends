@@ -22,11 +22,13 @@ import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 
+import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 trait MetricPointGenerator extends MetricsSupport {
 
   private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
+  private val BlackListedSpans = metricRegistry.meter("span.validation.black.listed")
   private val metricPointGenerationTimer = metricRegistry.timer("metricpoint.generation.time")
 
   /**
@@ -37,7 +39,7 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
-  def generateMetricPoints(blacklistedServices: List[String])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): Try[List[MetricPoint]] = {
+  def generateMetricPoints(blacklistedServices: List[Regex])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): Try[List[MetricPoint]] = {
     val context = metricPointGenerationTimer.time()
     val metricPoints = {
       validate(blacklistedServices)(span).map { validatedSpan =>
@@ -56,19 +58,17 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span incoming span
     * @return Try object which should return either the span as is or a validation exception
     */
-  private def validate(blackListedServices: List[String])(span: Span): Try[Span] = {
-    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty || blackListedServices.contains(span.getServiceName)) {
+  private def validate(blackListedServices: List[Regex])(span: Span): Try[Span] = {
+    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       SpanValidationErrors.mark()
+      Failure(new SpanValidationException)
+    } else if (blackListedServices.collectFirst {
+      case regexp if regexp.pattern.matcher(span.getServiceName).find() => span.getServiceName
+    }.isDefined) {
+      BlackListedSpans.mark()
       Failure(new SpanValidationException)
     } else {
       Success(span)
     }
-
   }
-
 }
-
-
-
-
-

@@ -18,10 +18,12 @@ package com.expedia.www.haystack.trends.config.entities
 
 import com.expedia.www.haystack.commons.entities.encoders.Encoder
 
+import scala.util.matching.Regex
+
 /**
   * @param encoder                                 config for encoder type in metric point key
   * @param enableMetricPointServiceLevelGeneration config for also generating service level trends
   */
 case class TransformerConfiguration(encoder: Encoder,
                                     enableMetricPointServiceLevelGeneration: Boolean,
-                                    blacklistedServices: List[String])
+                                    blacklistedServices: List[Regex])

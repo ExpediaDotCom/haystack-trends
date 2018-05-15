@@ -27,6 +27,7 @@ import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.TimestampExtractor
 
 import scala.collection.JavaConverters._
+import scala.util.matching.Regex
 
 class AppConfiguration {
   private val config = ConfigurationLoader.loadConfigFileWithEnvOverrides()
@@ -41,7 +42,7 @@ class AppConfiguration {
     val encoderType = config.getString("metricpoint.encoder.type")
     TransformerConfiguration(EncoderFactory.newInstance(encoderType),
       config.getBoolean("enable.metricpoint.service.level.generation"),
-      config.getStringList("blacklist.services").asScala.toList
+      config.getStringList("blacklist.services").asScala.toList.map(x => new Regex(x))
     )
   }
 
