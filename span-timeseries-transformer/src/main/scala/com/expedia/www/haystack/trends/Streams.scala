@@ -46,7 +46,6 @@ class Streams(kafkaConfig: KafkaConfiguration, transformerConfiguration: Transfo
 
   private def mapToMetricPointKeyValue(span: Span): java.util.List[KeyValue[String, MetricPoint]] = {
     generateMetricPoints(transformerConfiguration.blacklistedServices)(MetricPointTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration)
-      .getOrElse(Nil)
       .map {
         metricPoint => new KeyValue(metricPoint.getMetricPointKey(transformerConfiguration.encoder), metricPoint)
       }.asJava

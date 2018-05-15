@@ -21,7 +21,6 @@ import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.entities.{MetricType, TagKeys}
 import com.expedia.www.haystack.trends.MetricPointGenerator
-import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 import com.expedia.www.haystack.trends.transformer.{SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer}
 
@@ -48,7 +47,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, true).getOrElse(List())
+      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, true)
 
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
       metricPoints should not be empty
@@ -89,8 +88,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = true)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints.isFailure shouldBe true
-      metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
+      metricPoints shouldBe empty
       metricRegistry.meter("span.validation.failure").getCount shouldBe 1
     }
 
@@ -110,8 +108,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("it should create metricPoints with service name as one its keys")
-      metricPoints.isFailure shouldEqual false
-      metricPoints.get.map(metricPoint => {
+      metricPoints.map(metricPoint => {
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) should not be None
         metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) shouldEqual Some(serviceName)
       })
@@ -133,8 +130,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex(blacklistedServiceName)))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints.isFailure shouldBe true
-      metricPoints.failed.get.isInstanceOf[SpanValidationException] shouldBe true
+      metricPoints shouldBe empty
       metricRegistry.meter("span.validation.black.listed").getCount shouldBe 1
     }
 
@@ -149,7 +145,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("^[a-z]*$")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("It should return a metricPoint")
-      metricPoints.isFailure shouldBe false
+      metricPoints should not be empty
     }
 
     scenario("a span object with a non-blacklisted regex service Name") {
@@ -163,7 +159,7 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
       val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("[a-z]*")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints.isFailure shouldBe true
+      metricPoints shouldBe empty
     }
   }
 }
