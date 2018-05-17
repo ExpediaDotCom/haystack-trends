@@ -19,14 +19,14 @@ package com.expedia.www.haystack.trends
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.exceptions.SpanValidationException
 import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
 
-import scala.util.{Failure, Success, Try}
+import scala.util.matching.Regex
 
 trait MetricPointGenerator extends MetricsSupport {
 
   private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
+  private val BlackListedSpans = metricRegistry.meter("span.validation.black.listed")
   private val metricPointGenerationTimer = metricRegistry.timer("metricpoint.generation.time")
 
   /**
@@ -37,17 +37,20 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
-  def generateMetricPoints(blacklistedServices: List[String])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): Try[List[MetricPoint]] = {
+  def generateMetricPoints(blacklistedServices: List[Regex])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
     val context = metricPointGenerationTimer.time()
-    val metricPoints = {
-      validate(blacklistedServices)(span).map { validatedSpan =>
-        transformers.flatMap(transformer => transformer.mapSpan(validatedSpan, serviceOnlyFlag)).toList
-      }
-    }
+    val metricPoints = getMetricPoints(span, blacklistedServices, transformers, serviceOnlyFlag)
     context.close()
     metricPoints
   }
 
+  def getMetricPoints(span: Span, blacklistedServices: List[Regex], transformers: Seq[MetricPointTransformer], serviceOnlyFlag: Boolean): List[MetricPoint] = {
+    if (isValidSpan(blacklistedServices, span)) {
+      transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag)).toList
+    } else {
+      List[MetricPoint]()
+    }
+  }
   /**
     * This function validates a span and makes sure that the span has the necessary data to generate meaningful metrics
     * This layer is supposed to do generic validations which would impact all the transformers.
@@ -56,19 +59,17 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span incoming span
     * @return Try object which should return either the span as is or a validation exception
     */
-  private def validate(blackListedServices: List[String])(span: Span): Try[Span] = {
-    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty || blackListedServices.contains(span.getServiceName)) {
+  def isValidSpan(blackListedServices: List[Regex], span: Span): Boolean = {
+    if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       SpanValidationErrors.mark()
-      Failure(new SpanValidationException)
+      false
+    } else if (blackListedServices.collectFirst {
+      case regexp if regexp.pattern.matcher(span.getServiceName).find() => span.getServiceName
+    }.isDefined) {
+      BlackListedSpans.mark()
+      false
     } else {
-      Success(span)
+      true
     }
-
   }
-
 }
-
-
-
-
-

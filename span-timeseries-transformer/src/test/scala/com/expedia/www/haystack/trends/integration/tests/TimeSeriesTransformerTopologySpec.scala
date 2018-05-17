@@ -61,7 +61,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       streamsRunner.start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true).getOrElse(List())) // directly call transformers to get metricPoints
+      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true)) // directly call transformers to get metricPoints
       metricPoints.size shouldBe (spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
 
       val records: List[KeyValue[String, MetricPoint]] =
