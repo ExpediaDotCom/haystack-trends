@@ -9,7 +9,7 @@ import com.expedia.www.haystack.trends.kstream.serde.WindowedMetricSerde
 class WindowedMetricSerdeSpec extends FeatureSpec {
 
   val DURATION_METRIC_NAME = "duration"
-  val TOTAL_METRIC_NAME = "total-spans"
+  val SUCCESS_METRIC_NAME = "success-spans"
   val SERVICE_NAME = "dummy_service"
   val TOPIC_NAME = "dummy"
   val OPERATION_NAME = "dummy_operation"
@@ -49,7 +49,7 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
 
       Given("some count Metric points")
       val counts: List[Long] = List(10, 140)
-      val metricPoints: List[MetricPoint] = counts.map(count => MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, count, currentTimeInSecs))
+      val metricPoints: List[MetricPoint] = counts.map(count => MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, count, currentTimeInSecs))
 
 
       When("creating a WindowedMetric and passing some MetricPoints and aggregation type as Count")
