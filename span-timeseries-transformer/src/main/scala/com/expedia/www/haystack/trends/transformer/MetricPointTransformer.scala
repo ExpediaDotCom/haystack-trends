@@ -50,6 +50,6 @@ trait MetricPointTransformer extends MetricsSupport {
 }
 
 object MetricPointTransformer {
-  val allTransformers = List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer, SpanReceivedMetricPointTransformer)
+  val allTransformers = List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer)
 }
 

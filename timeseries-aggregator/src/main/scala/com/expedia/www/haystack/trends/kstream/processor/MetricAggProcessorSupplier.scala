@@ -59,7 +59,6 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
 
       def get(key: String): TrendMetric = store.get(key)
     }
-
   }
 
   /**

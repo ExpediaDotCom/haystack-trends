@@ -28,7 +28,7 @@ import org.HdrHistogram.IntHistogram
 class HistogramMetricSpec extends FeatureSpec {
 
   val DURATION_METRIC_NAME = "duration"
-  val TOTAL_METRIC_NAME = "total-spans"
+  val SUCCESS_METRIC_NAME = "success-spans"
   val INVALID_METRIC_NAME = "invalid_metric"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"

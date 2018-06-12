@@ -28,7 +28,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.Aggre
   * to add another rule, create a rule trait and add it to the with clause in the engine.
   * If multiple rules match the rightmost rule is applied
   */
-trait MetricRuleEngine extends LatencyMetricRule with DurationMetricRule with FailureMetricRule with SuccessMetricRule with TotalMetricRule {
+trait MetricRuleEngine extends LatencyMetricRule with DurationMetricRule with FailureMetricRule with SuccessMetricRule {
 
   def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {
     isMatched(metricPoint)

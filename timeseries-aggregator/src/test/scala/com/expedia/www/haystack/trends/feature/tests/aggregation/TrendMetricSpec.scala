@@ -28,8 +28,6 @@ import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class TrendMetricSpec extends FeatureSpec {
 
-  val TOTAL_METRIC_NAME = "total-spans"
-  val INVALID_METRIC_NAME = "invalid_metric"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
   val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,

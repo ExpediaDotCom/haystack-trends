@@ -38,7 +38,7 @@ class StateStoreSpec extends IntegrationTestSpec {
 
     "have state store (change log) configuration be set by the topology" in {
       Given("a set of metricPoints with type metric and state store specific configurations")
-      val METRIC_NAME = "received-span"
+      val METRIC_NAME = "success-span"
       // CountMetric
       val streamsRunner = createStreamRunner()
 

@@ -27,7 +27,7 @@ import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde
 class TrendMetricSerdeSpec extends FeatureSpec {
 
   val DURATION_METRIC_NAME = "duration"
-  val TOTAL_METRIC_NAME = "total-spans"
+  val SUCCESS_METRIC_NAME = "success-spans"
   val SERVICE_NAME = "dummy_service"
   val TOPIC_NAME = "dummy"
   val OPERATION_NAME = "dummy_operation"
@@ -73,7 +73,7 @@ class TrendMetricSerdeSpec extends FeatureSpec {
       Given("some count Metric points")
       val counts: List[Long] = List(10, 140)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
-      val metricPoints: List[MetricPoint] = counts.map(count => MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, count, currentTime))
+      val metricPoints: List[MetricPoint] = counts.map(count => MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, count, currentTime))
 
 
       When("creating a TrendMetric and passing some MetricPoints and aggregation type as Count")
@@ -98,7 +98,7 @@ class TrendMetricSerdeSpec extends FeatureSpec {
             case (timeWindow, metric) =>
 
               val countMetric = metric.asInstanceOf[CountMetric]
-              val deserializedCountMetric = deserializedMetric.trendMetricsMap(interval).windowedMetricsMap.get(timeWindow).get.asInstanceOf[CountMetric]
+              val deserializedCountMetric = deserializedMetric.trendMetricsMap(interval).windowedMetricsMap(timeWindow).asInstanceOf[CountMetric]
               countMetric.getMetricInterval shouldEqual deserializedCountMetric.getMetricInterval
               countMetric.getCurrentCount shouldEqual deserializedCountMetric.getCurrentCount
           }
