@@ -9,7 +9,7 @@ import com.expedia.www.haystack.trends.feature.FeatureSpec
 class CountMetricSpec extends FeatureSpec {
 
   val DURATION_METRIC_NAME = "duration"
-  val TOTAL_METRIC_NAME = "total-spans"
+  val SUCCESS_METRIC_NAME = "success-spans"
   val INVALID_METRIC_NAME = "invalid_metric"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
@@ -23,9 +23,9 @@ class CountMetricSpec extends FeatureSpec {
     val interval: Interval = Interval.FIFTEEN_MINUTE
 
     val metricPoints = List(
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 2, currentTimeInSecs),
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 4, currentTimeInSecs),
-      MetricPoint(TOTAL_METRIC_NAME, MetricType.Gauge, keys, 5, currentTimeInSecs))
+      MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, 2, currentTimeInSecs),
+      MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, 4, currentTimeInSecs),
+      MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, 5, currentTimeInSecs))
 
 
     When("get metric is constructed")

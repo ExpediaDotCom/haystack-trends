@@ -37,7 +37,7 @@ class CountTrendsSpec extends IntegrationTestSpec {
     "aggregate count type metricPoints from input topic based on rules" in {
 
       Given("a set of metricPoints with type metric and kafka specific configurations")
-      val METRIC_NAME = "received-span"
+      val METRIC_NAME = "success-span"
       // CountMetric
       val expectedOneMinAggregatedPoints: Int = MAX_METRICPOINTS - numberOfWatermarkedWindows - 1
       // Why one less -> won't be generated for  last (MAX_METRICPOINTS * 60)th second metric point

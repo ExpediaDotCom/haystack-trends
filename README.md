@@ -3,13 +3,12 @@
 
 # Haystack Trends
 
-haystack-trends contains the required modules for trending the spans pushed to haystack. We currently plan to compute four trends for each 
+haystack-trends contains the required modules for trending the spans pushed to haystack. We currently plan to compute three trends for each 
 combination `service_name` and `operation_name` contained in the spans (refer to the [span schema](https://github.com/ExpediaDotCom/haystack-idl/blob/master/proto/span.proto) for details of the fields in the span  )
 
-1. total_count `[1min, 5min, 15min, 1hour]`
-2. success_count `[1min, 5min, 15min, 1hour]`
-3. failure_count `[1min, 5min, 15min, 1hour]`
-4. duration `[mean, median, std-dev, 99 percentile, 95 percentile]`
+1. success_count `[1min, 5min, 15min, 1hour]`
+2. failure_count `[1min, 5min, 15min, 1hour]`
+3. duration `[mean, median, std-dev, 99 percentile, 95 percentile]`
 
 > *Note:* If an error tag is present and has a value of true, then the span will be treated as a failure. In all other scenarios, it will be treated as a success. 
 
