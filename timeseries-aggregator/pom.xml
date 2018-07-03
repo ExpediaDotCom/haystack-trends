@@ -25,7 +25,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>haystack-timeseries-aggregator</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>${release.version}</version>
     <packaging>jar</packaging>
     <name>haystack-timeseries-aggregator</name>
     <description>scala module which aggregates timeseries metricpoints based on predefined rules</description>
@@ -33,7 +33,7 @@
     <parent>
         <groupId>com.expedia.www</groupId>
         <artifactId>haystack-trends</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>${release.version}</version>
     </parent>
 
     <licenses>
@@ -47,6 +47,7 @@
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
         <featureTestClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</featureTestClasses>
         <integrationTestClasses>com.expedia.www.haystack.trends.integration.tests</integrationTestClasses>
+        <finalName>${project.artifactId}-${project.version}</finalName>
     </properties>
 
     <dependencies>
@@ -73,7 +74,7 @@
     </dependencies>
 
     <build>
-        <finalName>haystack-timeseries-aggregator</finalName>
+        <finalName>${finalName}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
