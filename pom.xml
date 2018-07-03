@@ -26,7 +26,7 @@
 
     <groupId>com.expedia.www</groupId>
     <artifactId>haystack-trends</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>${release.version}</version>
     <packaging>pom</packaging>
 
     <scm>
@@ -81,6 +81,7 @@
     </modules>
 
     <properties>
+        <release.version>1.0.0-SNAPSHOT</release.version>
 
         <!--Dependency Properties -->
         <pegdown.version>1.6.0</pegdown.version>
