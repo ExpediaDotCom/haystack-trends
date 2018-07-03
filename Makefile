@@ -15,10 +15,10 @@ report-coverage:
 	${MAVEN} scoverage:report-only
 
 span-timeseries-transformer:
-	${MAVEN} package scoverage:integration-check -pl span-timeseries-transformer -am
+	${MAVEN} package -DfinalName=haystack-trace-reader scoverage:integration-check -pl span-timeseries-transformer -am
 
 timeseries-aggregator:
-	${MAVEN} package scoverage:integration-check -pl timeseries-aggregator -am
+	${MAVEN} package -DfinalName=haystack-trace-indexer scoverage:integration-check -pl timeseries-aggregator -am
 
 # build all and release
 release: all
