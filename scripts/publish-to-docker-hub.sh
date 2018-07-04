@@ -21,16 +21,16 @@ if [[ $TAG =~ ([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
     # for tag, add MAJOR, MAJOR.MINOR, MAJOR.MINOR.PATCH and latest as tag
     # publish image with tags
     docker tag $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR
-    docker push $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR
+    docker push $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR
     
     docker tag $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR
-    docker push $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR
+    docker push $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR
     
     docker tag $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR.$PATCH
-    docker push $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR.$PATCH
+    docker push $QUALIFIED_DOCKER_IMAGE_NAME:$MAJOR.$MINOR.$PATCH
 
     docker tag $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:latest
-    docker push $DOCKER_IMAGE_NAME $QUALIFIED_DOCKER_IMAGE_NAME:latest
+    docker push $QUALIFIED_DOCKER_IMAGE_NAME:latest
 
 elif [[ "$BRANCH" == "master" ]]; then
     echo "releasing master branch"
