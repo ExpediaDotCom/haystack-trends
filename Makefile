@@ -15,10 +15,10 @@ report-coverage:
 	${MAVEN} scoverage:report-only
 
 build_transformer:
-	${MAVEN} package -DfinalName=span-timeseries-transformer -pl span-timeseries-transformer -am
+	${MAVEN} package -DfinalName=haystack-span-timeseries-transformer -pl span-timeseries-transformer -am
 
 build_aggregator:
-	${MAVEN} package -DfinalName=timeseries-aggregator -pl timeseries-aggregator -am
+	${MAVEN} package -DfinalName=haystack-timeseries-aggregator -pl timeseries-aggregator -am
 
 # build all and release
 release: clean build_transformer build_aggregator
