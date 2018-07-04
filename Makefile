@@ -14,14 +14,14 @@ all: clean  span-timeseries-transformer timeseries-aggregator  report-coverage
 report-coverage:
 	${MAVEN} scoverage:report-only
 
-span-timeseries-transformer:
-	${MAVEN} package scoverage:integration-check -pl span-timeseries-transformer -am
+build_transformer:
+	${MAVEN} package -DfinalName=span-timeseries-transformer -pl span-timeseries-transformer -am
 
-timeseries-aggregator:
-	${MAVEN} package scoverage:integration-check -pl timeseries-aggregator -am
+build_aggregator:
+	${MAVEN} package -DfinalName=timeseries-aggregator -pl timeseries-aggregator -am
 
 # build all and release
-release: all
+release: clean build_transformer build_aggregator
 	cd span-timeseries-transformer && $(MAKE) release
 	cd timeseries-aggregator && $(MAKE) release
 	./.travis/deploy.sh

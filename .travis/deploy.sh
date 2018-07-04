@@ -25,14 +25,20 @@ fi
 
 if [ ! -z "$TRAVIS_TAG" ]
 then
-    SKIP_GPG_SIGN=false
     echo "travis tag is set -> updating pom.xml <version> attribute to $TRAVIS_TAG"
-    ./mvnw --settings .travis/settings.xml org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=$TRAVIS_TAG 1>/dev/null 2>/dev/null
+    GPG_SKIP=false
+    ./mvnw --settings .travis/settings.xml org.codehaus.mojo:versions-maven-plugin:2.1:set -DnewVersion=$TRAVIS_TAG
 else
-    SKIP_GPG_SIGN=true
+    GPG_SKIP=true
     echo "no travis tag is set, hence keeping the snapshot version in pom.xml"
 fi
 
-./mvnw clean deploy --settings .travis/settings.xml -Dgpg.skip=$SKIP_GPG_SIGN -DskipTests=true -B -U
+./mvnw clean deploy --settings .travis/settings.xml -DskipGpg=${GPG_SKIP} -DskipTests=true -B -U
+SUCCESS=$?
 
-echo "successfully deployed the jars to nexus"
+if [ ${SUCCESS} -eq 0 ]
+then
+    echo "successfully deployed the jars to nexus"
+fi
+
+exit ${SUCCESS}

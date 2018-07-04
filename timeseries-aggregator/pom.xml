@@ -25,7 +25,6 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>haystack-timeseries-aggregator</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>haystack-timeseries-aggregator</name>
     <description>scala module which aggregates timeseries metricpoints based on predefined rules</description>
@@ -47,6 +46,7 @@
         <mainClass>com.expedia.www.haystack.trends.App</mainClass>
         <featureTestClasses>com.expedia.www.haystack.trends.feature.tests,com.expedia.www.haystack.trends.unit.tests</featureTestClasses>
         <integrationTestClasses>com.expedia.www.haystack.trends.integration.tests</integrationTestClasses>
+        <finalName>${project.artifactId}-${project.version}</finalName>
     </properties>
 
     <dependencies>
@@ -73,7 +73,7 @@
     </dependencies>
 
     <build>
-        <finalName>haystack-timeseries-aggregator</finalName>
+        <finalName>${finalName}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -85,12 +85,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
             </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-            </plugin>
-
             <plugin>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest-maven-plugin</artifactId>
