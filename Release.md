@@ -7,4 +7,4 @@ Currently we publish the repo to docker hub and nexus central repository.
 
 ```git tag -a 1.x.x -m "Release description..."```
 
-Or you can also tag using UI: https://github.com/ExpediaDotCom/haystack-service-graph/releases
+Or you can also tag using UI: https://github.com/ExpediaDotCom/haystack-trends/releases
