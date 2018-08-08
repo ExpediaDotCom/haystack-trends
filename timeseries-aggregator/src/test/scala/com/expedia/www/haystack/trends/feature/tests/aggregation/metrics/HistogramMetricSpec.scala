@@ -20,10 +20,10 @@ package com.expedia.www.haystack.trends.feature.tests.aggregation.metrics
 
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
-import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
 import com.expedia.www.haystack.trends.aggregation.entities._
+import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
 import com.expedia.www.haystack.trends.feature.FeatureSpec
-import org.HdrHistogram.IntHistogram
+import org.HdrHistogram.{Histogram, IntHistogram}
 
 class HistogramMetricSpec extends FeatureSpec {
 
@@ -79,6 +79,26 @@ class HistogramMetricSpec extends FeatureSpec {
       val expectedHistogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
       metricPoints.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.value.toLong))
       verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
+    }
+    scenario("should filter out metric points larger than the Histogram maxValue") {
+
+      Given("some duration Metric points")
+      val maxTrackableValue = 2000
+      val durations = List(10, maxTrackableValue + 1)
+      val interval: Interval = Interval.ONE_MINUTE
+
+      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
+
+      When("get metric is constructed")
+      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
+
+      When("MetricPoints are processed")
+      metricPoints.map(metricPoint => metric.compute(metricPoint))
+      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
+
+
+      Then("the max should be the only metric that was in the histogram boundaries")
+      histMetricPoints.filter(m => "max".equals(m.tags("stat").toString)).head.value shouldEqual 10.0
     }
 
     def verifyHistogramMetricValues(resultingMetricPoints: List[MetricPoint], expectedHistogram: IntHistogram) = {
