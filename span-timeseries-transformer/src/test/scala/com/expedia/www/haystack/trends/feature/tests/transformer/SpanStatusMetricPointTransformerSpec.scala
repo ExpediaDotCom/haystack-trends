@@ -112,6 +112,25 @@ class SpanStatusMetricPointTransformerSpec extends FeatureSpec with SpanStatusMe
       metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
     }
 
+    scenario("should have a failure-span metricPoint if the error tag not a false string") {
+      Given("a failure span object")
+      val operationName = "testSpan"
+      val serviceName = "testService"
+      val duration = System.currentTimeMillis
+      val span = Span.newBuilder()
+        .setDuration(duration)
+        .setOperationName(operationName)
+        .setServiceName(serviceName)
+        .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVStr("500"))
+        .build()
+
+      When("metricPoint is created using transformer")
+      val metricPoints = mapSpan(span, true)
+
+      Then("metric name should be failure-spans")
+      metricPoints(0).metric shouldEqual FAILURE_METRIC_NAME
+    }
+
     scenario("should have a failure-span metricPoint if the error tag exists but is not a boolean or string") {
       Given("a failure span object")
       val operationName = "testSpan"
