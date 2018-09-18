@@ -62,9 +62,9 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   }
 
   override def compute(metricPoint: MetricPoint): HistogramMetric = {
-    if (metricPoint.value <= histogram.getHighestTrackableValue) {
+    if (metricPoint.value.toLong <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
-      histogram.recordValue(metricPoint.value.toInt)
+      histogram.recordValue(metricPoint.value.toLong)
       timerContext.close()
     }
     this

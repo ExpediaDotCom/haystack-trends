@@ -80,6 +80,7 @@ class HistogramMetricSpec extends FeatureSpec {
       metricPoints.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.value.toLong))
       verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
     }
+
     scenario("should filter out metric points larger than the Histogram maxValue") {
 
       Given("some duration Metric points")
@@ -96,6 +97,26 @@ class HistogramMetricSpec extends FeatureSpec {
       metricPoints.map(metricPoint => metric.compute(metricPoint))
       val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
+
+      Then("the max should be the only metric that was in the histogram boundaries")
+      histMetricPoints.filter(m => "max".equals(m.tags("stat").toString)).head.value shouldEqual 10.0
+    }
+
+    scenario("should filter out metric points larger than the Histogram maxValue even for boundary float value") {
+
+      Given("some duration Metric points")
+      val maxTrackableValue = 2147483647
+      val durations = List(10, maxTrackableValue.toFloat + 1) // toFloat is important since int max + 1 is not within int's precision
+      val interval: Interval = Interval.ONE_MINUTE
+
+      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
+
+      When("get metric is constructed")
+      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
+
+      When("MetricPoints are processed")
+      metricPoints.map(metricPoint => metric.compute(metricPoint))
+      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
 
       Then("the max should be the only metric that was in the histogram boundaries")
       histMetricPoints.filter(m => "max".equals(m.tags("stat").toString)).head.value shouldEqual 10.0
