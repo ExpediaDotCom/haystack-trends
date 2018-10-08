@@ -45,24 +45,16 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
     val result = Map(
       MEAN -> histogram.getMean.toLong,
       MIN -> histogram.getMinValue,
-      PERCENTILE_95 -> getHistogramForPercentile(histogram, 95.0),
-      PERCENTILE_99 -> getHistogramForPercentile(histogram, 99.0),
+      PERCENTILE_95 -> histogram.getValueAtPercentile(95),
+      PERCENTILE_99 -> histogram.getValueAtPercentile(99),
       STDDEV -> histogram.getStdDeviation.toLong,
-      MEDIAN -> getHistogramForPercentile(histogram, 50.0),
+      MEDIAN -> histogram.getValueAtPercentile(50),
       MAX -> histogram.getMaxValue
     ).map {
       case (stat, value) =>
         MetricPoint(metricName, MetricType.Gauge, appendTags(tags, interval, stat), value, publishingTimestamp)
     }
     result.toList
-  }
-
-  private def getHistogramForPercentile(histogram: Histogram, percentile: Double): Long = {
-    try {
-      histogram.getValueAtPercentile(percentile)
-    } catch {
-      case _: ArrayIndexOutOfBoundsException => 0L
-    }
   }
 
   def getRunningHistogram: Histogram = {
