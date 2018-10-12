@@ -6,8 +6,13 @@
 set -e
 JAVA_OPTS="${JAVA_OPTS} \
 -javaagent:${APP_HOME}/${JMXTRANS_AGENT}.jar=${APP_HOME}/jmxtrans-agent.xml \
--XX:+UseConcMarkSweepGC \
--XX:+UseParNewGC \
+-XX:+UseG1GC \
+-Xloggc:/var/log/gc.log \
+-XX:+PrintGCDetails \
+-XX:+PrintGCDateStamps \
+-XX:+UseGCLogFileRotation \
+-XX:NumberOfGCLogFiles=5 \
+-XX:GCLogFileSize=2M \
 -Xmx${JAVA_XMX} \
 -Xms${JAVA_XMS} \
 -Dcom.sun.management.jmxremote.authenticate=false \
