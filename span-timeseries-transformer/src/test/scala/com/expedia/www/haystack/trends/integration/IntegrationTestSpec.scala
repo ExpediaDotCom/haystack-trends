@@ -24,7 +24,7 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFutur
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.kstreams.serde.SpanSerde
-import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -51,6 +51,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val OUTPUT_TOPIC = "metricpoints"
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
+  protected val METRIC_TYPE = "gauge"
   protected var CHANGELOG_TOPIC = ""
   protected var KAFKA_ENDPOINT = "192.168.99.100:9092"
 
@@ -64,7 +65,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(new PeriodReplacementEncoder)
+    val metricTankSerde = new MetricTankSerde()
 
     EmbeddedKafka.CLUSTER.createTopic(INPUT_TOPIC)
     EmbeddedKafka.CLUSTER.createTopic(OUTPUT_TOPIC)

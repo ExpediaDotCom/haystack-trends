@@ -17,14 +17,16 @@
  */
 package com.expedia.www.haystack.trends.integration
 
+import java.util
 import java.util.Properties
 import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
+import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
+import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
-import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType}
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
-import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import com.expedia.www.haystack.trends.kstream.Streams
@@ -66,7 +68,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde(new PeriodReplacementEncoder)
+    val metricTankSerde = new MetricTankSerde()
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
@@ -121,16 +123,16 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     projectConfiguration
   }
 
-  protected def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricPoint]],
+  protected def validateAggregatedMetricPoints(producedRecords: List[KeyValue[String, MetricData]],
                                                expectedOneMinAggregatedPoints: Int,
                                                expectedFiveMinAggregatedPoints: Int,
                                                expectedFifteenMinAggregatedPoints: Int,
                                                expectedOneHourAggregatedPoints: Int): Assertion = {
 
-    val oneMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.ONE_MINUTE.toString()))
-    val fiveMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.FIVE_MINUTE.toString()))
-    val fifteenMinAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.FIFTEEN_MINUTE.toString()))
-    val oneHourAggMetricPoints = producedRecords.filter(record => record.value.tags("interval").equals(Interval.ONE_HOUR.toString()))
+    val oneMinAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.ONE_MINUTE.toString()))
+    val fiveMinAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.FIVE_MINUTE.toString()))
+    val fifteenMinAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.FIFTEEN_MINUTE.toString()))
+    val oneHourAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.ONE_HOUR.toString()))
 
     oneMinAggMetricPoints.size shouldEqual expectedOneMinAggregatedPoints
     fiveMinAggMetricPoints.size shouldEqual expectedFiveMinAggregatedPoints
@@ -147,8 +149,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     var idx = 0
     scheduler.scheduleWithFixedDelay(() => {
       if (idx < maxMetricPoints) {
-        val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
-        val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(new PeriodReplacementEncoder), metricPoint)).asJava
+        val metricData = randomMetricData(metricName = metricName, timestamp = epochTimeInSecs)
+        val keyValue = List(new KeyValue[String, MetricData](metricData.getMetricDefinition.toString, metricData)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
           keyValue,
@@ -157,15 +159,16 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
         epochTimeInSecs = epochTimeInSecs + (totalIntervalInSecs / (maxMetricPoints - 1))
       }
       idx = idx + 1
+
     }, 0, produceInterval.toMillis, TimeUnit.MILLISECONDS)
   }
 
-  protected def produceMetricPoint(metricName: String,
-                                   epochTimeInSecs: Long,
-                                   produceTimeInSecs: Long
-                                  ): Unit = {
-    val metricPoint = randomMetricPoint(metricName = metricName, timestamp = epochTimeInSecs)
-    val keyValue = List(new KeyValue[String, MetricPoint](metricPoint.getMetricPointKey(new PeriodReplacementEncoder), metricPoint)).asJava
+  protected def produceMetricData(metricName: String,
+                                  epochTimeInSecs: Long,
+                                  produceTimeInSecs: Long
+                                 ): Unit = {
+    val metricPoint = randomMetricData(metricName = metricName, timestamp = epochTimeInSecs)
+    val keyValue = List(new KeyValue[String, MetricData](metricPoint.getMetricDefinition.toString, metricPoint)).asJava
     IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
       INPUT_TOPIC,
       keyValue,
@@ -173,18 +176,38 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       produceTimeInSecs)
   }
 
-  def randomMetricPoint(metricName: String,
-                        value: Long = Math.abs(Random.nextInt()),
-                        timestamp: Long = currentTimeInSecs): MetricPoint = {
-    MetricPoint(metricName, MetricType.Gauge, Map[String, String](), value, timestamp)
+  def randomMetricData(metricName: String,
+                       value: Long = Math.abs(Random.nextInt()),
+                       timestamp: Long = currentTimeInSecs): MetricData = {
+    getMetricData(metricName, Map[String, String](), value, timestamp)
   }
 
   protected def createStreamRunner(): StreamsRunner = {
     val appConfig = mockAppConfig
     val streams = new Streams(appConfig)
-    val factory = new StreamsFactory(streams, appConfig.kafkaConfig.streamsConfig, Some(appConfig.kafkaConfig.consumeTopic))
+    val factory = new StreamsFactory(streams, appConfig.kafkaConfig.streamsConfig, appConfig.kafkaConfig.consumeTopic)
     new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
 
 
+  }
+
+  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Float, timeStamp: Long): MetricData = {
+
+    val tagsMap = new java.util.LinkedHashMap[String, String] {
+      putAll(tags.asJava)
+      put(MetricDefinition.MTYPE, "gauge")
+      put(MetricDefinition.UNIT, "short")
+    }
+    val metricDefinition = new MetricDefinition(metricKey, new TagCollection(tagsMap), TagCollection.EMPTY)
+    new MetricData(metricDefinition, value, timeStamp)
+  }
+
+  protected def containsTag(metricData: MetricData, tagKey: String, tagValue: String): Boolean = {
+    val tags = getTags(metricData)
+    tags.containsKey(tagKey) && tags.get(tagKey).equalsIgnoreCase(tagValue)
+  }
+
+  protected def getTags(metricData: MetricData): util.Map[String, String] = {
+    metricData.getMetricDefinition.getTags.getKv
   }
 }

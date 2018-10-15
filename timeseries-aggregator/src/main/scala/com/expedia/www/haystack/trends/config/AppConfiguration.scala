@@ -21,8 +21,8 @@ import java.util.Properties
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
-import com.expedia.www.haystack.commons.kstreams.MetricPointTimestampExtractor
-import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricPointSerializer
+import com.expedia.www.haystack.commons.kstreams.MetricDataTimestampExtractor
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerializer
 import com.expedia.www.haystack.trends.config.entities.{HistogramMetricConfiguration, KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -117,7 +117,7 @@ class AppConfiguration {
         }
 
         props.put(KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer")
-        props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[MetricPointSerializer].getCanonicalName)
+        props.put(VALUE_SERIALIZER_CLASS_CONFIG, classOf[MetricDataSerializer].getCanonicalName)
 
         require(props.getProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG).nonEmpty)
         Option(props)
@@ -146,7 +146,7 @@ class AppConfiguration {
       case Some(timeStampExtractorClass) =>
         Class.forName(timeStampExtractorClass).newInstance().asInstanceOf[TimestampExtractor]
       case None =>
-        new MetricPointTimestampExtractor
+        new MetricDataTimestampExtractor
     }
 
     //set timestamp extractor

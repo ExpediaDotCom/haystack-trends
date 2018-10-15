@@ -16,8 +16,10 @@
  */
 package com.expedia.www.haystack.trends.feature
 
+import java.util
 import java.util.Properties
 
+import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
@@ -27,6 +29,8 @@ import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.easymock.EasyMock
 import org.scalatest._
 import org.scalatest.easymock.EasyMockSugar
+
+import scala.collection.JavaConverters._
 
 
 trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with EasyMockSugar {
@@ -52,5 +56,25 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration
+  }
+
+  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Float, timeStamp: Long): MetricData = {
+
+    val tagsMap = new java.util.LinkedHashMap[String, String] {
+      if (tags != null) putAll(tags.asJava)
+      put(MetricDefinition.MTYPE, "gauge")
+      put(MetricDefinition.UNIT, "short")
+    }
+    val metricDefinition = new MetricDefinition(metricKey, new TagCollection(tagsMap), TagCollection.EMPTY)
+    new MetricData(metricDefinition, value, timeStamp)
+  }
+
+  protected def containsTagInMetricData(metricData: MetricData, tagKey: String, tagValue: String): Boolean = {
+    val tags = getTagsFromMetricData(metricData)
+    tags.containsKey(tagKey) && tags.get(tagKey).equalsIgnoreCase(tagValue)
+  }
+
+  protected def getTagsFromMetricData(metricData: MetricData): util.Map[String, String] = {
+    metricData.getMetricDefinition.getTags.getKv
   }
 }

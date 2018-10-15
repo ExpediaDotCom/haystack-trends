@@ -18,8 +18,9 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.metrics
 
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.{Interval, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.entities._
 import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
 import com.expedia.www.haystack.trends.feature.FeatureSpec
@@ -39,46 +40,46 @@ class HistogramMetricSpec extends FeatureSpec {
   feature("Creating a histogram metric") {
     scenario("should get gauge metric type and stats for valid durationric points") {
 
-      Given("some duration Metric points")
+      Given("some duration Metric Data points")
       val durations = List(10, 140)
       val interval: Interval = Interval.ONE_MINUTE
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
+      val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
       val metric = new HistogramMetric(interval)
 
-      When("MetricPoints are processed")
-      metricPoints.map(metricPoint => metric.compute(metricPoint))
-      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
+      When("MetricData points are processed")
+      metricDataList.map(metricData => metric.compute(metricData))
+      val histMetricDataList: List[MetricData] = metric.mapToMetricDataList(metricDataList.last.getMetricDefinition.getKey, getTagsFromMetricData(metricDataList.last), metricDataList.last.getTimestamp)
 
 
-      Then("aggregated metric name should be the same as the MetricPoints name")
-      histMetricPoints
-        .map(histMetricPoint =>
-          histMetricPoint.metric shouldEqual metricPoints.head.metric)
+      Then("aggregated metric name should be the same as the MetricData points name")
+      histMetricDataList
+        .map(histMetricData =>
+          histMetricData.getMetricDefinition.getKey shouldEqual metricDataList.head.getMetricDefinition.getKey)
 
       Then("aggregated metric should contain of original metric tags")
-      histMetricPoints.foreach(histogramMetricPoint => {
-        val tags = histogramMetricPoint.tags
+      histMetricDataList.foreach(histogramMetricData => {
+        val tags = histogramMetricData.getMetricDefinition.getTags.getKv
 
         keys.foreach(IncomingMetricPointTag => {
           tags.get(IncomingMetricPointTag._1) should not be None
-          tags.get(IncomingMetricPointTag._1) shouldEqual Some(IncomingMetricPointTag._2)
+          tags.get(IncomingMetricPointTag._1) shouldEqual IncomingMetricPointTag._2
         })
 
       })
 
       Then("aggregated metric should contain the correct interval name in tags")
-      histMetricPoints.map(histMetricPoint => {
-        histMetricPoint.tags.get(TagKeys.INTERVAL_KEY) should not be None
-        histMetricPoint.tags(TagKeys.INTERVAL_KEY) shouldEqual interval.name
+      histMetricDataList.map(histMetricData => {
+        getTagsFromMetricData(histMetricData).get(TagKeys.INTERVAL_KEY) should not be null
+        getTagsFromMetricData(histMetricData).get(TagKeys.INTERVAL_KEY) shouldEqual interval.name
       })
 
       Then("should return valid values for all stats types")
       val expectedHistogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
-      metricPoints.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.value.toLong))
-      verifyHistogramMetricValues(histMetricPoints, expectedHistogram)
+      metricDataList.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.getValue.toLong))
+      verifyHistogramMetricValues(histMetricDataList, expectedHistogram)
     }
 
     scenario("should filter out metric points larger than the Histogram maxValue") {
@@ -88,18 +89,18 @@ class HistogramMetricSpec extends FeatureSpec {
       val durations = List(10, maxTrackableValue + 1)
       val interval: Interval = Interval.ONE_MINUTE
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
+      val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
       val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
 
-      When("MetricPoints are processed")
-      metricPoints.map(metricPoint => metric.compute(metricPoint))
-      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
+      When("MetricData points are processed")
+      metricDataList.map(metricData => metric.compute(metricData))
+      val histMetricDataList: List[MetricData] = metric.mapToMetricDataList(metricDataList.last.getMetricDefinition.getKey, getTagsFromMetricData(metricDataList.last), metricDataList.last.getTimestamp)
 
 
       Then("the max should be the only metric that was in the histogram boundaries")
-      histMetricPoints.filter(m => "max".equals(m.tags("stat").toString)).head.value shouldEqual 10.0
+      histMetricDataList.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 10.0
     }
 
     scenario("should filter out metric points larger than the Histogram maxValue even for boundary float value") {
@@ -109,22 +110,22 @@ class HistogramMetricSpec extends FeatureSpec {
       val durations = List(10, maxTrackableValue.toFloat + 1) // toFloat is important since int max + 1 is not within int's precision
       val interval: Interval = Interval.ONE_MINUTE
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTimeInSecs))
+      val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
       val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
 
       When("MetricPoints are processed")
-      metricPoints.map(metricPoint => metric.compute(metricPoint))
-      val histMetricPoints: List[MetricPoint] = metric.mapToMetricPoints(metricPoints.last.metric, metricPoints.last.tags, metricPoints.last.epochTimeInSeconds)
+      metricDataList.map(metricData => metric.compute(metricData))
+      val histMetricPoints: List[MetricData] = metric.mapToMetricDataList(metricDataList.last.getMetricDefinition.getKey, getTagsFromMetricData(metricDataList.last), metricDataList.last.getTimestamp)
 
       Then("the max should be the only metric that was in the histogram boundaries")
-      histMetricPoints.filter(m => "max".equals(m.tags("stat").toString)).head.value shouldEqual 10.0
+      histMetricPoints.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 10.0
     }
 
-    def verifyHistogramMetricValues(resultingMetricPoints: List[MetricPoint], expectedHistogram: IntHistogram) = {
+    def verifyHistogramMetricValues(resultingMetricPoints: List[MetricData], expectedHistogram: IntHistogram) = {
       val resultingMetricPointsMap: Map[String, Float] =
-        resultingMetricPoints.map(resultingMetricPoint => resultingMetricPoint.tags(TagKeys.STATS_KEY) -> resultingMetricPoint.value).toMap
+        resultingMetricPoints.map(resultingMetricPoint => getTagsFromMetricData(resultingMetricPoint).get(TagKeys.STATS_KEY) -> resultingMetricPoint.getValue.toFloat).toMap
 
       resultingMetricPointsMap(StatValue.MEAN.toString) shouldEqual expectedHistogram.getMean.toLong
       resultingMetricPointsMap(StatValue.MAX.toString) shouldEqual expectedHistogram.getMaxValue

@@ -22,7 +22,7 @@ import java.util.function.Supplier
 
 import com.expedia.www.haystack.commons.health.{HealthStatusController, UpdateHealthStatusFile}
 import com.expedia.www.haystack.commons.kstreams.app.{Main, StateChangeListener, StreamsFactory, StreamsRunner}
-import com.expedia.www.haystack.trends.config.{AppConfiguration, AppConfiguration$}
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.Streams
 import com.netflix.servo.util.VisibleForTesting
 import org.apache.kafka.streams.Topology
@@ -63,7 +63,7 @@ object App extends Main {
     val kafkaConfig = ProjectConfiguration.kafkaConfig
     val streams: Supplier[Topology] = new Streams(ProjectConfiguration)
 
-    val streamsFactory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+    val streamsFactory = new StreamsFactory(streams, kafkaConfig.streamsConfig, kafkaConfig.consumeTopic)
 
     new StreamsRunner(streamsFactory, stateChangeListener)
   }

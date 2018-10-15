@@ -18,7 +18,6 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.rules.LatencyMetricRule
 import com.expedia.www.haystack.trends.feature.FeatureSpec
@@ -36,17 +35,17 @@ class LatencyMetricRuleSpec extends FeatureSpec with LatencyMetricRule {
 
   feature("LatencyMetricRule for identifying MetricRule") {
 
-    scenario("should get Aggregate AggregationType for Latency MetricPoint") {
+    scenario("should get Aggregate AggregationType for Latency MetricData") {
 
       Given("a Latency MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = currentTimeInSecs
 
-      val metricPoint = MetricPoint(LATENCY_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
+      val metricData = getMetricData(LATENCY_METRIC_NAME, keys, 1, startTime)
 
       When("trying to find matching AggregationType")
-      val aggregationType = isMatched(metricPoint)
+      val aggregationType = isMatched(metricData)
 
       Then("should get Aggregate AggregationType")
       aggregationType shouldEqual Some(AggregationType.Histogram)

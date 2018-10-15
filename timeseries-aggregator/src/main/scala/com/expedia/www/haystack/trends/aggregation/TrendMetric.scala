@@ -19,8 +19,9 @@
 package com.expedia.www.haystack.trends.aggregation
 
 import com.codahale.metrics.{Meter, Timer}
+import com.expedia.metrics.MetricData
+import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric._
 import com.expedia.www.haystack.trends.aggregation.metrics.MetricFactory
@@ -46,29 +47,29 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
   }
 
   /**
-    * function to compute the incoming metric point
+    * function to compute the incoming metric data
     * it updates all the metrics for the windows within which the incoming metric point lies
     *
-    * @param incomingMetricPoint - incoming metric point
+    * @param incomingMetricData - incoming metric data
     */
-  def compute(incomingMetricPoint: MetricPoint): Unit = {
+  def compute(incomingMetricData: MetricData): Unit = {
     val timerContext = trendMetricComputeTimer.time()
     Try {
       //discarding values which are less than 0 assuming they are invalid metric points
       trendMetricsMap.foreach(trendMetrics => {
         val windowedMetric = trendMetrics._2
-        windowedMetric.compute(incomingMetricPoint)
+        windowedMetric.compute(incomingMetricData)
       })
     }.recover {
       case failure: Throwable =>
         metricPointComputeFailureMeter.mark()
-        LOGGER.error(s"Failed to compute metricpoint : $incomingMetricPoint with exception ", failure)
+        LOGGER.error(s"Failed to compute metricpoint : $incomingMetricData with exception ", failure)
         failure
     }
 
     // check whether time to log to state store
-    if ((incomingMetricPoint.epochTimeInSeconds - currentEpochTimeInSec) > AppConfiguration.stateStoreConfig.changeLogDelayInSecs) {
-      currentEpochTimeInSec = incomingMetricPoint.epochTimeInSeconds
+    if ((incomingMetricData.getTimestamp - currentEpochTimeInSec) > AppConfiguration.stateStoreConfig.changeLogDelayInSecs) {
+      currentEpochTimeInSec = incomingMetricData.getTimestamp
       shouldLog = true
     }
 
@@ -80,10 +81,10 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
     *
     * @return list of evicted metricPoints
     */
-  def getComputedMetricPoints(incomingMetricPoint: MetricPoint): List[MetricPoint] = {
+  def getComputedMetricPoints(incomingMetricData: MetricData): List[MetricData] = {
     List(trendMetricsMap.flatMap {
       case (_, windowedMetric) =>
-        windowedMetric.getComputedMetricPoints(incomingMetricPoint)
+        windowedMetric.getComputedMetricDataList(incomingMetricData)
     }).flatten
   }
 
@@ -115,12 +116,12 @@ object TrendMetric {
     Interval.ONE_HOUR -> (0, 1))
 
   def createTrendMetric(intervals: List[Interval],
-                        firstMetricPoint: MetricPoint,
+                        firstMetricData: MetricData,
                         metricFactory: MetricFactory): TrendMetric = {
     currentEpochTimeInSec = 0 // reset for every unique metric point
     shouldLog = true
     //  this enable to log data to state store for the very first time
-    val trendMetricMap = createMetricsForEachInterval(intervals, firstMetricPoint, metricFactory)
+    val trendMetricMap = createMetricsForEachInterval(intervals, firstMetricData, metricFactory)
     new TrendMetric(trendMetricMap, metricFactory)
   }
 
@@ -130,10 +131,10 @@ object TrendMetric {
   }
 
   private def createMetricsForEachInterval(intervals: List[Interval],
-                                           metricPoint: MetricPoint,
+                                           metricData: MetricData,
                                            metricFactory: MetricFactory): Map[Interval, WindowedMetric] = {
     intervals.map(interval => {
-      val windowedMetric = WindowedMetric.createWindowedMetric(metricPoint, metricFactory, trendMetricConfig(interval)._1, interval)
+      val windowedMetric = WindowedMetric.createWindowedMetric(metricData, metricFactory, trendMetricConfig(interval)._1, interval)
       interval -> windowedMetric
     }).toMap
   }

@@ -17,23 +17,25 @@
  */
 package com.expedia.www.haystack.trends.feature.tests.transformer
 
+import com.expedia.metrics.MetricDefinition
 import com.expedia.open.tracing.{Span, Tag}
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
-import com.expedia.www.haystack.commons.entities.{MetricType, TagKeys}
-import com.expedia.www.haystack.trends.MetricPointGenerator
+import com.expedia.www.haystack.commons.entities.TagKeys
+import com.expedia.www.haystack.trends.MetricDataGenerator
 import com.expedia.www.haystack.trends.feature.FeatureSpec
-import com.expedia.www.haystack.trends.transformer.{SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer}
+import com.expedia.www.haystack.trends.transformer.{SpanDurationMetricDataTransformer, SpanStatusMetricDataTransformer}
 
 import scala.util.matching.Regex
+import scala.collection.JavaConverters._
 
 
-class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
+class MetricDataGeneratorSpec extends FeatureSpec with MetricDataGenerator {
 
-  private def getMetricPointTransformers = {
-    List(SpanDurationMetricPointTransformer, SpanStatusMetricPointTransformer)
+  private def getMetricDataTransformers = {
+    List(SpanDurationMetricDataTransformer, SpanStatusMetricDataTransformer)
   }
 
-  feature("The metricPoint generator must generate metricPoints given a span object") {
+  feature("The metricData generator must generate list of metricData given a span object") {
 
     scenario("any valid span object") {
       val operationName = "testSpan"
@@ -47,28 +49,22 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, true)
+      val metricDataList = generateMetricDataList(blacklistedServices = List())(getMetricDataTransformers)(span, true, new PeriodReplacementEncoder)
 
       Then("the number of metricPoints returned should be equal to the number of metricPoint transformers")
-      metricPoints should not be empty
-      val metricPointTransformers = getMetricPointTransformers
-      metricPoints.size shouldEqual metricPointTransformers.size * 2
+      metricDataList should not be empty
+      val metricPointTransformers = getMetricDataTransformers
+      metricDataList.size shouldEqual metricPointTransformers.size * 2
       var metricPointIds = Set[String]()
 
-      Then("each metricPoint should have a unique combination of keys")
-      metricPoints.foreach(metricPoint => {
-        metricPointIds += metricPoint.getMetricPointKey(new PeriodReplacementEncoder)
-      })
-      metricPointIds.size shouldEqual metricPointTransformers.size * 2
-
       Then("each metricPoint should have the timestamps in seconds and which should equal to the span timestamp")
-      metricPoints.foreach(metricPoint => {
-        metricPoint.epochTimeInSeconds shouldEqual span.getStartTime / 1000000
+      metricDataList.foreach(metricData => {
+        metricData.getTimestamp shouldEqual span.getStartTime / 1000000
       })
 
       Then("each metricPoint should have the metric type as Metric")
-      metricPoints.foreach(metricPoint => {
-        metricPoint.`type` shouldEqual MetricType.Gauge
+      metricDataList.foreach(metricData => {
+        getMetricDataTags(metricData).get(MetricDefinition.MTYPE) shouldEqual METRIC_TYPE
       })
 
     }
@@ -85,10 +81,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = true)
+      val metricDataList = generateMetricDataList(blacklistedServices = List())(getMetricDataTransformers)(span, serviceOnlyFlag = true, new PeriodReplacementEncoder)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints shouldBe empty
+      metricDataList shouldBe empty
       metricRegistry.meter("span.validation.failure").getCount shouldBe 1
     }
 
@@ -103,14 +99,16 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .setServiceName(serviceName)
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false))
         .build()
+      val encoder = new PeriodReplacementEncoder
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List())(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+      val metricDataList = generateMetricDataList(blacklistedServices = List())(getMetricDataTransformers)(span, serviceOnlyFlag = false, encoder)
 
       Then("it should create metricPoints with service name as one its keys")
-      metricPoints.map(metricPoint => {
-        metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) should not be None
-        metricPoint.tags.get(TagKeys.SERVICE_NAME_KEY) shouldEqual Some(serviceName)
+      metricDataList.map(metricData => {
+        val tags = getMetricDataTags(metricData).asScala
+        tags.get(TagKeys.SERVICE_NAME_KEY) should not be None
+        tags.get(TagKeys.SERVICE_NAME_KEY) shouldEqual Some(encoder.encode(serviceName))
       })
     }
 
@@ -127,10 +125,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex(blacklistedServiceName)))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+      val metricDataList = generateMetricDataList(blacklistedServices = List(new Regex(blacklistedServiceName)))(getMetricDataTransformers)(span, serviceOnlyFlag = false, new PeriodReplacementEncoder)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints shouldBe empty
+      metricDataList shouldBe empty
       metricRegistry.meter("span.validation.black.listed").getCount shouldBe 1
     }
 
@@ -142,10 +140,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false)).build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("^[a-z]*$")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+      val metricDataList = generateMetricDataList(blacklistedServices = List(new Regex("^[a-z]*$")))(getMetricDataTransformers)(span, serviceOnlyFlag = false, new PeriodReplacementEncoder)
 
       Then("It should return a metricPoint")
-      metricPoints should not be empty
+      metricDataList should not be empty
     }
 
     scenario("a span object with a non-blacklisted regex service Name") {
@@ -156,10 +154,10 @@ class MetricPointGeneratorSpec extends FeatureSpec with MetricPointGenerator {
         .addTags(Tag.newBuilder().setKey(TagKeys.ERROR_KEY).setVBool(false)).build()
 
       When("its asked to map to metricPoints")
-      val metricPoints = generateMetricPoints(blacklistedServices = List(new Regex("[a-z]*")))(getMetricPointTransformers)(span, serviceOnlyFlag = false)
+      val metricDataList = generateMetricDataList(blacklistedServices = List(new Regex("[a-z]*")))(getMetricDataTransformers)(span, serviceOnlyFlag = false, new PeriodReplacementEncoder)
 
       Then("It should return a metricPoint validation exception")
-      metricPoints shouldBe empty
+      metricDataList shouldBe empty
     }
   }
 }

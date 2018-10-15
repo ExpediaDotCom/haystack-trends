@@ -61,7 +61,7 @@ object App extends Main {
     val kafkaConfig = appConfiguration.kafkaConfig
     val streams: Supplier[Topology] = new Streams(appConfiguration.kafkaConfig, appConfiguration.transformerConfiguration)
 
-    val streamsFactory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+    val streamsFactory = new StreamsFactory(streams, kafkaConfig.streamsConfig, kafkaConfig.consumeTopic)
 
     new StreamsRunner(streamsFactory, stateChangeListener)
   }

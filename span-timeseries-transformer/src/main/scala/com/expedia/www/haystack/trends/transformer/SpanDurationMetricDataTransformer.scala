@@ -16,29 +16,32 @@
  */
 package com.expedia.www.haystack.trends.transformer
 
+import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 
 /**
   * This Transformer reads a span and creates a duration metric point with the value as the
   */
-trait SpanDurationMetricPointTransformer extends MetricPointTransformer {
+trait SpanDurationMetricDataTransformer extends MetricDataTransformer {
 
   private val spanDurationMetricPoints = metricRegistry.meter("metricpoint.span.duration")
 
   val DURATION_METRIC_NAME = "duration"
+  val MTYPE = "gauge"
+  val UNIT = "mircoseconds"
 
-  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricData] = {
     spanDurationMetricPoints.mark()
-    var metricPoints = List(MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createCommonMetricTags(span), span.getDuration, getDataPointTimestamp(span)))
 
+    var metricDataList = List(getMetricData(DURATION_METRIC_NAME, createCommonMetricTags(span), MTYPE, UNIT, span.getDuration, getDataPointTimestamp(span)))
     if (serviceOnlyFlag) {
-      metricPoints = metricPoints :+ MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, createServiceOnlyMetricTags(span), span.getDuration, getDataPointTimestamp(span))
+      metricDataList = metricDataList :+
+        getMetricData(DURATION_METRIC_NAME, createServiceOnlyMetricTags(span), MTYPE, UNIT, span.getDuration, getDataPointTimestamp(span))
     }
-
-    metricPoints
+    metricDataList
   }
+
 }
 
-object SpanDurationMetricPointTransformer extends SpanDurationMetricPointTransformer
+object SpanDurationMetricDataTransformer extends SpanDurationMetricDataTransformer
 

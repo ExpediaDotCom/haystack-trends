@@ -18,7 +18,7 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
 
@@ -30,7 +30,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.Aggre
   */
 trait MetricRuleEngine extends LatencyMetricRule with DurationMetricRule with FailureMetricRule with SuccessMetricRule {
 
-  def findMatchingMetric(metricPoint: MetricPoint): Option[AggregationType] = {
-    isMatched(metricPoint)
+  def findMatchingMetric(metricData: MetricData): Option[AggregationType] = {
+    isMatched(metricData)
   }
 }

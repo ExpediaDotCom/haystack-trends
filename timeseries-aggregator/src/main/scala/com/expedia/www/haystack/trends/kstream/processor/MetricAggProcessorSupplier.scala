@@ -18,8 +18,9 @@
 package com.expedia.www.haystack.trends.kstream.processor
 
 import com.codahale.metrics.{Counter, Meter}
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.encoders.Encoder
-import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint}
+import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
@@ -29,12 +30,12 @@ import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, Process
 import org.apache.kafka.streams.state.KeyValueStore
 import org.slf4j.LoggerFactory
 
-class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
+class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder) extends KStreamAggProcessorSupplier[String, String, MetricData, TrendMetric] with MetricRuleEngine with MetricsSupport {
 
   private var sendOldValues: Boolean = false
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
-  def get: Processor[String, MetricPoint] = {
+  def get: Processor[String, MetricData] = {
     new MetricAggProcessor(trendMetricStoreName)
   }
 
@@ -68,7 +69,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
     *
     * @param trendMetricStoreName - name of the key-value state store
     */
-  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricPoint] {
+  private class MetricAggProcessor(trendMetricStoreName: String) extends AbstractProcessor[String, MetricData] {
     private var trendMetricStore: KeyValueStore[String, TrendMetric] = _
 
 
@@ -89,16 +90,14 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
       * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
       * @param key         - key in the kafka record - should be metricPoint.getKey
-      * @param metricPoint - metricPoint
+      * @param metricData  - metricData
       */
-    def process(key: String, metricPoint: MetricPoint): Unit = {
-      if (key != null && metricPoint.value > 0) {
-
+    def process(key: String, metricData: MetricData): Unit = {
+      if (key != null && metricData.getValue > 0) {
 
         // first get the matching windows
-
-        Option(trendMetricStore.get(key)).orElse(createTrendMetric(metricPoint)).foreach(trendMetric => {
-          trendMetric.compute(metricPoint)
+        Option(trendMetricStore.get(key)).orElse(createTrendMetric(metricData)).foreach(trendMetric => {
+          trendMetric.compute(metricData)
 
           /*
          we finally put the updated trend metric back to the store since we want the changelog the state store with the latest state of the trend metric, if we don't put the metric
@@ -109,8 +108,8 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
           }
 
           //retrieve the computed metrics and push it to the kafka topic.
-          trendMetric.getComputedMetricPoints(metricPoint).foreach(metricPoint => {
-            context().forward(metricPoint.getMetricPointKey(encoder), metricPoint)
+          trendMetric.getComputedMetricPoints(metricData).foreach(metricPoint => {
+            context().forward(metricData.getMetricDefinition.getKey, metricPoint)
           })
         })
       } else {
@@ -118,7 +117,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
       }
     }
 
-    private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {
+    private def createTrendMetric(value: MetricData): Option[TrendMetric] = {
       findMatchingMetric(value).map {
         case AggregationType.Histogram =>
           trendsCount.inc()

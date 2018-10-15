@@ -16,9 +16,10 @@
  */
 package com.expedia.www.haystack.trends.transformer
 
+import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
 import com.expedia.open.tracing.Tag.TagType
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.TagKeys
 
 import scala.collection.JavaConverters._
 
@@ -26,14 +27,16 @@ import scala.collection.JavaConverters._
 /**
   * This transformer generates a success or a failure metric y
   */
-trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
+trait SpanStatusMetricDataTransformer extends MetricDataTransformer {
   private val spanFailuresMetricPoints = metricRegistry.meter("metricpoint.span.success")
   private val spanSuccessMetricPoints = metricRegistry.meter("metricpoint.span.failure")
 
   val SUCCESS_METRIC_NAME = "success-span"
   val FAILURE_METRIC_NAME = "failure-span"
+  val MTYPE = "gauge"
+  val UNIT = "short"
 
-  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
+  override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricData] = {
     var metricName: String = null
 
     if (isError(span)) {
@@ -44,12 +47,12 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
       metricName = SUCCESS_METRIC_NAME
     }
 
-    var metricPoints = List(MetricPoint(metricName, MetricType.Gauge, createCommonMetricTags(span), 1, getDataPointTimestamp(span)))
+    var metricDataList = List(getMetricData(metricName, createCommonMetricTags(span), MTYPE, UNIT, 1, getDataPointTimestamp(span)))
 
     if (serviceOnlyFlag) {
-      metricPoints = metricPoints :+ MetricPoint(metricName, MetricType.Gauge, createServiceOnlyMetricTags(span), 1, getDataPointTimestamp(span))
+      metricDataList = metricDataList :+ getMetricData(metricName, createServiceOnlyMetricTags(span), MTYPE, UNIT, 1, getDataPointTimestamp(span))
     }
-    metricPoints
+    metricDataList
   }
 
   protected def isError(span: Span): Boolean = {
@@ -65,4 +68,4 @@ trait SpanStatusMetricPointTransformer extends MetricPointTransformer {
   }
 }
 
-object SpanStatusMetricPointTransformer extends SpanStatusMetricPointTransformer
+object SpanStatusMetricDataTransformer extends SpanStatusMetricDataTransformer

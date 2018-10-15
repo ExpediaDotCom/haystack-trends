@@ -18,9 +18,11 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import java._
+
 import com.codahale.metrics.Timer
+import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
@@ -40,7 +42,7 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   def this(interval: Interval) = this(interval, new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue, AppConfiguration.histogramMetricConfiguration.precision))
 
 
-  override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
+  override def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
     import com.expedia.www.haystack.trends.aggregation.entities.StatValue._
     val result = Map(
       MEAN -> histogram.getMean.toLong,
@@ -52,7 +54,9 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
       MAX -> histogram.getMaxValue
     ).map {
       case (stat, value) =>
-        MetricPoint(metricName, MetricType.Gauge, appendTags(tags, interval, stat), value, publishingTimestamp)
+        val tagCollection = new TagCollection(appendTags(tags, interval, stat))
+        val metricDefinition = new MetricDefinition(metricKey, tagCollection, TagCollection.EMPTY)
+        new MetricData(metricDefinition, value, publishingTimestamp)
     }
     result.toList
   }
@@ -61,10 +65,10 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
     histogram
   }
 
-  override def compute(metricPoint: MetricPoint): HistogramMetric = {
-    if (metricPoint.value.toLong <= histogram.getHighestTrackableValue) {
+  override def compute(metricData: MetricData): HistogramMetric = {
+    if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
-      histogram.recordValue(metricPoint.value.toLong)
+      histogram.recordValue(metricData.getValue.toLong)
       timerContext.close()
     }
     this

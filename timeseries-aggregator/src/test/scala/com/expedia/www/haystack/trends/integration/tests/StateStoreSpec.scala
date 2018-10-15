@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.trends.integration.tests
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import org.apache.kafka.clients.admin.{AdminClient, Config}
 import org.apache.kafka.common.config.ConfigResource
@@ -48,7 +48,7 @@ class StateStoreSpec extends IntegrationTestSpec {
 
       Then("we should see the state store topic created with specified properties")
       val waitTimeMs = 15000
-      IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, waitTimeMs).asScala.toList
+      IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricData](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, 1, waitTimeMs).asScala.toList
       val adminClient = AdminClient.create(STREAMS_CONFIG)
       val configResource = new ConfigResource(ConfigResource.Type.TOPIC, CHANGELOG_TOPIC)
       val describeConfigResult: java.util.Map[ConfigResource, Config] = adminClient.describeConfigs(java.util.Arrays.asList(configResource)).all().get()

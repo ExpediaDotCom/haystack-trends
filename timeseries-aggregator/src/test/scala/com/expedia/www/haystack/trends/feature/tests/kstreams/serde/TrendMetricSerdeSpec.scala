@@ -17,8 +17,9 @@
  */
 package com.expedia.www.haystack.trends.feature.tests.kstreams.serde
 
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{Interval, MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.{Interval, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
 import com.expedia.www.haystack.trends.feature.FeatureSpec
@@ -41,7 +42,7 @@ class TrendMetricSerdeSpec extends FeatureSpec {
       val durations: List[Long] = List(10, 140)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
 
-      val metricPoints: List[MetricPoint] = durations.map(duration => MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, currentTime))
+      val metricPoints: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTime))
 
       When("creating a TrendMetric and passing some MetricPoints and aggregation type as Histogram")
       val trendMetric: TrendMetric = TrendMetric.createTrendMetric(intervals, metricPoints.head, HistogramMetricFactory)
@@ -73,7 +74,7 @@ class TrendMetricSerdeSpec extends FeatureSpec {
       Given("some count Metric points")
       val counts: List[Long] = List(10, 140)
       val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
-      val metricPoints: List[MetricPoint] = counts.map(count => MetricPoint(SUCCESS_METRIC_NAME, MetricType.Gauge, keys, count, currentTime))
+      val metricPoints: List[MetricData] = counts.map(count => getMetricData(SUCCESS_METRIC_NAME, keys, count, currentTime))
 
 
       When("creating a TrendMetric and passing some MetricPoints and aggregation type as Count")
