@@ -24,9 +24,10 @@ import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
+import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.kstream.internals._
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext}
-import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.state.{KeyValueIterator, KeyValueStore}
 import org.slf4j.LoggerFactory
 
 class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder) extends KStreamAggProcessorSupplier[String, String, MetricPoint, TrendMetric] with MetricRuleEngine with MetricsSupport {
@@ -80,6 +81,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
       super.init(context)
       trendsCount = metricRegistry.counter(s"metricprocessor.trendcount.${context.taskId()}")
       trendMetricStore = context.getStateStore(trendMetricStoreName).asInstanceOf[KeyValueStore[String, TrendMetric]]
+      iterateEmptyValues()
       trendsCount.dec(trendsCount.getCount)
       trendsCount.inc(trendMetricStore.approximateNumEntries())
       LOGGER.info(s"Triggering init for metric agg processor for task id ${context.taskId()}")
@@ -116,6 +118,17 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
       } else {
         invalidMetricPointMeter.mark()
       }
+    }
+
+    private def iterateEmptyValues() = {
+      val iter: KeyValueIterator[String, TrendMetric] = this.trendMetricStore.all
+      while ( {iter.hasNext}) {
+        val entry: KeyValue[String, TrendMetric] = iter.next
+        if(entry.value == null){
+          LOGGER.error(s"Null Values for key ${entry.key}")
+        }
+      }
+      iter.close()
     }
 
     private def createTrendMetric(value: MetricPoint): Option[TrendMetric] = {
