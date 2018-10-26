@@ -1,4 +1,4 @@
-.PHONY: all build_transformer build_aggregator span-timeseries-transformer release
+.PHONY: all build_transformer build_aggregator span-timeseries-transformer timeseries-aggregator release
 
 PWD := $(shell pwd)
 MAVEN := ./mvnw
@@ -18,10 +18,10 @@ build_transformer:
 	${MAVEN} package -DfinalName=haystack-span-timeseries-transformer -pl span-timeseries-transformer -am
 
 span-timeseries-transformer:
-	cd span-timeseries-transformer && $(MAKE) all
+	$(MAKE) -C span-timeseries-transformer all
 
 timeseries-aggregator:
-	cd timeseries-aggregator && $(MAKE) all
+	$(MAKE) -C timeseries-aggregator all
 
 build_aggregator:
 	${MAVEN} package -DfinalName=haystack-timeseries-aggregator -pl timeseries-aggregator -am
