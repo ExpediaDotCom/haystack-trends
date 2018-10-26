@@ -134,6 +134,7 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
           data
         }
       }
+
       override def close(): Unit = ()
     }
   }
