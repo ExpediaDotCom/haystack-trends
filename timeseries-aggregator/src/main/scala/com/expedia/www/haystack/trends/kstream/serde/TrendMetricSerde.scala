@@ -110,10 +110,10 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
 
         if (trendMetric == null) {
           LOGGER.error("TrendMetric is null")
-          packer.toByteArray
+          null
         } else if(trendMetric.trendMetricsMap == null) {
           LOGGER.error("TrendMetric map is null")
-          packer.toByteArray
+          null
         }
         else {
           val serializedTrendMetric = trendMetric.trendMetricsMap.map {
