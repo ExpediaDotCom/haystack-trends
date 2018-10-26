@@ -108,24 +108,32 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
 
         val packer = MessagePack.newDefaultBufferPacker()
 
-        val serializedTrendMetric = trendMetric.trendMetricsMap.map {
-          case(interval, windowedMetric) =>
-            ValueFactory.newMap(Map(
-              ValueFactory.newString(INTERVAL_KEY) -> ValueFactory.newInteger(interval.timeInSeconds),
-              ValueFactory.newString(TREND_METRIC_KEY) -> ValueFactory.newBinary(WindowedMetricSerde.serializer().serialize(topic, windowedMetric))
-            ).asJava)
+        if (trendMetric == null) {
+          LOGGER.error("TrendMetric is null")
+          null
+        } else if (trendMetric.trendMetricsMap == null) {
+          LOGGER.error("TrendMetric map is null")
+          null
         }
+        else {
+          val serializedTrendMetric = trendMetric.trendMetricsMap.map {
+            case (interval, windowedMetric) =>
+              ValueFactory.newMap(Map(
+                ValueFactory.newString(INTERVAL_KEY) -> ValueFactory.newInteger(interval.timeInSeconds),
+                ValueFactory.newString(TREND_METRIC_KEY) -> ValueFactory.newBinary(WindowedMetricSerde.serializer().serialize(topic, windowedMetric))
+              ).asJava)
+          }
 
-        val windowedMetricMessagePack = Map(
-          ValueFactory.newString(METRICS_KEY) -> ValueFactory.newArray(serializedTrendMetric.toList.asJava),
-          ValueFactory.newString(AGGREGATION_TYPE_KEY) -> ValueFactory.newString(trendMetric.getMetricFactory.getAggregationType.toString)
-        )
-        packer.packValue(ValueFactory.newMap(windowedMetricMessagePack.asJava))
-        val data = packer.toByteArray
-        trendMetricStatsSerSuccessMeter.mark()
-        data
+          val windowedMetricMessagePack = Map(
+            ValueFactory.newString(METRICS_KEY) -> ValueFactory.newArray(serializedTrendMetric.toList.asJava),
+            ValueFactory.newString(AGGREGATION_TYPE_KEY) -> ValueFactory.newString(trendMetric.getMetricFactory.getAggregationType.toString)
+          )
+          packer.packValue(ValueFactory.newMap(windowedMetricMessagePack.asJava))
+          val data = packer.toByteArray
+          trendMetricStatsSerSuccessMeter.mark()
+          data
+        }
       }
-
       override def close(): Unit = ()
     }
   }
