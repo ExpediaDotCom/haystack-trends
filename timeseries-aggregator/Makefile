@@ -16,4 +16,4 @@ all: docker_build integration_test
 
 # build all and release
 release: docker_build
-	../scripts/publish-to-docker-hub.sh
+	../deployment/scripts/publish-to-docker-hub.sh
