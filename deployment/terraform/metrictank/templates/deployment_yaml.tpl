@@ -43,6 +43,8 @@ spec:
           value: "${cassandra_address}"
         - name: "MT_STATS_ADDR"
           value: "${graphite_address}"
+        - name: "MT_MEMORY_IDX_TAG_SUPPORT"
+          value: "${tag_support}"
         ${env_vars}
       nodeSelector:
         ${node_selecter_label}

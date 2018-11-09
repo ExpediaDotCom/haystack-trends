@@ -7,6 +7,7 @@ module "metrictank" {
   source = "metrictank"
   replicas = "${var.metrictank["instances"]}"
   cassandra_address = "${var.cassandra_hostname}:${var.cassandra_port}"
+  tag_support = "${var.metrictank["tag_support"]}"
   kafka_address = "${var.kafka_hostname}:${var.kafka_port}"
   namespace = "${var.app_namespace}"
   graphite_address = "${var.graphite_hostname}:${var.graphite_port}"

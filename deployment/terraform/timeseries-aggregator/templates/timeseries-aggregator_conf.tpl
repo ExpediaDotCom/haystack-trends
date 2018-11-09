@@ -9,7 +9,7 @@ kafka {
     num.stream.threads = 2
     commit.interval.ms = 5000
     auto.offset.reset = latest
-    timestamp.extractor = "com.expedia.www.haystack.commons.kstreams.MetricPointTimestampExtractor"
+    timestamp.extractor = "com.expedia.www.haystack.commons.kstreams.MetricDataTimestampExtractor"
     consumer.heartbeat.interval.ms = 30000
     consumer.session.timeout.ms = 100000
     consumer.max.partition.fetch.bytes = 262144
