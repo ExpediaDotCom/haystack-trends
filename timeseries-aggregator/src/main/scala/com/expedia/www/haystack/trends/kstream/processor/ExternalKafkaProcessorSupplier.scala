@@ -54,7 +54,7 @@ class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfigurati
     /**
       * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
-      * @param key   - key in the kafka record - should be metricData.getMetricDefinition.toString
+      * @param key   - key in the kafka record - should be MetricDefinitionKeyGenerator.generateKey(metricData.getMetricDefinition)
       * @param value - metricData
       */
     def process(key: String, value: MetricData): Unit = {

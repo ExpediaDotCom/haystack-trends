@@ -41,7 +41,7 @@ trait MetricDataTransformer extends MetricsSupport {
     span.getStartTime / 1000000
   }
 
-  protected def getMetricData(metricName: String, metricTags: util.HashMap[String, String], metricType: String, metricUnit: String, value: Double, timeStamp: Long): MetricData = {
+  protected def getMetricData(metricName: String, metricTags: util.LinkedHashMap[String, String], metricType: String, metricUnit: String, value: Double, timeStamp: Long): MetricData = {
     val tags = new util.LinkedHashMap[String, String] {
       putAll(metricTags)
       put(MetricDefinition.MTYPE, metricType)
@@ -61,14 +61,14 @@ trait MetricDataTransformer extends MetricsSupport {
     * @param span incoming span
     * @return metric tags in the form of HashMap of string,string
     */
-  protected def createCommonMetricTags(span: Span): util.HashMap[String, String] = {
+  protected def createCommonMetricTags(span: Span): util.LinkedHashMap[String, String] = {
     new util.LinkedHashMap[String, String] {
       put(SERVICE_NAME_KEY, encoder.encode(span.getServiceName))
       put(OPERATION_NAME_KEY, encoder.encode(span.getOperationName))
     }
   }
 
-  protected def createServiceOnlyMetricTags(span: Span): util.HashMap[String, String] = {
+  protected def createServiceOnlyMetricTags(span: Span): util.LinkedHashMap[String, String] = {
     new util.LinkedHashMap[String, String] {
       put(SERVICE_NAME_KEY, encoder.encode(span.getServiceName))
     }

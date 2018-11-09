@@ -25,6 +25,7 @@ import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncod
 import com.expedia.www.haystack.commons.entities.TagKeys
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
@@ -82,7 +83,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricD
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricDataList.map(metricData => metricData.getMetricDefinition.toString).toSet
+      val keySetTransformer: Set[String] = metricDataList.map(metricData => MetricDefinitionKeyGenerator.generateKey(metricData.getMetricDefinition)).toSet
       val keySetKafka: Set[String] = records.map(metricDataKv => metricDataKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)

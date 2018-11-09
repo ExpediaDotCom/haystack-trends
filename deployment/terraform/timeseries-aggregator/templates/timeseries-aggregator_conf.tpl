@@ -4,7 +4,7 @@ kafka {
   close.timeout.ms = 30000
 
   streams {
-    application.id = "timeseries-aggregator"
+    application.id = "timeseries-aggregator-v2"
     bootstrap.servers = "${kafka_endpoint}"
     num.stream.threads = 2
     commit.interval.ms = 5000

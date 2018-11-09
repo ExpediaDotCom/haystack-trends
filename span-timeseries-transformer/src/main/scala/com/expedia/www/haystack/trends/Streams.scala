@@ -24,6 +24,8 @@ import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.kstreams.serde.SpanSerde
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
 import org.apache.kafka.common.serialization.Serdes.StringSerde
@@ -47,7 +49,7 @@ class Streams(kafkaConfig: KafkaConfiguration, transformerConfiguration: Transfo
   private def mapToMetricDataKeyValue(span: Span): java.util.List[KeyValue[String, MetricData]] = {
     generateMetricDataList(transformerConfiguration.blacklistedServices)(MetricDataTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration, transformerConfiguration.encoder)
       .map {
-        metricData => new KeyValue(metricData.getMetricDefinition.toString, metricData)
+        metricData => new KeyValue(generateKey(metricData.getMetricDefinition), metricData)
       }.asJava
   }
 

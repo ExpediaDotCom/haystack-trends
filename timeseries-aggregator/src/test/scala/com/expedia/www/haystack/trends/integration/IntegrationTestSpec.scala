@@ -27,6 +27,8 @@ import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncod
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
 import com.expedia.www.haystack.trends.kstream.Streams
@@ -150,7 +152,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     scheduler.scheduleWithFixedDelay(() => {
       if (idx < maxMetricPoints) {
         val metricData = randomMetricData(metricName = metricName, timestamp = epochTimeInSecs)
-        val keyValue = List(new KeyValue[String, MetricData](metricData.getMetricDefinition.toString, metricData)).asJava
+        val keyValue = List(new KeyValue[String, MetricData](generateKey(metricData.getMetricDefinition), metricData)).asJava
         IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
           INPUT_TOPIC,
           keyValue,
@@ -168,7 +170,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
                                   produceTimeInSecs: Long
                                  ): Unit = {
     val metricPoint = randomMetricData(metricName = metricName, timestamp = epochTimeInSecs)
-    val keyValue = List(new KeyValue[String, MetricData](metricPoint.getMetricDefinition.toString, metricPoint)).asJava
+    val keyValue = List(new KeyValue[String, MetricData](generateKey(metricPoint.getMetricDefinition), metricPoint)).asJava
     IntegrationTestUtils.produceKeyValuesSynchronouslyWithTimestamp(
       INPUT_TOPIC,
       keyValue,
