@@ -29,7 +29,7 @@ kafka {
   }
 
   consumer {
-    topic = "metricpoints"
+    topic = "metric-data-points"
   }
 }
 
