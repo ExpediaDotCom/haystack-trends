@@ -27,6 +27,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactor
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
+import scala.util.Try
 
 /**
   * This class contains a metric for each time window being computed for a single interval
@@ -38,6 +39,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
 
   private val disorderedMetricPointMeter: Meter = metricRegistry.meter("metricpoints.disordered")
   private var computedMetrics = List[(Long, Metric)]()
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   def getMetricFactory: MetricFactory = {
     metricFactory
@@ -93,7 +95,12 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
   def getComputedMetricDataList(incomingMetricData: MetricData): List[MetricData] = {
     val metricDataList = computedMetrics.flatMap {
       case (publishTime, metric) =>
-        metric.mapToMetricDataList(incomingMetricData.getMetricDefinition.getKey, incomingMetricData.getMetricDefinition.getTags.getKv, publishTime)
+        try {
+          metric.mapToMetricDataList(incomingMetricData.getMetricDefinition.getKey, incomingMetricData.getMetricDefinition.getTags.getKv, publishTime)
+        } catch {
+          case e : ArrayIndexOutOfBoundsException => LOGGER.error("Metric Data value in Histogram is " + metric.toString)
+            throw e
+        }
     }
     computedMetrics = List[(Long, Metric)]()
     metricDataList
