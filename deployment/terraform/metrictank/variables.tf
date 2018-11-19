@@ -1,6 +1,7 @@
 variable "namespace" {}
 variable "replicas" {}
 variable "cassandra_address" {}
+variable "tag_support" {}
 variable "kafka_address" {}
 variable "graphite_address" {}
 variable "kubectl_executable_name" {}

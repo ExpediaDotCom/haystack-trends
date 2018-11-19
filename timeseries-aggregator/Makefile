@@ -1,4 +1,4 @@
-.PHONY: integration_test release
+.PHONY: integration_test release all
 
 MAVEN := ../mvnw
 

@@ -19,11 +19,11 @@
 package com.expedia.www.haystack.trends.aggregation
 
 import com.codahale.metrics.Meter
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.MetricPoint
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactory}
 import com.expedia.www.haystack.trends.aggregation.entities.TimeWindow
+import com.expedia.www.haystack.trends.aggregation.metrics.{Metric, MetricFactory}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
@@ -44,24 +44,24 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
   }
 
   /**
-    * function to compute the incoming metric point
-    * it updates all the metrics for the windows within which the incoming metric point lies for an interval
+    * function to compute the incoming metric data
+    * it updates all the metrics for the windows within which the incoming metric data lies for an interval
     *
-    * @param incomingMetricPoint - incoming metric point
+    * @param incomingMetricData - incoming metric data
     */
-  def compute(incomingMetricPoint: MetricPoint): Unit = {
-    val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricPoint.epochTimeInSeconds, interval)
+  def compute(incomingMetricData: MetricData): Unit = {
+    val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricData.getTimestamp, interval)
 
     val matchedWindowedMetric = windowedMetricsMap.get(incomingMetricPointTimeWindow)
 
     if (matchedWindowedMetric.isDefined) {
       // an existing metric
-      matchedWindowedMetric.get.compute(incomingMetricPoint)
+      matchedWindowedMetric.get.compute(incomingMetricData)
     } else {
       // incoming metric is a new metric
       if (incomingMetricPointTimeWindow.compare(windowedMetricsMap.firstKey) > 0) {
         // incoming metric's time is more that minimum (first) time window
-        createNewMetric(incomingMetricPointTimeWindow, incomingMetricPoint)
+        createNewMetric(incomingMetricPointTimeWindow, incomingMetricData)
         evictMetric()
       } else {
         // disordered metric
@@ -70,9 +70,9 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     }
   }
 
-  private def createNewMetric(incomingMetricPointTimeWindow: TimeWindow, incomingMetricPoint: MetricPoint) = {
+  private def createNewMetric(incomingMetricPointTimeWindow: TimeWindow, incomingMetricData: MetricData) = {
     val newMetric = metricFactory.createMetric(interval)
-    newMetric.compute(incomingMetricPoint)
+    newMetric.compute(incomingMetricData)
     windowedMetricsMap.put(incomingMetricPointTimeWindow, newMetric)
   }
 
@@ -86,17 +86,17 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
   }
 
   /**
-    * returns list of metricPoints which are evicted and their window is closes
+    * returns list of metricData which are evicted and their window is closes
     *
-    * @return list of evicted metricPoints
+    * @return list of evicted metricData
     */
-  def getComputedMetricPoints(incomingMetricPoint: MetricPoint): List[MetricPoint] = {
-    val metricPoints = computedMetrics.flatMap {
+  def getComputedMetricDataList(incomingMetricData: MetricData): List[MetricData] = {
+    val metricDataList = computedMetrics.flatMap {
       case (publishTime, metric) =>
-        metric.mapToMetricPoints(incomingMetricPoint.metric, incomingMetricPoint.tags, publishTime)
+        metric.mapToMetricDataList(incomingMetricData.getMetricDefinition.getKey, incomingMetricData.getMetricDefinition.getTags.getKv, publishTime)
     }
     computedMetrics = List[(Long, Metric)]()
-    metricPoints
+    metricDataList
   }
 }
 
@@ -107,9 +107,9 @@ object WindowedMetric {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
-  def createWindowedMetric(firstMetricPoint: MetricPoint, metricFactory: MetricFactory, watermarkedWindows: Int, interval: Interval): WindowedMetric = {
+  def createWindowedMetric(firstMetricData: MetricData, metricFactory: MetricFactory, watermarkedWindows: Int, interval: Interval): WindowedMetric = {
     val windowedMetricMap = mutable.TreeMap[TimeWindow, Metric]()
-    windowedMetricMap.put(TimeWindow.apply(firstMetricPoint.epochTimeInSeconds, interval), metricFactory.createMetric(interval))
+    windowedMetricMap.put(TimeWindow.apply(firstMetricData.getTimestamp, interval), metricFactory.createMetric(interval))
     new WindowedMetric(windowedMetricMap, metricFactory, watermarkedWindows, interval)
   }
 

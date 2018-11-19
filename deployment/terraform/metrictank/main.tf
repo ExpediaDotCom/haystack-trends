@@ -3,7 +3,7 @@ locals {
   service_port = 6060
   container_port = 6060
   deployment_yaml_file_path = "${path.module}/templates/deployment_yaml.tpl"
-  image = "grafana/metrictank:0.9.0"
+  image = "grafana/metrictank:0.10.1"
   count = "${var.enabled == "true" ? 1:0}"
 
 }
@@ -18,6 +18,7 @@ data "template_file" "deployment_yaml" {
     node_selecter_label = "${var.node_selecter_label}"
     kafka_address = "${var.kafka_address}"
     cassandra_address = "${var.cassandra_address}"
+    tag_support = "${var.tag_support}"
     replicas = "${var.replicas}"
     image = "${local.image}"
     memory_limit = "${var.memory_limit}"

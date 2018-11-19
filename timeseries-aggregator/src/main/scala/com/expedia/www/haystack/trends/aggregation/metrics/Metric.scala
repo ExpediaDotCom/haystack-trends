@@ -18,22 +18,25 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import java._
+
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{MetricPoint, TagKeys}
+import com.expedia.www.haystack.commons.entities.TagKeys
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.aggregation.entities.StatValue.StatValue
+import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.kstream.serde.metric.MetricSerde
 
 abstract class Metric(interval: Interval) extends MetricsSupport {
 
   /**
-    * function to compute the incoming metric-point
+    * function to compute the incoming metric-data
     *
-    * @param value - incoming metric point
+    * @param value - incoming metric data
     * @return : returns the metric (in most cases it should return the same object(this) but returning a metric gives the metric implementation class to create an immutable metric)
     */
-  def compute(value: MetricPoint): Metric
+  def compute(value: MetricData): Metric
 
   def getMetricInterval: Interval = {
     interval
@@ -44,14 +47,18 @@ abstract class Metric(interval: Interval) extends MetricsSupport {
     * This function returns the metric points which contains the current snapshot of the metric
     *
     * @param publishingTimestamp : timestamp in seconds which the consumer wants to be used as the timestamps of these published metricpoints
-    * @param metricName : the name of the metricpoints to be generated
-    * @param tags : tags to be associated with the metricPoints
-    * @return list of published metricpoints
+    * @param metricKey           : the name of the metricData to be generated
+    * @param tags                : tags to be associated with the metricData
+    * @return list of published metricdata
     */
-  def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint]
+  def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData]
 
-  protected def appendTags(tags: Map[String, String], interval: Interval, statValue: StatValue): Map[String, String] = {
-    tags + (TagKeys.INTERVAL_KEY -> interval.name, TagKeys.STATS_KEY -> statValue.toString)
+  protected def appendTags(tags: util.Map[String, String], interval: Interval, statValue: StatValue): util.Map[String, String] = {
+    new util.LinkedHashMap[String, String] {
+      putAll(tags)
+      put(TagKeys.INTERVAL_KEY, interval.name)
+      put(TagKeys.STATS_KEY, statValue.toString)
+    }
   }
 
 }

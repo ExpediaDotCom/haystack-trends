@@ -20,39 +20,37 @@ package com.expedia.www.haystack.trends.feature.tests.transformer
 import com.expedia.www.haystack.commons.entities.TagKeys
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.feature.FeatureSpec
-import com.expedia.www.haystack.trends.transformer.SpanDurationMetricPointTransformer
+import com.expedia.www.haystack.trends.transformer.SpanDurationMetricDataTransformer
 
-class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurationMetricPointTransformer {
+class SpanDurationMetricDataTransformerSpec extends FeatureSpec with SpanDurationMetricDataTransformer {
 
-  feature("metricPoint transformer for creating duration metricPoint") {
-    scenario("should have duration value in metricPoint for given duration in span " +
+  feature("metricData transformer for creating duration metricData") {
+    scenario("should have duration value in metricData for given duration in span " +
       "and when service level generation is enabled") {
 
       Given("a valid span object")
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
-        TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
-        DURATION_METRIC_NAME
-      val metricPointServiceOnlyKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
-        DURATION_METRIC_NAME
 
       When("metricPoint is created using transformer")
-      val metricPoints = mapSpan(span, true)
+      val metricDataList = mapSpan(span, true)
 
       Then("should only have 2 metricPoint")
-      metricPoints.length shouldEqual 2
+      metricDataList.length shouldEqual 2
 
       Then("same duration should be in metricPoint value")
-      metricPoints.head.value shouldEqual duration
+      metricDataList.head.getValue shouldEqual duration
 
 
       Then("the metric name should be duration")
-      metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
+      metricDataList.head.getMetricDefinition.getKey shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      val metricPointKeys = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoder)).toSet
-      metricPointKeys shouldBe Set(metricPointKey, metricPointServiceOnlyKey)
+      getMetricDataTags(metricDataList.head).get(TagKeys.SERVICE_NAME_KEY) shouldEqual encoder.encode(span.getServiceName)
+      getMetricDataTags(metricDataList.head).get(TagKeys.OPERATION_NAME_KEY) shouldEqual encoder.encode(span.getOperationName)
+      getMetricDataTags(metricDataList.reverse.head).get(TagKeys.SERVICE_NAME_KEY) shouldEqual encoder.encode(span.getServiceName)
+      getMetricDataTags(metricDataList.reverse.head).get(TagKeys.OPERATION_NAME_KEY) shouldEqual null
+
     }
 
     scenario("should have duration value in metricPoint for given duration in span " +
@@ -61,25 +59,23 @@ class SpanDurationMetricPointTransformerSpec extends FeatureSpec with SpanDurati
       Given("a valid span object")
       val duration = System.currentTimeMillis
       val span = generateTestSpan(duration)
-      val metricPointKey = "haystack."+TagKeys.SERVICE_NAME_KEY + "." + span.getServiceName + "." +
-        TagKeys.OPERATION_NAME_KEY + "." + span.getOperationName + "." +
-        DURATION_METRIC_NAME
 
-      When("metricPoint is created using transformer")
-      val metricPoints = mapSpan(span, false)
+      When("metricData is created using transformer")
+      val metricDataList = mapSpan(span, false)
 
       Then("should only have 1 metricPoint")
-      metricPoints.length shouldEqual 1
+      metricDataList.length shouldEqual 1
 
       Then("same duration should be in metricPoint value")
-      metricPoints.head.value shouldEqual duration
+      metricDataList.head.getValue shouldEqual duration
 
 
       Then("the metric name should be duration")
-      metricPoints.head.metric shouldEqual DURATION_METRIC_NAME
+      metricDataList.head.getMetricDefinition.getKey shouldEqual DURATION_METRIC_NAME
 
       Then("returned keys should be as expected")
-      metricPoints.head.getMetricPointKey(new PeriodReplacementEncoder) shouldBe metricPointKey
+      getMetricDataTags(metricDataList.head).get(TagKeys.SERVICE_NAME_KEY) shouldEqual encoder.encode(span.getServiceName)
+      getMetricDataTags(metricDataList.head).get(TagKeys.OPERATION_NAME_KEY) shouldEqual encoder.encode(span.getOperationName)
     }
   }
 }

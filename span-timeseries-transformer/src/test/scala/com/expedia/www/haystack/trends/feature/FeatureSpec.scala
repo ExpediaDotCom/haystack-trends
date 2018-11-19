@@ -16,8 +16,10 @@
  */
 package com.expedia.www.haystack.trends.feature
 
+import java._
 import java.util.Properties
 
+import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.encoders.Base64Encoder
 import com.expedia.www.haystack.trends.config.AppConfiguration
@@ -29,6 +31,9 @@ import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
 
 
 trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with EasyMockSugar {
+
+  protected val METRIC_TYPE = "gauge"
+
   def generateTestSpan(duration: Long): Span = {
     val operationName = "testSpan"
     val serviceName = "testService"
@@ -56,4 +61,9 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
     EasyMock.replay(appConfiguration)
     appConfiguration
   }
+
+  protected def getMetricDataTags(metricData : MetricData): util.Map[String, String] = {
+    metricData.getMetricDefinition.getTags.getKv
+  }
+
 }

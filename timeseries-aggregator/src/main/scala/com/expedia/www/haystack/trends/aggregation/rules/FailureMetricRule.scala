@@ -18,7 +18,7 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
+import com.expedia.metrics.{MetricData, MetricDefinition}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
@@ -26,11 +26,11 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.Aggre
   * This Rule applies a Count aggregation type when the incoming metric point's name is failure-span and is of type gauge
   */
 trait FailureMetricRule extends MetricRule {
-  override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
-    if (metricPoint.metric.toLowerCase.contains("failure-span") && metricPoint.`type`.equals(MetricType.Gauge)) {
+  override def isMatched(metricData: MetricData): Option[AggregationType] = {
+    if (metricData.getMetricDefinition.getKey.toLowerCase.contains("failure-span") && containsTag(metricData, MetricDefinition.MTYPE, MTYPE_GAUGE)) {
       Some(AggregationType.Count)
     } else {
-      super.isMatched(metricPoint)
+      super.isMatched(metricData)
     }
   }
 }

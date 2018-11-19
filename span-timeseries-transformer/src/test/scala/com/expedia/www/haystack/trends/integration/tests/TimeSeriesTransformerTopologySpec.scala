@@ -19,15 +19,17 @@ package com.expedia.www.haystack.trends.integration.tests
 
 import java.util.UUID
 
+import com.expedia.metrics.{MetricData, MetricDefinition}
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType, TagKeys}
+import com.expedia.www.haystack.commons.entities.TagKeys
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
-import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
-import com.expedia.www.haystack.trends.{MetricPointGenerator, Streams}
+import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
+import com.expedia.www.haystack.trends.{MetricDataGenerator, Streams}
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
@@ -37,11 +39,11 @@ import org.apache.kafka.streams.{KeyValue, StreamsConfig}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricPointGenerator {
+class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricDataGenerator {
 
   "TimeSeries Transformer Topology" should {
 
-    "consume spans from input topic and transform them to metricPoints based on available transformers" in {
+    "consume spans from input topic and transform them to metric data list based on available transformers" in {
 
       Given("a set of spans and kafka specific configurations")
       val traceId = "trace-id-dummy"
@@ -52,7 +54,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), OUTPUT_TOPIC, INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
       val transformerConfig = TransformerConfiguration(encoder = new PeriodReplacementEncoder, enableMetricPointServiceLevelGeneration = true, List())
       val streams = new Streams(kafkaConfig, transformerConfig)
-      val factory = new StreamsFactory(streams, kafkaConfig.streamsConfig, Some(kafkaConfig.consumeTopic))
+      val factory = new StreamsFactory(streams, kafkaConfig.streamsConfig, kafkaConfig.consumeTopic)
       val streamsRunner = new StreamsRunner(factory, new StateChangeListener(new HealthStatusController))
 
 
@@ -61,28 +63,28 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricP
       streamsRunner.start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricPoints: List[MetricPoint] = spans.flatMap(span => generateMetricPoints(transformerConfig.blacklistedServices)(MetricPointTransformer.allTransformers)(span, true)) // directly call transformers to get metricPoints
-      metricPoints.size shouldBe (spans.size * MetricPointTransformer.allTransformers.size * 2) // two times because of service only metric points
+      val metricDataList: List[MetricData] = spans.flatMap(span => generateMetricDataList(transformerConfig.blacklistedServices)(MetricDataTransformer.allTransformers)(span, true, new PeriodReplacementEncoder)) // directly call transformers to get metricPoints
+      metricDataList.size shouldBe (spans.size * MetricDataTransformer.allTransformers.size * 2) // two times because of service only metric points
 
-      val records: List[KeyValue[String, MetricPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, metricPoints.size, 15000).asScala.toList // get metricPoints from Kafka's output topic
+      val records: List[KeyValue[String, MetricData]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricData](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, metricDataList.size, 15000).asScala.toList // get metricPoints from Kafka's output topic
       records.map(record => {
-        record.value.`type` shouldEqual MetricType.Gauge
+        record.value.getMetricDefinition.getTags.getKv.get(MetricDefinition.MTYPE) shouldEqual METRIC_TYPE
       })
 
       Then("same metricPoints should be created as that from transformers")
 
-      val metricPointSetTransformer: Set[MetricPoint] = metricPoints.toSet
-      val metricPointSetKafka: Set[MetricPoint] = records.map(metricPointKv => metricPointKv.value).toSet
+      val metricDataSetTransformer: Set[MetricData] = metricDataList.toSet
+      val metricDataSetKafka: Set[MetricData] = records.map(metricDataKv => metricDataKv.value).toSet
 
-      val diffSetMetricPoint: Set[MetricPoint] = metricPointSetTransformer.diff(metricPointSetKafka)
+      val diffSetMetricPoint: Set[MetricData] = metricDataSetTransformer.diff(metricDataSetKafka)
 
-      metricPoints.size shouldEqual records.size
+      metricDataList.size shouldEqual records.size
       diffSetMetricPoint.isEmpty shouldEqual true
 
       Then("same keys / partition should be created as that from transformers")
-      val keySetTransformer: Set[String] = metricPoints.map(metricPoint => metricPoint.getMetricPointKey(new PeriodReplacementEncoder)).toSet
-      val keySetKafka: Set[String] = records.map(metricPointKv => metricPointKv.key).toSet
+      val keySetTransformer: Set[String] = metricDataList.map(metricData => MetricDefinitionKeyGenerator.generateKey(metricData.getMetricDefinition)).toSet
+      val keySetKafka: Set[String] = records.map(metricDataKv => metricDataKv.key).toSet
 
       val diffSetKey: Set[String] = keySetTransformer.diff(keySetKafka)
 

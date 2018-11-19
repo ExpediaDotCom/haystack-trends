@@ -111,7 +111,7 @@ object TrendMetricSerde extends Serde[TrendMetric] with MetricsSupport {
         if (trendMetric == null) {
           LOGGER.error("TrendMetric is null")
           null
-        } else if(trendMetric.trendMetricsMap == null) {
+        } else if (trendMetric.trendMetricsMap == null) {
           LOGGER.error("TrendMetric map is null")
           null
         }
