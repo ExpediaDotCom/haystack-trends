@@ -27,6 +27,7 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.Aggre
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 import org.HdrHistogram.Histogram
+import org.slf4j.LoggerFactory
 
 
 /**
@@ -38,6 +39,7 @@ import org.HdrHistogram.Histogram
 class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(interval) {
 
   private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
+  private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
   def this(interval: Interval) = this(interval, new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue, AppConfiguration.histogramMetricConfiguration.precision))
 
@@ -66,6 +68,7 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   }
 
   override def compute(metricData: MetricData): HistogramMetric = {
+    LOGGER.info("Metric Data value in Histogram is " + metricData.toString)
     if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
       histogram.recordValue(metricData.getValue.toLong)
