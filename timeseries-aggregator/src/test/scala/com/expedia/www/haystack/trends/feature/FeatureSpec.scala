@@ -58,7 +58,7 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
     projectConfiguration
   }
 
-  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Float, timeStamp: Long): MetricData = {
+  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Double, timeStamp: Long): MetricData = {
 
     val tagsMap = new java.util.LinkedHashMap[String, String] {
       if (tags != null) putAll(tags.asJava)

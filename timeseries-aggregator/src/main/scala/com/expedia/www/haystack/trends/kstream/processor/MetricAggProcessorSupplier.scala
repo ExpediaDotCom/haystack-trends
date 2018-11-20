@@ -22,6 +22,7 @@ import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.encoders.Encoder
 import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
+import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator.generateKey
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.metrics._
 import com.expedia.www.haystack.trends.aggregation.rules.MetricRuleEngine
@@ -109,7 +110,7 @@ class MetricAggProcessorSupplier(trendMetricStoreName: String, encoder: Encoder)
 
           //retrieve the computed metrics and push it to the kafka topic.
           trendMetric.getComputedMetricPoints(metricData).foreach(metricPoint => {
-            context().forward(metricData.getMetricDefinition.getKey, metricPoint)
+            context().forward(generateKey(metricData.getMetricDefinition), metricPoint)
           })
         })
       } else {

@@ -83,6 +83,49 @@ class WindowedMetricSpec extends FeatureSpec {
       Then("should return the metric points for the second interval")
     }
 
+    scenario("should skip aggregated MetricData List for duration values greater than permissible value post watermarked metrics") {
+
+      Given("duration MetricData with duration values greater than permissible value")
+      val durations: List[Double] = List(4.576661E9, 5.57661E9)
+      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIFTEEN_MINUTE)
+
+      val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
+
+      When("creating a WindowedMetric and passing some MetricData and aggregation type as Histogram")
+      val windowedMetric: WindowedMetric = WindowedMetric.createWindowedMetric(metricDataList.head, HistogramMetricFactory, watermarkedWindows = 1, Interval.ONE_MINUTE)
+
+      metricDataList.indices.foreach(i => if (i > 0) {
+        windowedMetric.compute(metricDataList(i))
+      })
+
+      val expectedMetric: HistogramMetric = new HistogramMetric(Interval.ONE_MINUTE)
+      metricDataList.foreach(metricData => expectedMetric.compute(metricData))
+
+      Then("should return 0 Metric Data Points if we try to get it before interval")
+      val aggregatedMetricPointsBefore: List[MetricData] = windowedMetric.getComputedMetricDataList(metricDataList.last)
+      aggregatedMetricPointsBefore.size shouldBe 0
+
+      When("adding a MetricData outside of first Interval")
+      val newMetricPointAfterFirstInterval: MetricData = getMetricData(DURATION_METRIC_NAME, keys, 80, currentTimeInSecs + intervals.head.timeInSeconds)
+
+      windowedMetric.compute(newMetricPointAfterFirstInterval)
+
+      val aggregatedMetricPointsAfterFirstInterval: List[MetricData] = windowedMetric.getComputedMetricDataList(metricDataList.last)
+
+      Then("should return the empty metric data for the previous interval")
+      aggregatedMetricPointsAfterFirstInterval.length shouldBe 0
+
+
+      When("adding a MetricData outside of second interval now")
+      expectedMetric.compute(newMetricPointAfterFirstInterval)
+      val newMetricPointAfterSecondInterval: MetricData = getMetricData(DURATION_METRIC_NAME, keys, 80, currentTimeInSecs + intervals(1).timeInSeconds)
+      windowedMetric.compute(newMetricPointAfterSecondInterval)
+      val aggregatedMetricPointsAfterSecondInterval: List[MetricData] = windowedMetric.getComputedMetricDataList(metricDataList.last)
+
+      //Have to fix dev code and then all the validation test
+      Then("should return the metric points for the second interval")
+    }
+
     scenario("should get aggregated MetricData points post maximum Interval") {
 
       Given("some duration MetricData points")
