@@ -193,7 +193,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
   }
 
-  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Float, timeStamp: Long): MetricData = {
+  protected def getMetricData(metricKey: String, tags: Map[String, String], value: Double, timeStamp: Long): MetricData = {
 
     val tagsMap = new java.util.LinkedHashMap[String, String] {
       putAll(tags.asJava)

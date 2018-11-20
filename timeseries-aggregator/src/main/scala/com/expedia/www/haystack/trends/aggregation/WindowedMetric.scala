@@ -95,12 +95,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
   def getComputedMetricDataList(incomingMetricData: MetricData): List[MetricData] = {
     val metricDataList = computedMetrics.flatMap {
       case (publishTime, metric) =>
-        try {
-          metric.mapToMetricDataList(incomingMetricData.getMetricDefinition.getKey, incomingMetricData.getMetricDefinition.getTags.getKv, publishTime)
-        } catch {
-          case e : ArrayIndexOutOfBoundsException => LOGGER.error("Metric Data value in Histogram is " + incomingMetricData.toString)
-            throw e
-        }
+        metric.mapToMetricDataList(incomingMetricData.getMetricDefinition.getKey, incomingMetricData.getMetricDefinition.getTags.getKv, publishTime)
     }
     computedMetrics = List[(Long, Metric)]()
     metricDataList

@@ -44,21 +44,25 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
 
   override def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
     import com.expedia.www.haystack.trends.aggregation.entities.StatValue._
-    val result = Map(
-      MEAN -> histogram.getMean.toLong,
-      MIN -> histogram.getMinValue,
-      PERCENTILE_95 -> histogram.getValueAtPercentile(95),
-      PERCENTILE_99 -> histogram.getValueAtPercentile(99),
-      STDDEV -> histogram.getStdDeviation.toLong,
-      MEDIAN -> histogram.getValueAtPercentile(50),
-      MAX -> histogram.getMaxValue
-    ).map {
-      case (stat, value) =>
-        val tagCollection = new TagCollection(appendTags(tags, interval, stat))
-        val metricDefinition = new MetricDefinition(metricKey, tagCollection, TagCollection.EMPTY)
-        new MetricData(metricDefinition, value, publishingTimestamp)
+    histogram.getTotalCount match {
+      case 0 => List()
+      case _ => val result = Map(
+        MEAN -> histogram.getMean.toLong,
+        MIN -> histogram.getMinValue,
+        PERCENTILE_95 -> histogram.getValueAtPercentile(95),
+        PERCENTILE_99 -> histogram.getValueAtPercentile(99),
+        STDDEV -> histogram.getStdDeviation.toLong,
+        MEDIAN -> histogram.getValueAtPercentile(50),
+        MAX -> histogram.getMaxValue
+      ).map {
+        case (stat, value) =>
+          val tagCollection = new TagCollection(appendTags(tags, interval, stat))
+          val metricDefinition = new MetricDefinition(metricKey, tagCollection, TagCollection.EMPTY)
+          new MetricData(metricDefinition, value, publishingTimestamp)
+      }
+      result.toList
     }
-    result.toList
+
   }
 
   def getRunningHistogram: Histogram = {
@@ -72,14 +76,6 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
       timerContext.close()
     }
     this
-  }
-
-  private def getHistogramForPercentile(histogram: Histogram, percentile: Double): Long = {
-    try {
-      histogram.getValueAtPercentile(percentile)
-    } catch {
-      case _: ArrayIndexOutOfBoundsException => 0L
-    }
   }
 
 }
