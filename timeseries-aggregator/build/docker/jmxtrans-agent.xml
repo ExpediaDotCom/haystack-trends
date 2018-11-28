@@ -74,6 +74,8 @@
                resultAlias="metricpoint.ser.success.#attribute#"/>
         <query objectName="metrics:name=metricpoints.disordered" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.disordered.#attribute#"/>
+        <query objectName="metrics:name=metricpoints.timeInTopic" attributes="95thPercentile,99thPercentile,999thPercentile,Count,Max,Mean,Median,Mean"
+               resultAlias="metricpoint.timeInTopic.#attribute#"/>
         <query objectName="metrics:name=metricpoints.compute.failure" attributes="OneMinuteRate,MeanRate"
                resultAlias="metricpoint.compute.failure.#attribute#"/>
         <query objectName="metrics:name=metricprocessor.invalid" attributes="OneMinuteRate,MeanRate"
