@@ -53,7 +53,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     * @param incomingMetricData - incoming metric data
     */
   def compute(incomingMetricData: MetricData): Unit = {
-    timeInTopicMetricPointHistogram.update(incomingMetricData.getTimestamp - System.currentTimeMillis())
+    timeInTopicMetricPointHistogram.update(incomingMetricData.getTimestamp() - System.currentTimeMillis())
 
     val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricData.getTimestamp, interval)
 
