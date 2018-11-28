@@ -38,7 +38,7 @@ import scala.util.Try
 class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow, Metric], metricFactory: MetricFactory, numberOfWatermarkedWindows: Int, interval: Interval) extends MetricsSupport {
 
   private val disorderedMetricPointMeter: Meter = metricRegistry.meter("metricpoints.disordered")
-  private val timeInTopicMetricPointHistograma: Histogram = metricRegistry.histogram("metricpoints.timeInTopic")
+  private val timeInTopicMetricPointHistogram: Histogram = metricRegistry.histogram("metricpoints.timeInTopic")
   private var computedMetrics = List[(Long, Metric)]()
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
@@ -53,7 +53,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     * @param incomingMetricData - incoming metric data
     */
   def compute(incomingMetricData: MetricData): Unit = {
-    timeInTopicMetricPointHistograma.update(incomingMetricData.getTimestamp - System.currentTimeMillis())
+    timeInTopicMetricPointHistogram.update(incomingMetricData.getTimestamp - System.currentTimeMillis())
 
     val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricData.getTimestamp, interval)
 
