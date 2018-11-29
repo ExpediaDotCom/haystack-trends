@@ -17,20 +17,20 @@
  */
 package com.expedia.www.haystack.trends.kstream.processor
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.config.entities.KafkaProduceConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.TrendMetricSerde.metricRegistry
 import org.apache.kafka.clients.producer.{Callback, KafkaProducer, ProducerRecord, RecordMetadata}
 import org.apache.kafka.streams.processor.{AbstractProcessor, Processor, ProcessorContext, ProcessorSupplier}
 import org.slf4j.LoggerFactory
 
-class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfiguration) extends ProcessorSupplier[String, MetricPoint] {
+class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfiguration) extends ProcessorSupplier[String, MetricData] {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
   private val metricPointExternalKafkaSuccessMeter = metricRegistry.meter("metricpoint.kafka-external.success")
   private val metricPointExternalKafkaFailureMeter = metricRegistry.meter("metricpoint.kafka-external.failure")
 
-  def get: Processor[String, MetricPoint] = {
+  def get: Processor[String, MetricData] = {
     new ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration)
   }
 
@@ -41,9 +41,9 @@ class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfigurati
     *
     * @param kafkaProduceConfig - configuration to create kafka producer
     */
-  private class ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration) extends AbstractProcessor[String, MetricPoint] {
+  private class ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration) extends AbstractProcessor[String, MetricData] {
 
-    private val kafkaProducer: KafkaProducer[String, MetricPoint] = new KafkaProducer[String, MetricPoint](kafkaProduceConfig.props.get)
+    private val kafkaProducer: KafkaProducer[String, MetricData] = new KafkaProducer[String, MetricData](kafkaProduceConfig.props.get)
     private val kafkaProduceTopic = kafkaProduceConfig.topic
 
     @SuppressWarnings(Array("unchecked"))
@@ -54,10 +54,10 @@ class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfigurati
     /**
       * tries to fetch the trend metric based on the key, if it exists it updates the trend metric else it tries to create a new trend metric and adds it to the store      *
       *
-      * @param key   - key in the kafka record - should be metricPoint.getKey
-      * @param value - metricPoint
+      * @param key   - key in the kafka record - should be MetricDefinitionKeyGenerator.generateKey(metricData.getMetricDefinition)
+      * @param value - metricData
       */
-    def process(key: String, value: MetricPoint): Unit = {
+    def process(key: String, value: MetricData): Unit = {
 
       val kafkaMessage = new ProducerRecord(kafkaProduceTopic,
         key, value)

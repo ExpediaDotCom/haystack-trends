@@ -18,7 +18,7 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
+import com.expedia.metrics.{MetricData, MetricDefinition}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
@@ -26,11 +26,12 @@ import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.Aggre
   * This Rule applies a Histogram aggregation type when the incoming metric point's name is latency and is of type gauge
   */
 trait LatencyMetricRule extends MetricRule {
-  override def isMatched(metricPoint: MetricPoint): Option[AggregationType] = {
-    if (metricPoint.metric.toLowerCase.contains("latency") && metricPoint.`type`.equals(MetricType.Gauge)) {
+
+  override def isMatched(metricData: MetricData): Option[AggregationType] = {
+    if (metricData.getMetricDefinition.getKey.toLowerCase.contains("latency") && containsTag(metricData,MetricDefinition.MTYPE, MTYPE_GAUGE)) {
       Some(AggregationType.Histogram)
     } else {
-      super.isMatched(metricPoint)
+      super.isMatched(metricData)
     }
   }
 }

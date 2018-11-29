@@ -18,7 +18,6 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.rules.FailureMetricRule
 import com.expedia.www.haystack.trends.feature.FeatureSpec
@@ -36,17 +35,17 @@ class FailureMetricRuleSpec extends FeatureSpec with FailureMetricRule {
 
   feature("DurationMetricRule for identifying MetricRule") {
 
-    scenario("should get Aggregate AggregationType for Failure MetricPoint") {
+    scenario("should get Aggregate AggregationType for Failure MetricData") {
 
       Given("a failure MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
         TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
       val startTime = currentTimeInSecs
 
-      val metricPoint = MetricPoint(FAILURE_METRIC_NAME, MetricType.Gauge, keys, 1, startTime)
+      val metricData = getMetricData(FAILURE_METRIC_NAME, keys, 1, startTime)
 
       When("trying to find matching AggregationType")
-      val aggregationType = isMatched(metricPoint)
+      val aggregationType = isMatched(metricData)
 
       Then("should get Aggregate AggregationType")
       aggregationType shouldEqual Some(AggregationType.Count)

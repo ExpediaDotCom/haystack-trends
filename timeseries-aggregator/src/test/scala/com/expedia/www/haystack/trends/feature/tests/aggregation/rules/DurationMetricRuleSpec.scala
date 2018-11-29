@@ -18,7 +18,6 @@
 
 package com.expedia.www.haystack.trends.feature.tests.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType
 import com.expedia.www.haystack.trends.aggregation.rules.DurationMetricRule
 import com.expedia.www.haystack.trends.feature.FeatureSpec
@@ -36,7 +35,7 @@ class DurationMetricRuleSpec extends FeatureSpec with DurationMetricRule {
 
   feature("DurationMetricRule for identifying MetricRule") {
 
-    scenario("should get Histogram AggregationType for duration MetricPoint") {
+    scenario("should get Histogram AggregationType for duration MetricData") {
 
       Given("a duration MetricPoint")
       val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
@@ -44,10 +43,10 @@ class DurationMetricRuleSpec extends FeatureSpec with DurationMetricRule {
       val duration = 10
       val startTime = currentTimeInSecs
 
-      val metricPoint = MetricPoint(DURATION_METRIC_NAME, MetricType.Gauge, keys, duration, startTime)
+      val metricData = getMetricData(DURATION_METRIC_NAME, keys, duration, startTime)
 
       When("trying to find matching AggregationType")
-      val aggregationType = isMatched(metricPoint)
+      val aggregationType = isMatched(metricData)
 
       Then("should get Histogram AggregationType")
       aggregationType shouldEqual Some(AggregationType.Histogram)

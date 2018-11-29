@@ -1,6 +1,6 @@
 package com.expedia.www.haystack.trends.integration.tests
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
@@ -24,18 +24,18 @@ class WatermarkingSpec extends IntegrationTestSpec {
 
 
       When("metricPoints are produced in 'input' topic async, and kafka-streams topology is started")
-      produceMetricPoint(METRIC_NAME, 1l, 1l)
-      produceMetricPoint(METRIC_NAME, 65l, 2l)
-      produceMetricPoint(METRIC_NAME, 2l, 3l)
-      produceMetricPoint(METRIC_NAME, 130l, 4l)
-      produceMetricPoint(METRIC_NAME, 310l, 5l)
-      produceMetricPoint(METRIC_NAME, 610l, 6l)
+      produceMetricData(METRIC_NAME, 1l, 1l)
+      produceMetricData(METRIC_NAME, 65l, 2l)
+      produceMetricData(METRIC_NAME, 2l, 3l)
+      produceMetricData(METRIC_NAME, 130l, 4l)
+      produceMetricData(METRIC_NAME, 310l, 5l)
+      produceMetricData(METRIC_NAME, 610l, 6l)
       streamsRunner.start()
 
-      Then("we should read all aggregated metricPoint from 'output' topic")
+      Then("we should read all aggregated metricData from 'output' topic")
       val waitTimeMs = 15000
-      val result: List[KeyValue[String, MetricPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
+      val result: List[KeyValue[String, MetricData]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricData](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
   }

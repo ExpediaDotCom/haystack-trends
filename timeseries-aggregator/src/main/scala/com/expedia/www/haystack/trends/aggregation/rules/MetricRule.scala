@@ -18,10 +18,22 @@
 
 package com.expedia.www.haystack.trends.aggregation.rules
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import java._
+
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 
 trait MetricRule {
-  def isMatched(metricPoint: MetricPoint): Option[AggregationType] = None
+  val MTYPE_GAUGE = "gauge"
+  def isMatched(metricData: MetricData): Option[AggregationType] = None
+
+  def containsTag(metricData: MetricData, tagKey: String, tagValue: String): Boolean = {
+    val tags = getTags(metricData)
+    tags.containsKey(tagKey) && tags.get(tagKey).equalsIgnoreCase(tagValue)
+  }
+
+  def getTags(metricData: MetricData): util.Map[String, String] = {
+    metricData.getMetricDefinition.getTags.getKv
+  }
 }
 

@@ -17,7 +17,7 @@
  */
 package com.expedia.www.haystack.trends.integration.tests
 
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
@@ -50,10 +50,10 @@ class HistogramTrendsSpec extends IntegrationTestSpec {
       produceMetricPointsAsync(MAX_METRICPOINTS, 10.milli, METRIC_NAME, MAX_METRICPOINTS * 60)
       streamsRunner.start()
 
-      Then("we should read all aggregated metricPoint from 'output' topic")
+      Then("we should read all aggregated metricData from 'output' topic")
       val waitTimeMs = 15000
-      val result: List[KeyValue[String, MetricPoint]] =
-        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricPoint](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
+      val result: List[KeyValue[String, MetricData]] =
+        IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricData](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
   }

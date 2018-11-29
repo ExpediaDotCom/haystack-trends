@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.kstream
 
 import java.util.function.Supplier
 
-import com.expedia.www.haystack.commons.kstreams.serde.metricpoint.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
@@ -41,7 +41,7 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
   private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private val kafkaConfig = appConfiguration.kafkaConfig
-  private val metricTankSerde = new MetricTankSerde(appConfiguration.encoder)
+  private val metricTankSerde = new MetricTankSerde()
 
   private def initialize(topology: Topology): Topology = {
 

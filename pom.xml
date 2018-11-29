@@ -97,7 +97,7 @@
         <commons-codec.version>1.4</commons-codec.version>
         <easymock.version>3.4</easymock.version>
         <haystack.logback.metrics.appender.version>0.1.12</haystack.logback.metrics.appender.version>
-        <haystack.commons.version>1.0.8</haystack.commons.version>
+        <haystack.commons.version>1.0.53</haystack.commons.version>
 
 
         <!--Compiler Properties -->

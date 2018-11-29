@@ -17,13 +17,14 @@
 package com.expedia.www.haystack.trends
 
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.commons.entities.MetricPoint
+import com.expedia.metrics.MetricData
+import com.expedia.www.haystack.commons.entities.encoders.Encoder
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
-import com.expedia.www.haystack.trends.transformer.MetricPointTransformer
+import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
 
 import scala.util.matching.Regex
 
-trait MetricPointGenerator extends MetricsSupport {
+trait MetricDataGenerator extends MetricsSupport {
 
   private val SpanValidationErrors = metricRegistry.meter("span.validation.failure")
   private val BlackListedSpans = metricRegistry.meter("span.validation.black.listed")
@@ -37,18 +38,18 @@ trait MetricPointGenerator extends MetricsSupport {
     * @param span         incoming span
     * @return try of either a list of generated metric points or a validation exception
     */
-  def generateMetricPoints(blacklistedServices: List[Regex])(transformers: Seq[MetricPointTransformer])(span: Span, serviceOnlyFlag: Boolean): List[MetricPoint] = {
+  def generateMetricDataList(blacklistedServices: List[Regex])(transformers: Seq[MetricDataTransformer])(span: Span, serviceOnlyFlag: Boolean,encoder: Encoder): List[MetricData] = {
     val context = metricPointGenerationTimer.time()
-    val metricPoints = getMetricPoints(span, blacklistedServices, transformers, serviceOnlyFlag)
+    val metricPoints = getMetricDataList(span, blacklistedServices, transformers, serviceOnlyFlag,encoder)
     context.close()
     metricPoints
   }
 
-  def getMetricPoints(span: Span, blacklistedServices: List[Regex], transformers: Seq[MetricPointTransformer], serviceOnlyFlag: Boolean): List[MetricPoint] = {
+  def getMetricDataList(span: Span, blacklistedServices: List[Regex], transformers: Seq[MetricDataTransformer], serviceOnlyFlag: Boolean, encoder: Encoder): List[MetricData] = {
     if (isValidSpan(blacklistedServices, span)) {
-      transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag)).toList
+      transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag, encoder)).toList
     } else {
-      List[MetricPoint]()
+      List[MetricData]()
     }
   }
   /**

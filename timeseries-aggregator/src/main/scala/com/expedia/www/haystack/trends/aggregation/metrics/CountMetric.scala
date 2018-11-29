@@ -18,11 +18,13 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
+import java._
+
 import com.codahale.metrics.Timer
+import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.Interval.Interval
-import com.expedia.www.haystack.commons.entities.{MetricPoint, MetricType}
-import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.aggregation.entities.StatValue
+import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.kstream.serde.metric.{CountMetricSerde, MetricSerde}
 
 /**
@@ -39,11 +41,11 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
   private val CountMetricComputeTimer: Timer = metricRegistry.timer("count.metric.compute.time")
 
 
-  override def mapToMetricPoints(metricName: String, tags: Map[String, String], publishingTimestamp: Long): List[MetricPoint] = {
-    List(
-      MetricPoint(metricName, MetricType.Count, appendTags(tags, interval, StatValue.COUNT), currentCount, publishingTimestamp)
-    )
-
+  override def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
+    val tagCollection = new TagCollection(appendTags(tags, interval, StatValue.COUNT))
+    val metricDefinition = new MetricDefinition(metricKey, tagCollection, TagCollection.EMPTY)
+    val metricData = new MetricData(metricDefinition, currentCount, publishingTimestamp)
+    List(metricData)
   }
 
   def getCurrentCount: Long = {
@@ -51,9 +53,9 @@ class CountMetric(interval: Interval, var currentCount: Long) extends Metric(int
   }
 
 
-  override def compute(metricPoint: MetricPoint): CountMetric = {
+  override def compute(metricData: MetricData): CountMetric = {
     val timerContext = CountMetricComputeTimer.time()
-    currentCount += metricPoint.value.toLong
+    currentCount += metricData.getValue.toLong
     timerContext.close()
     this
   }

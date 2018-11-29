@@ -1,4 +1,4 @@
-.PHONY: integration_test release
+.PHONY: integration_test release all
 
 MAVEN := ../mvnw
 
@@ -9,11 +9,11 @@ docker_build:
 	docker build -t $(DOCKER_IMAGE_NAME) -f build/docker/Dockerfile .
 
 integration_test:
-	${MAVEN} scoverage:integration-check -pl span-timeseries-transformer -am
+	${MAVEN} scoverage:integration-check
 
 # build jar, docker image and run integration tests
 all: docker_build integration_test
 
 # build all and release
 release: docker_build
-	../scripts/publish-to-docker-hub.sh
+	../deployment/scripts/publish-to-docker-hub.sh
