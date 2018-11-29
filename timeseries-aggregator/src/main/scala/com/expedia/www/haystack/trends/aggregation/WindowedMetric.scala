@@ -18,6 +18,8 @@
 
 package com.expedia.www.haystack.trends.aggregation
 
+import java.util.concurrent.TimeUnit
+
 import com.codahale.metrics.{Histogram, Meter}
 import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
@@ -53,7 +55,7 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     * @param incomingMetricData - incoming metric data
     */
   def compute(incomingMetricData: MetricData): Unit = {
-    timeInTopicMetricPointHistogram.update(incomingMetricData.getTimestamp() - System.currentTimeMillis())
+    timeInTopicMetricPointHistogram.update(TimeUnit.SECONDS.toMillis(incomingMetricData.getTimestamp()) - System.currentTimeMillis())
 
     val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricData.getTimestamp, interval)
 
