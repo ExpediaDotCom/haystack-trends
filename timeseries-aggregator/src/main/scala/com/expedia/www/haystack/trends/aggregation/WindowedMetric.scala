@@ -18,7 +18,9 @@
 
 package com.expedia.www.haystack.trends.aggregation
 
-import com.codahale.metrics.Meter
+import java.util.concurrent.TimeUnit
+
+import com.codahale.metrics.{Histogram, Meter}
 import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
@@ -38,6 +40,7 @@ import scala.util.Try
 class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow, Metric], metricFactory: MetricFactory, numberOfWatermarkedWindows: Int, interval: Interval) extends MetricsSupport {
 
   private val disorderedMetricPointMeter: Meter = metricRegistry.meter("metricpoints.disordered")
+  private val timeInTopicMetricPointHistogram: Histogram = metricRegistry.histogram("metricpoints.timeInTopic")
   private var computedMetrics = List[(Long, Metric)]()
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
 
@@ -52,6 +55,8 @@ class WindowedMetric private(var windowedMetricsMap: mutable.TreeMap[TimeWindow,
     * @param incomingMetricData - incoming metric data
     */
   def compute(incomingMetricData: MetricData): Unit = {
+    timeInTopicMetricPointHistogram.update(TimeUnit.SECONDS.toMillis(incomingMetricData.getTimestamp()) - System.currentTimeMillis())
+
     val incomingMetricPointTimeWindow = TimeWindow.apply(incomingMetricData.getTimestamp, interval)
 
     val matchedWindowedMetric = windowedMetricsMap.get(incomingMetricPointTimeWindow)
