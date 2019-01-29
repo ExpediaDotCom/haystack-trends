@@ -42,11 +42,12 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
   protected def mockAppConfig: AppConfiguration = {
     val kafkaConsumeTopic = "test-consume"
     val kafkaProduceTopic = "test-produce"
+    val kafkaMetricTankProduceTopic = "test-mdm-produce"
     val streamsConfig = new Properties()
     streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
     streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "test-kafka-broker")
 
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), KafkaProduceConfiguration(kafkaProduceTopic, None, false), kafkaConsumeTopic, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), KafkaProduceConfiguration(kafkaProduceTopic, kafkaMetricTankProduceTopic, None, false), kafkaConsumeTopic, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[AppConfiguration]
 
     expecting {

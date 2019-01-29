@@ -154,7 +154,8 @@ class AppConfiguration {
 
     KafkaConfiguration(
       new StreamsConfig(props),
-      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")),
+      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), producerConfig.getString("metricTankTopic"),
+        getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce")),
       consumeTopic = consumerConfig.getString("topic"),
       getKafkaAutoReset,
       timestampExtractor,

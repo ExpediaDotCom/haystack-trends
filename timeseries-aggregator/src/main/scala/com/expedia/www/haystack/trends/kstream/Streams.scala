@@ -20,7 +20,7 @@ package com.expedia.www.haystack.trends.kstream
 
 import java.util.function.Supplier
 
-import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.{MetricDataSerde, MetricTankSerde}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
@@ -37,11 +37,13 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
   private val LOGGER = LoggerFactory.getLogger(classOf[Streams])
   private val TOPOLOGY_SOURCE_NAME = "metricpoint-source"
   private val TOPOLOGY_EXTERNAL_SINK_NAME = "metricpoint-aggegated-sink-external"
-  private val TOPOLOGY_INTERNAL_SINK_NAME = "metricpoint-aggegated-sink-internal"
+  private val TOPOLOGY_INTERNAL_METRICTANK_SINK_NAME = "metrictank-aggegated-sink-internal"
+  private val TOPOLOGY_INTERNAL_METRICDATA_SINK_NAME = "metricdata-aggegated-sink-internal"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
   private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private val kafkaConfig = appConfiguration.kafkaConfig
   private val metricTankSerde = new MetricTankSerde()
+  private val metricDataSerde = new MetricDataSerde()
 
   private def initialize(topology: Topology): Topology = {
 
@@ -72,12 +74,18 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
         new ExternalKafkaProcessorSupplier(appConfiguration.kafkaConfig.producerConfig),
         TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
+
+    // adding two sinks one for Metrictank and one for Metrics 2.0
     topology.addSink(
-      TOPOLOGY_INTERNAL_SINK_NAME,
-      appConfiguration.kafkaConfig.producerConfig.topic,
+      TOPOLOGY_INTERNAL_METRICTANK_SINK_NAME,
+      appConfiguration.kafkaConfig.producerConfig.metricTankTopic,
       new StringSerializer,
       metricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+
+    topology.addSink(TOPOLOGY_INTERNAL_METRICDATA_SINK_NAME, appConfiguration.kafkaConfig.producerConfig.topic,
+      new StringSerializer, metricDataSerde.serializer(), TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+
     topology
   }
 

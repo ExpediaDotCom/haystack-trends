@@ -18,7 +18,8 @@ kafka {
   // For producing data to external kafka: set enable.external.kafka.produce to true and uncomment the props.
   // For producing to same kafka: set enable.external.kafka.produce to false and comment the props.
   producer {
-    topic = "mdm"
+    topic = "metrics"
+    metricTankTopic = "mdm"
     enable.external.kafka.produce = ${enable_external_kafka_producer}
      props {
       bootstrap.servers = "${external_kafka_producer_endpoint}"

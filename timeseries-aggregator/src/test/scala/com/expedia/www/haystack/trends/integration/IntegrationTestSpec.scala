@@ -56,6 +56,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val scheduledJobFuture: ScheduledFuture[_] = null
   protected val INPUT_TOPIC = "metricpoints"
   protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
+  protected val OUTPUT_METRICTANK_TOPIC = "mdm"
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"
   protected var CHANGELOG_TOPIC = s"$APP_ID-trend-metric-store-changelog"
@@ -113,7 +114,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
 
   protected def mockAppConfig: AppConfiguration = {
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, None, false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, OUTPUT_METRICTANK_TOPIC, None, false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[AppConfiguration]
 
     expecting {
