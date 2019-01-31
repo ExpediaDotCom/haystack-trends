@@ -54,8 +54,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   protected val RESULT_CONSUMER_CONFIG = new Properties()
   protected val STREAMS_CONFIG = new Properties()
   protected val scheduledJobFuture: ScheduledFuture[_] = null
-  protected val INPUT_TOPIC = "metricpoints"
-  protected val OUTPUT_TOPIC = "aggregatedmetricpoints"
+  protected val INPUT_TOPIC = "metric-data-points"
+  protected val OUTPUT_TOPIC = "metrics"
   protected val OUTPUT_METRICTANK_TOPIC = "mdm"
   protected var scheduler: ScheduledExecutorService = _
   protected var APP_ID = "haystack-trends"

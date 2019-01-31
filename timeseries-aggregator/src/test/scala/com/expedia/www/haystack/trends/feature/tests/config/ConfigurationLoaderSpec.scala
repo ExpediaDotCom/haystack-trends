@@ -58,7 +58,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.consumeTopic shouldBe "metricpoints"
+      kafkaConfig.consumeTopic shouldBe "metric-data-points"
     }
 
 
