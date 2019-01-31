@@ -9,7 +9,7 @@ kafka {
     num.stream.threads = 3
     commit.interval.ms = 3000
     auto.offset.reset = latest
-    timestamp.extractor = "org.apache.kafka.streams.processor.WallclockTimestampExtractor"
+    timestamp.extractor = "com.expedia.www.haystack.commons.kstreams.SpanTimestampExtractor"
   }
 
   producer {
