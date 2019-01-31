@@ -106,6 +106,9 @@
         <query objectName="metrics:name=metricprocessor.trendcount.*"
                resultAlias="%name%.#attribute#"/>
 
+        <!-- iterator age using span event time -->
+        <query objectName="metrics:name=kafka.iterator.age.ms" attributes="50thPercentile,99thPercentile" resultAlias="kafka.iterator.age.ms.#attribute#"/>
+
     </queries>
     <outputWriter class="org.jmxtrans.agent.GraphitePlainTextTcpOutputWriter">
         <host>${HAYSTACK_GRAPHITE_HOST:monitoring-influxdb-graphite.kube-system.svc}</host>
