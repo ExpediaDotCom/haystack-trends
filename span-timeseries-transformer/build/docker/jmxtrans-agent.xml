@@ -111,6 +111,5 @@
         <enabled>${HAYSTACK_GRAPHITE_ENABLED:true}</enabled>
         <namePrefix>haystack.trends.span-transformer.#hostname#.</namePrefix>
     </outputWriter>
-    <outputWriter class="org.jmxtrans.agent.ConsoleOutputWriter"/>
     <collectIntervalInSeconds>60</collectIntervalInSeconds>
 </jmxtrans-agent>
