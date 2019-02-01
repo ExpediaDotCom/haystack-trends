@@ -28,7 +28,7 @@ trait SpanDurationMetricDataTransformer extends MetricDataTransformer {
 
   val DURATION_METRIC_NAME = "duration"
   val MTYPE = "gauge"
-  val UNIT = "mircoseconds"
+  val UNIT = "microseconds"
 
   override def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricData] = {
     spanDurationMetricPoints.mark()
