@@ -83,7 +83,7 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
       metricTankSerde.serializer(),
       TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
-    if (appConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
+    if (appConfiguration.kafkaConfig.producerConfig.enableMetricsSink) {
       topology.addSink(TOPOLOGY_INTERNAL_METRICDATA_SINK_NAME, appConfiguration.kafkaConfig.producerConfig.topic,
         new StringSerializer, metricDataSerde.serializer(), TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
     }
