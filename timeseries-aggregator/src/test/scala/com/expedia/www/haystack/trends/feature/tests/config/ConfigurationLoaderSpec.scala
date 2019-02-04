@@ -72,7 +72,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should override the configuration object based on the environment variable if it exists")
 
-      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "mdm")
+      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "metrics")
       val kafkaConfig = projectConfig.kafkaConfig
       kafkaConfig.producerConfig.topic shouldBe kafkaProduceTopic
     }
@@ -101,6 +101,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       projectConfig.kafkaConfig.producerConfig.enableExternalKafka shouldBe true
+      projectConfig.kafkaConfig.producerConfig.enableMetricsSink shouldBe true
       projectConfig.kafkaConfig.producerConfig.props.get.getProperty("bootstrap.servers") shouldBe "kafkasvc:9092"
     }
   }

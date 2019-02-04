@@ -21,6 +21,7 @@ kafka {
     topic = "metrics"
     metricTankTopic = "mdm"
     enable.external.kafka.produce = ${enable_external_kafka_producer}
+    enable.metrics.sink = ${enable_metrics_sink}
      props {
       bootstrap.servers = "${external_kafka_producer_endpoint}"
       retries = 50

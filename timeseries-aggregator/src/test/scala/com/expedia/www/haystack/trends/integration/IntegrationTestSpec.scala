@@ -26,7 +26,7 @@ import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
-import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
+import com.expedia.www.haystack.commons.kstreams.serde.metricdata.{MetricDataSerde, MetricTankSerde}
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.AppConfiguration
@@ -71,7 +71,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
   }
 
   override def beforeEach() {
-    val metricTankSerde = new MetricTankSerde()
+    val metricDataSerde = new MetricDataSerde()
 
     embeddedKafkaCluster = new EmbeddedKafkaCluster(1)
     embeddedKafkaCluster.start()
@@ -82,13 +82,13 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     PRODUCER_CONFIG.put(ProducerConfig.ACKS_CONFIG, "all")
     PRODUCER_CONFIG.put(ProducerConfig.RETRIES_CONFIG, "0")
     PRODUCER_CONFIG.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
-    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, metricTankSerde.serializer().getClass)
+    PRODUCER_CONFIG.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, metricDataSerde.serializer().getClass)
 
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.GROUP_ID_CONFIG, APP_ID + "-result-consumer")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     RESULT_CONSUMER_CONFIG.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer])
-    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, metricTankSerde.deserializer().getClass)
+    RESULT_CONSUMER_CONFIG.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, metricDataSerde.deserializer().getClass)
 
     STREAMS_CONFIG.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaCluster.bootstrapServers)
     STREAMS_CONFIG.put(StreamsConfig.APPLICATION_ID_CONFIG, APP_ID)
@@ -114,7 +114,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
 
   protected def mockAppConfig: AppConfiguration = {
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, OUTPUT_METRICTANK_TOPIC, None, false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, OUTPUT_METRICTANK_TOPIC, None, false, true), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[AppConfiguration]
 
     expecting {
