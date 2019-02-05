@@ -44,7 +44,7 @@ class ExternalKafkaProcessorSupplier(kafkaProduceConfig: KafkaProduceConfigurati
   private class ExternalKafkaProcessor(kafkaProduceConfig: KafkaProduceConfiguration) extends AbstractProcessor[String, MetricData] {
 
     private val kafkaProducer: KafkaProducer[String, MetricData] = new KafkaProducer[String, MetricData](kafkaProduceConfig.props.get)
-    private val kafkaProduceTopic = kafkaProduceConfig.metricTankTopic
+    private val kafkaProduceTopic = kafkaProduceConfig.externalKafkaTopic
 
     @SuppressWarnings(Array("unchecked"))
     override def init(context: ProcessorContext) {

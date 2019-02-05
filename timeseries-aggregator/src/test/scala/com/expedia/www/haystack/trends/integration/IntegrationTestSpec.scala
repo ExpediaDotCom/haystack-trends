@@ -30,7 +30,7 @@ import com.expedia.www.haystack.commons.kstreams.serde.metricdata.{MetricDataSer
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, KafkaSinkTopic, StateStoreConfiguration}
 import com.expedia.www.haystack.trends.kstream.Streams
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -114,7 +114,8 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
 
 
   protected def mockAppConfig: AppConfiguration = {
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG), KafkaProduceConfiguration(OUTPUT_TOPIC, OUTPUT_METRICTANK_TOPIC, None, false, true), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaSinkTopics = List(KafkaSinkTopic("metrics","com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerde",true), KafkaSinkTopic("mdm","com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde",true))
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(STREAMS_CONFIG),KafkaProduceConfiguration(kafkaSinkTopics, None, "mdm", false), INPUT_TOPIC, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[AppConfiguration]
 
     expecting {

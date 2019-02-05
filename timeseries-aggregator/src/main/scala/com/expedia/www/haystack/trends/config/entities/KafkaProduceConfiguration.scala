@@ -21,8 +21,10 @@ import java.util.Properties
 
 /**
   *This configuration specifies if the stream topology writes the aggregated metrics to an external kafka cluster
-  * @param topic - external topic
+  * @param kafkaSinkTopics - list of all sinks along with the serdes.
   * @param props - Kafka producer configuration
   * @param enableExternalKafka - enable/disable external kafka sink
   */
-case class KafkaProduceConfiguration(topic: String, metricTankTopic:String, props: Option[Properties], enableExternalKafka: Boolean, enableMetricsSink: Boolean)
+case class KafkaProduceConfiguration(kafkaSinkTopics: List[KafkaSinkTopic], props: Option[Properties], externalKafkaTopic: String, enableExternalKafka: Boolean)
+
+case class KafkaSinkTopic(topic: String, serdeClassName:String, enabled: Boolean)

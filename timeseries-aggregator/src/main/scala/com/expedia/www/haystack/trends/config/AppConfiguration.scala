@@ -23,7 +23,7 @@ import com.expedia.www.haystack.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
 import com.expedia.www.haystack.commons.kstreams.MetricDataTimestampExtractor
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerializer
-import com.expedia.www.haystack.trends.config.entities.{HistogramMetricConfiguration, KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
+import com.expedia.www.haystack.trends.config.entities._
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
@@ -152,10 +152,16 @@ class AppConfiguration {
     //set timestamp extractor
     props.setProperty("timestamp.extractor", timestampExtractor.getClass.getName)
 
+    val kafkaSinkTopicConfig = producerConfig.getConfigList("topics").asScala
+
+    val kafkaSinkTopics = kafkaSinkTopicConfig.map(sinkTopic =>
+      KafkaSinkTopic(sinkTopic.getString("topic"), sinkTopic.getString("serdeClassName"),
+        sinkTopic.getBoolean("enabled")))
+
     KafkaConfiguration(
       new StreamsConfig(props),
-      producerConfig = KafkaProduceConfiguration(producerConfig.getString("topic"), producerConfig.getString("metricTankTopic"),
-        getExternalKafkaProps(producerConfig), producerConfig.getBoolean("enable.external.kafka.produce"), producerConfig.getBoolean("enable.metrics.sink")),
+      producerConfig = KafkaProduceConfiguration(kafkaSinkTopics.toList, getExternalKafkaProps(producerConfig),
+        producerConfig.getString("external.kafka.topic"), producerConfig.getBoolean("enable.external.kafka.produce")),
       consumeTopic = consumerConfig.getString("topic"),
       getKafkaAutoReset,
       timestampExtractor,
