@@ -25,4 +25,4 @@ import java.util.Properties
   * @param props - Kafka producer configuration
   * @param enableExternalKafka - enable/disable external kafka sink
   */
-case class KafkaProduceConfiguration(topic: String, props: Option[Properties], enableExternalKafka: Boolean)
+case class KafkaProduceConfiguration(topic: String, metricTankTopic:String, props: Option[Properties], enableExternalKafka: Boolean, enableMetricsSink: Boolean)
