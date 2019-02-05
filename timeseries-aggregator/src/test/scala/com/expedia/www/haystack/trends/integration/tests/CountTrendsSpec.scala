@@ -55,6 +55,7 @@ class CountTrendsSpec extends IntegrationTestSpec {
       val waitTimeMs = 15000
       val result: List[KeyValue[String, MetricData]] =
         IntegrationTestUtils.waitUntilMinKeyValueRecordsReceived[String, MetricData](RESULT_CONSUMER_CONFIG, OUTPUT_TOPIC, expectedTotalAggregatedPoints, waitTimeMs).asScala.toList
+      print(result.length)
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
   }

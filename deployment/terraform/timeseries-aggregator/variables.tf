@@ -8,6 +8,9 @@ variable "graphite_enabled" {}
 
 variable "enabled" {}
 variable "enable_external_kafka_producer" {}
+variable "enable_metrics_sink" {
+  default = true
+}
 variable "external_kafka_producer_endpoint" {}
 variable "metricpoint_encoder_type" {}
 variable "env_vars" {}

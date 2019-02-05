@@ -58,7 +58,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.consumeTopic shouldBe "metricpoints"
+      kafkaConfig.consumeTopic shouldBe "metric-data-points"
     }
 
 
@@ -72,9 +72,18 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should override the configuration object based on the environment variable if it exists")
 
-      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "mdm")
+      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", """{
+                                                                                        |        topic: "metrics"
+                                                                                        |        serdeClassName : "com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerde"
+                                                                                        |        enabled: true
+                                                                                        |      },
+                                                                                        |      {
+                                                                                        |        topic: "mdm"
+                                                                                        |        serdeClassName : "com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde"
+                                                                                        |        enabled: true
+                                                                                        |      }""")
       val kafkaConfig = projectConfig.kafkaConfig
-      kafkaConfig.producerConfig.topic shouldBe kafkaProduceTopic
+      kafkaConfig.producerConfig.kafkaSinkTopics.head.topic shouldBe "metrics"
     }
 
     scenario("should load the state store configs from base.conf") {
@@ -101,6 +110,8 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       projectConfig.kafkaConfig.producerConfig.enableExternalKafka shouldBe true
+      projectConfig.kafkaConfig.producerConfig.kafkaSinkTopics.length shouldBe 2
+      projectConfig.kafkaConfig.producerConfig.kafkaSinkTopics.head.topic shouldBe "metrics"
       projectConfig.kafkaConfig.producerConfig.props.get.getProperty("bootstrap.servers") shouldBe "kafkasvc:9092"
     }
   }

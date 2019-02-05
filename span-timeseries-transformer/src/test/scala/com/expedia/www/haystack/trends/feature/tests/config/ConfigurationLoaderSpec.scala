@@ -74,7 +74,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should override the configuration object based on the environment variable if it exists")
 
-      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "metricpoints")
+      val kafkaProduceTopic = sys.env.getOrElse("HAYSTACK_PROP_KAFKA_PRODUCER_TOPIC", "metric-data-points")
       val kafkaConfig = projectConfig.kafkaConfig
       kafkaConfig.produceTopic shouldBe kafkaProduceTopic
     }
