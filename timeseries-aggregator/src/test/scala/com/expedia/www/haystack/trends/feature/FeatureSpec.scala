@@ -22,7 +22,7 @@ import java.util.Properties
 import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, StateStoreConfiguration}
+import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, KafkaProduceConfiguration, KafkaSinkTopic, StateStoreConfiguration}
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.Topology.AutoOffsetReset
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor
@@ -42,11 +42,13 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
   protected def mockAppConfig: AppConfiguration = {
     val kafkaConsumeTopic = "test-consume"
     val kafkaProduceTopic = "test-produce"
+    val kafkaMetricTankProduceTopic = "test-mdm-produce"
     val streamsConfig = new Properties()
     streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "test-app")
     streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "test-kafka-broker")
 
-    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), KafkaProduceConfiguration(kafkaProduceTopic, None, false), kafkaConsumeTopic, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
+    val kafkaSinkTopics = List(KafkaSinkTopic("metrics","com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerde",true), KafkaSinkTopic("mdm","com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde",true))
+    val kafkaConfig = KafkaConfiguration(new StreamsConfig(streamsConfig), KafkaProduceConfiguration(kafkaSinkTopics, None, "mdm", false), kafkaConsumeTopic, AutoOffsetReset.EARLIEST, new WallclockTimestampExtractor, 30000)
     val projectConfiguration = mock[AppConfiguration]
 
     expecting {

@@ -53,6 +53,7 @@ module "timeseries-aggregator" {
   graphite_port = "${var.graphite_port}"
   graphite_enabled = "${var.graphite_enabled}"
   enable_external_kafka_producer = "${local.external_metric_tank_enabled}"
+  enable_metrics_sink = "${var.trends["timeseries_aggregator_enable_metrics_sink"]}"
   external_kafka_producer_endpoint = "${var.metrictank["external_kafka_broker_hostname"]}:${var.metrictank["external_kafka_broker_port"]}"
   node_selecter_label = "${var.node_selector_label}"
   enabled = "${var.trends["enabled"]}"

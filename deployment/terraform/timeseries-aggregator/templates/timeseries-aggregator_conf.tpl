@@ -18,14 +18,26 @@ kafka {
   // For producing data to external kafka: set enable.external.kafka.produce to true and uncomment the props.
   // For producing to same kafka: set enable.external.kafka.produce to false and comment the props.
   producer {
-    topic = "mdm"
+    topics : [
+      {
+        topic: "metrics"
+        serdeClassName : "com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerde"
+        enabled: ${enable_metrics_sink}
+      },
+      {
+        topic: "mdm"
+        serdeClassName : "com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde"
+        enabled: true
+      }
+    ]
     enable.external.kafka.produce = ${enable_external_kafka_producer}
-     props {
+    external.kafka.topic = "mdm"
+    props {
       bootstrap.servers = "${external_kafka_producer_endpoint}"
       retries = 50
       batch.size = 65536
       linger.ms = 250
-     }
+    }
   }
 
   consumer {

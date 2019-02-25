@@ -13,7 +13,7 @@ kafka {
   }
 
   producer {
-    topic = "metricpoints"
+    topic = "metric-data-points"
   }
 
   consumer {
