@@ -22,7 +22,7 @@ kafka {
       {
         topic: "metrics"
         serdeClassName : "com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerde"
-        enabled: "${var.enable_metrics_sink?1:0}"
+        enabled: "${enable_metrics_sink?1:0}"
       },
       {
         topic: "mdm"
