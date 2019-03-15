@@ -4,6 +4,11 @@ MAINTAINER Haystack <haystack@expedia.com>
 ENV APP_NAME haystack-timeseries-aggregator
 ENV APP_HOME /app/bin
 ENV JMXTRANS_AGENT jmxtrans-agent-1.2.6
+ENV DOCKERIZE_VERSION v0.6.1
+
+ADD https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz dockerize.tar.gz
+RUN tar xzf dockerize.tar.gz
+RUN chmod +x dockerize
 
 RUN mkdir -p ${APP_HOME}
 
