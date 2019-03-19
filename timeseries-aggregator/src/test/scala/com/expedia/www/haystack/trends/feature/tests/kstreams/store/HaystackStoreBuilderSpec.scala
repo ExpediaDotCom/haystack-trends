@@ -21,7 +21,7 @@ class HaystackStoreBuilderSpec extends FeatureSpec {
       val store = storeBuilder.build()
 
       Then("it should build a metered lru-cache based changelogging store")
-      store shouldBe a [MeteredKeyValueStore[String, TrendMetric]]
+      store.isInstanceOf[MeteredKeyValueStore[String, TrendMetric]] shouldBe true
     }
   }
 }
