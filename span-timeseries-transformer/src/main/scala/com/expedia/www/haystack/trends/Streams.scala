@@ -19,7 +19,6 @@
 package com.expedia.www.haystack.trends
 
 import java.util.function.Supplier
-import java.util.{List => JList}
 
 import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
@@ -27,7 +26,7 @@ import com.expedia.www.haystack.commons.kstreams.serde.SpanSerde
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
-import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
+import com.expedia.www.haystack.trends.transformer.MetricDataTransformer.allTransformers
 import org.apache.kafka.common.serialization.Serdes.StringSerde
 import org.apache.kafka.streams._
 import org.apache.kafka.streams.kstream.Produced
@@ -52,15 +51,15 @@ class Streams(kafkaConfig: KafkaConfiguration, transformConfig: TransformerConfi
     builder.build()
   }
 
-  private def mapToMetricDataKeyValue(span: Span): JList[KeyValue[String, MetricData]] = {
+  private def mapToMetricDataKeyValue(span: Span): java.lang.Iterable[KeyValue[String, MetricData]] = {
     val metricData: Seq[MetricData] = generateMetricDataList(span,
-      MetricDataTransformer.allTransformers,
+      allTransformers,
       transformConfig.encoder,
       transformConfig.enableMetricPointServiceLevelGeneration)
 
     metricData.map {
       md => new KeyValue[String, MetricData](generateKey(md.getMetricDefinition), md)
-    }.asJava
+    }.asJavaCollection
   }
 
   override def get(): Topology = {

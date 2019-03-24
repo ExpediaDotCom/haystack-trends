@@ -63,16 +63,12 @@ trait MetricDataGenerator extends MetricsSupport {
       return false
     }
 
-    val isBlacklisted = blackListedServices.find {
+    val isBlacklisted = blackListedServices.exists {
       regexp =>
         regexp.pattern.matcher(span.getServiceName).find()
     }
 
-    isBlacklisted match {
-      case Some(_) =>
-        BlackListedSpans.mark()
-        false
-      case _ => true
-    }
+    if (isBlacklisted) BlackListedSpans.mark()
+    !isBlacklisted
   }
 }
