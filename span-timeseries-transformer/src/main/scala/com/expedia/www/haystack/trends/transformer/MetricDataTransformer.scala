@@ -37,11 +37,14 @@ trait MetricDataTransformer extends MetricsSupport {
 
   protected def mapSpan(span: Span, serviceOnlyFlag: Boolean): List[MetricData]
 
-  protected def getDataPointTimestamp(span: Span): Long = {
-    span.getStartTime / 1000000
-  }
+  protected def getDataPointTimestamp(span: Span): Long = span.getStartTime / 1000000
 
-  protected def getMetricData(metricName: String, metricTags: util.LinkedHashMap[String, String], metricType: String, metricUnit: String, value: Double, timeStamp: Long): MetricData = {
+  protected def getMetricData(metricName: String,
+                              metricTags: util.LinkedHashMap[String, String],
+                              metricType: String,
+                              metricUnit: String,
+                              value: Double,
+                              timestamp: Long): MetricData = {
     val tags = new util.LinkedHashMap[String, String] {
       putAll(metricTags)
       put(MetricDefinition.MTYPE, metricType)
@@ -49,7 +52,7 @@ trait MetricDataTransformer extends MetricsSupport {
       put(PRODUCT_KEY, PRODUCT)
     }
     val metricDefinition = new MetricDefinition(metricName, new TagCollection(tags), TagCollection.EMPTY)
-    val metricData = new MetricData(metricDefinition, value, timeStamp)
+    val metricData = new MetricData(metricDefinition, value, timestamp)
     metricData
   }
 

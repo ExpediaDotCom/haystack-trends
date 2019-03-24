@@ -21,8 +21,8 @@ import java.util.UUID
 
 import com.expedia.metrics.{MetricData, MetricDefinition}
 import com.expedia.open.tracing.Span
-import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.entities.TagKeys
+import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.commons.health.HealthStatusController
 import com.expedia.www.haystack.commons.kstreams.app.{StateChangeListener, StreamsFactory, StreamsRunner}
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
@@ -63,7 +63,7 @@ class TimeSeriesTransformerTopologySpec extends IntegrationTestSpec with MetricD
       streamsRunner.start()
 
       Then("we should write transformed metricPoints to the 'output' topic")
-      val metricDataList: List[MetricData] = spans.flatMap(span => generateMetricDataList(transformerConfig.blacklistedServices)(MetricDataTransformer.allTransformers)(span, true, new PeriodReplacementEncoder)) // directly call transformers to get metricPoints
+      val metricDataList: List[MetricData] = spans.flatMap(span => generateMetricDataList(span, MetricDataTransformer.allTransformers, new PeriodReplacementEncoder)) // directly call transformers to get metricPoints
       metricDataList.size shouldBe (spans.size * MetricDataTransformer.allTransformers.size * 2) // two times because of service only metric points
 
       val records: List[KeyValue[String, MetricData]] =
