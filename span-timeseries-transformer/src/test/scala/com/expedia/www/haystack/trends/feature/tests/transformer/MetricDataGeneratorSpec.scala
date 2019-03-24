@@ -56,7 +56,6 @@ class MetricDataGeneratorSpec extends FeatureSpec with MetricDataGenerator {
       metricDataList should not be empty
       val metricPointTransformers = getMetricDataTransformers
       metricDataList.size shouldEqual metricPointTransformers.size * 2
-      var metricPointIds = Set[String]()
 
       Then("each metricPoint should have the timestamps in seconds and which should equal to the span timestamp")
       isValid shouldBe true

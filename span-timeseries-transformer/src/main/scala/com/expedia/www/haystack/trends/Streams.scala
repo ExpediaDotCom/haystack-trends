@@ -53,7 +53,7 @@ class Streams(kafkaConfig: KafkaConfiguration, transformConfig: TransformerConfi
   }
 
   private def mapToMetricDataKeyValue(span: Span): JList[KeyValue[String, MetricData]] = {
-    val metricData: List[MetricData] = generateMetricDataList(span,
+    val metricData: Seq[MetricData] = generateMetricDataList(span,
       MetricDataTransformer.allTransformers,
       transformConfig.encoder,
       transformConfig.enableMetricPointServiceLevelGeneration)

@@ -42,9 +42,9 @@ trait MetricDataGenerator extends MetricsSupport {
   def generateMetricDataList(span: Span,
                              transformers: Seq[MetricDataTransformer],
                              encoder: Encoder,
-                             serviceOnlyFlag: Boolean = true): List[MetricData] = {
+                             serviceOnlyFlag: Boolean = true): Seq[MetricData] = {
     val timer = metricPointGenerationTimer.time()
-    val metricPoints = transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag, encoder)).toList
+    val metricPoints = transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag, encoder))
     timer.close()
     metricPoints
   }
@@ -67,7 +67,7 @@ trait MetricDataGenerator extends MetricsSupport {
       regexp =>
         regexp.pattern.matcher(span.getServiceName).find()
     }
-    
+
     isBlacklisted match {
       case Some(_) =>
         BlackListedSpans.mark()
