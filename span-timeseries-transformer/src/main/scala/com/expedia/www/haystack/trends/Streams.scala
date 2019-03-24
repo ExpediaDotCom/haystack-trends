@@ -19,12 +19,12 @@
 package com.expedia.www.haystack.trends
 
 import java.util.function.Supplier
+import java.util.{List => JList}
 
 import com.expedia.metrics.MetricData
 import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.kstreams.serde.SpanSerde
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricTankSerde
-import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator
 import com.expedia.www.haystack.commons.util.MetricDefinitionKeyGenerator._
 import com.expedia.www.haystack.trends.config.entities.{KafkaConfiguration, TransformerConfiguration}
 import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
@@ -34,25 +34,34 @@ import org.apache.kafka.streams.kstream.Produced
 
 import scala.collection.JavaConverters._
 
-class Streams(kafkaConfig: KafkaConfiguration, transformerConfiguration: TransformerConfiguration) extends Supplier[Topology]
+class Streams(kafkaConfig: KafkaConfiguration, transformConfig: TransformerConfiguration) extends Supplier[Topology]
   with MetricDataGenerator {
 
-
   private[trends] def initialize(builder: StreamsBuilder): Topology = {
-    builder.stream(kafkaConfig.consumeTopic, Consumed.`with`(kafkaConfig.autoOffsetReset).withKeySerde(new StringSerde).withValueSerde(new SpanSerde).withTimestampExtractor(kafkaConfig.timestampExtractor))
-      .flatMap[String, MetricData] {
-      (_: String, span: Span) => mapToMetricDataKeyValue(span)
-    }.to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde()))
+    val consumed = Consumed.`with`(kafkaConfig.autoOffsetReset)
+      .withKeySerde(new StringSerde)
+      .withValueSerde(new SpanSerde)
+      .withTimestampExtractor(kafkaConfig.timestampExtractor)
+
+    builder
+      .stream(kafkaConfig.consumeTopic, consumed)
+      .filter((_: String, span: Span) => isValidSpan(span, transformConfig.blacklistedServices))
+      .flatMap[String, MetricData]((_: String, span: Span) => mapToMetricDataKeyValue(span))
+      .to(kafkaConfig.produceTopic, Produced.`with`(new StringSerde(), new MetricTankSerde()))
+
     builder.build()
   }
 
-  private def mapToMetricDataKeyValue(span: Span): java.util.List[KeyValue[String, MetricData]] = {
-    generateMetricDataList(transformerConfiguration.blacklistedServices)(MetricDataTransformer.allTransformers)(span, transformerConfiguration.enableMetricPointServiceLevelGeneration, transformerConfiguration.encoder)
-      .map {
-        metricData => new KeyValue(generateKey(metricData.getMetricDefinition), metricData)
-      }.asJava
-  }
+  private def mapToMetricDataKeyValue(span: Span): JList[KeyValue[String, MetricData]] = {
+    val metricData: List[MetricData] = generateMetricDataList(span,
+      MetricDataTransformer.allTransformers,
+      transformConfig.encoder,
+      transformConfig.enableMetricPointServiceLevelGeneration)
 
+    metricData.map {
+      md => new KeyValue[String, MetricData](generateKey(md.getMetricDefinition), md)
+    }.asJava
+  }
 
   override def get(): Topology = {
     val builder = new StreamsBuilder()

@@ -16,8 +16,8 @@
  */
 package com.expedia.www.haystack.trends
 
-import com.expedia.open.tracing.Span
 import com.expedia.metrics.MetricData
+import com.expedia.open.tracing.Span
 import com.expedia.www.haystack.commons.entities.encoders.Encoder
 import com.expedia.www.haystack.commons.metrics.MetricsSupport
 import com.expedia.www.haystack.trends.transformer.MetricDataTransformer
@@ -33,25 +33,22 @@ trait MetricDataGenerator extends MetricsSupport {
   /**
     * This function is responsible for generating all the metric points which can be created given a span
     *
-    * @param transformers list of transformers to be applied
-    * @param blacklistedServices list of services which are blacklisted - typically the ones which have a lot of operation names and can result in many unique trends
-    * @param span         incoming span
-    * @return try of either a list of generated metric points or a validation exception
+    * @param span            incoming span
+    * @param transformers    list of transformers to be applied
+    * @param encoder         encoder object
+    * @param serviceOnlyFlag tells if metric data should be generated for serviceOnly, default is true
+    * @return
     */
-  def generateMetricDataList(blacklistedServices: List[Regex])(transformers: Seq[MetricDataTransformer])(span: Span, serviceOnlyFlag: Boolean,encoder: Encoder): List[MetricData] = {
-    val context = metricPointGenerationTimer.time()
-    val metricPoints = getMetricDataList(span, blacklistedServices, transformers, serviceOnlyFlag,encoder)
-    context.close()
+  def generateMetricDataList(span: Span,
+                             transformers: Seq[MetricDataTransformer],
+                             encoder: Encoder,
+                             serviceOnlyFlag: Boolean = true): List[MetricData] = {
+    val timer = metricPointGenerationTimer.time()
+    val metricPoints = transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag, encoder)).toList
+    timer.close()
     metricPoints
   }
 
-  def getMetricDataList(span: Span, blacklistedServices: List[Regex], transformers: Seq[MetricDataTransformer], serviceOnlyFlag: Boolean, encoder: Encoder): List[MetricData] = {
-    if (isValidSpan(blacklistedServices, span)) {
-      transformers.flatMap(transformer => transformer.mapSpan(span, serviceOnlyFlag, encoder)).toList
-    } else {
-      List[MetricData]()
-    }
-  }
   /**
     * This function validates a span and makes sure that the span has the necessary data to generate meaningful metrics
     * This layer is supposed to do generic validations which would impact all the transformers.
@@ -60,17 +57,22 @@ trait MetricDataGenerator extends MetricsSupport {
     * @param span incoming span
     * @return Try object which should return either the span as is or a validation exception
     */
-  def isValidSpan(blackListedServices: List[Regex], span: Span): Boolean = {
+  def isValidSpan(span: Span, blackListedServices: List[Regex]): Boolean = {
     if (span.getServiceName.isEmpty || span.getOperationName.isEmpty) {
       SpanValidationErrors.mark()
-      false
-    } else if (blackListedServices.collectFirst {
-      case regexp if regexp.pattern.matcher(span.getServiceName).find() => span.getServiceName
-    }.isDefined) {
-      BlackListedSpans.mark()
-      false
-    } else {
-      true
+      return false
+    }
+
+    val isBlacklisted = blackListedServices.find {
+      regexp =>
+        regexp.pattern.matcher(span.getServiceName).find()
+    }
+    
+    isBlacklisted match {
+      case Some(_) =>
+        BlackListedSpans.mark()
+        false
+      case _ => true
     }
   }
 }
