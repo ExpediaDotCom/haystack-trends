@@ -25,7 +25,7 @@ object HistogramMetricSerde extends MetricSerde {
 
     val histogramMetric = metric.asInstanceOf[HistogramMetric]
     val packer = MessagePack.newDefaultBufferPacker()
-    val serializedHistogram = ByteBuffer.allocate(8192)
+    val serializedHistogram = ByteBuffer.allocate(188448)
     histogramMetric.getRunningHistogram.encodeIntoByteBuffer(serializedHistogram)
     val metricData = Map[Value, Value](
       ValueFactory.newString(intHistogramKey) -> ValueFactory.newBinary(serializedHistogram.array()),

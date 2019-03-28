@@ -77,7 +77,7 @@ class HistogramMetricSpec extends FeatureSpec {
       })
 
       Then("should return valid values for all stats types")
-      val expectedHistogram: IntHistogram = new IntHistogram(Int.MaxValue, 0)
+      val expectedHistogram: IntHistogram = new IntHistogram(Int.MaxValue, 3)
       metricDataList.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.getValue.toLong))
       verifyHistogramMetricValues(histMetricDataList, expectedHistogram)
     }
@@ -92,7 +92,7 @@ class HistogramMetricSpec extends FeatureSpec {
       val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
-      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
+      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 3))
 
       When("MetricData points are processed")
       metricDataList.map(metricData => metric.compute(metricData))
@@ -113,7 +113,7 @@ class HistogramMetricSpec extends FeatureSpec {
       val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
-      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 2))
+      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 3))
 
       When("MetricPoints are processed")
       metricDataList.map(metricData => metric.compute(metricData))
