@@ -60,9 +60,8 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
           val metricDefinition = new MetricDefinition(metricKey, tagCollection, TagCollection.EMPTY)
           new MetricData(metricDefinition, value, publishingTimestamp)
       }
-      result.toList
+        result.toList
     }
-
   }
 
   def getRunningHistogram: Histogram = {
@@ -73,6 +72,10 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
     if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
       histogram.recordValue(metricData.getValue.toLong)
+      timerContext.close()
+    } else {
+      val timerContext = HistogramMetricComputeTimer.time()
+      histogram.recordValue(histogram.getHighestTrackableValue)
       timerContext.close()
     }
     this

@@ -25,6 +25,9 @@ variable "jvm_memory_limit"{}
 variable "cpu_request" {}
 variable "cpu_limit" {}
 
+variable "histogram_max_value" {}
+variable "histogram_precision" {}
+
 variable "termination_grace_period" {
   default = 30
 }

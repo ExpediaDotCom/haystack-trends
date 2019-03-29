@@ -65,6 +65,6 @@ state.store {
 metricpoint.encoder.type = "${metricpoint_encoder_type}"
 
 histogram {
-  max.value = 2147483647
-  precision = 0
+  max.value = "${histogram_max_value}"
+  precision = "${histogram_precision}"
 }

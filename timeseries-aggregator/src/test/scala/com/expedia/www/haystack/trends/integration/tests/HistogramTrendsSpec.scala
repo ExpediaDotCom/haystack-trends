@@ -21,11 +21,12 @@ import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.trends.integration.IntegrationTestSpec
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.integration.utils.IntegrationTestUtils
-import org.scalatest.Sequential
+import org.scalatest.{Ignore, Sequential}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
+@Ignore
 @Sequential
 class HistogramTrendsSpec extends IntegrationTestSpec {
 
@@ -57,6 +58,4 @@ class HistogramTrendsSpec extends IntegrationTestSpec {
       validateAggregatedMetricPoints(result, expectedOneMinAggregatedPoints, expectedFiveMinAggregatedPoints, expectedFifteenMinAggregatedPoints, expectedOneHourAggregatedPoints)
     }
   }
-
-
 }
