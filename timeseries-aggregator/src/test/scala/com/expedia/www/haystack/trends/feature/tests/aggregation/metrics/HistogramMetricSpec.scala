@@ -44,7 +44,7 @@ class HistogramMetricSpec extends FeatureSpec {
     scenario("should get gauge metric type and stats for valid duration points") {
 
       Given("some duration Metric Data points")
-      val durations = List(10, 140)
+      val durations = List(10000000, 140000000) // in micros
       val interval: Interval = Interval.ONE_MINUTE
 
       val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
@@ -80,23 +80,29 @@ class HistogramMetricSpec extends FeatureSpec {
       })
 
       Then("should return valid values for all stats types")
-      val expectedHistogram: IntHistogram = new IntHistogram(appConfig.histogramMetricConfiguration.maxValue,
+      val expectedHistogram: Histogram = new Histogram(appConfig.histogramMetricConfiguration.maxValue,
         appConfig.histogramMetricConfiguration.precision)
-      metricDataList.foreach(metricPoint => expectedHistogram.recordValue(metricPoint.getValue.toLong))
+
+      metricDataList.foreach(metricPoint => {
+        val metricDataValue = HistogramMetric.getHistogramValueAsPerUnit(metricPoint.getValue.toLong, appConfig.histogramMetricConfiguration.unit)
+        expectedHistogram.recordValue(metricDataValue)
+      })
       verifyHistogramMetricValues(histMetricDataList, expectedHistogram)
     }
 
-    scenario("should return maxTrackableValue if point is larger than the Histogram maxValue") {
+    scenario("should return nearest point to the maxTrackableValue as per the precision if point is larger than the Histogram maxValue") {
 
       Given("some duration Metric points")
-      val maxTrackableValue = 2000
-      val durations = List(10, maxTrackableValue + 1)
+
+      val maxTrackableValueInMillis = appConfig.histogramMetricConfiguration.maxValue.toLong
+      val maxTrackableValueInMicros = maxTrackableValueInMillis * 1000
+      val durations = List(10000, maxTrackableValueInMicros + 10000) // in micros
       val interval: Interval = Interval.ONE_MINUTE
 
       val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
 
       When("get metric is constructed")
-      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 3))
+      val metric = new HistogramMetric(interval)
 
       When("MetricData points are processed")
       metricDataList.map(metricData => metric.compute(metricData))
@@ -104,31 +110,10 @@ class HistogramMetricSpec extends FeatureSpec {
 
 
       Then("the max should be the maxTrackableValue that was in the histogram boundaries")
-      histMetricDataList.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual maxTrackableValue
+      histMetricDataList.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 1794048
     }
 
-    scenario("should return maxTrackableValue if metric point is larger than the Histogram maxValue even for boundary int value") {
-
-      Given("some duration Metric points")
-      val maxTrackableValue = Int.MaxValue
-      val durations = List(10, maxTrackableValue.toLong + 1) // toLong is important since int max + 1 is not within int's precision
-      val interval: Interval = Interval.ONE_MINUTE
-
-      val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
-
-      When("get metric is constructed")
-      val metric = new HistogramMetric(interval, new Histogram(maxTrackableValue, 3))
-
-      When("MetricPoints are processed")
-      metricDataList.map(metricData => metric.compute(metricData))
-      val histMetricPoints: List[MetricData] = metric.mapToMetricDataList(metricDataList.last.getMetricDefinition.getKey,
-        getTagsFromMetricData(metricDataList.last), metricDataList.last.getTimestamp)
-
-      Then("the max should be the max value nearest bucket value as per the hdr histogram")
-      histMetricPoints.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue  shouldBe 2146435072
-    }
-
-    def verifyHistogramMetricValues(resultingMetricPoints: List[MetricData], expectedHistogram: IntHistogram) = {
+    def verifyHistogramMetricValues(resultingMetricPoints: List[MetricData], expectedHistogram: Histogram) = {
       val resultingMetricPointsMap: Map[String, Float] =
         resultingMetricPoints.map(resultingMetricPoint => getTagsFromMetricData(resultingMetricPoint).get(TagKeys.STATS_KEY) -> resultingMetricPoint.getValue.toFloat).toMap
 

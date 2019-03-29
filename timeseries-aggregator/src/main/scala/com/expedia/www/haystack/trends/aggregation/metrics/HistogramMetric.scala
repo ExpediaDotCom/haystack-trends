@@ -19,12 +19,14 @@
 package com.expedia.www.haystack.trends.aggregation.metrics
 
 import java._
+import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics.Timer
 import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.expedia.www.haystack.trends.config.entities.HistogramUnit
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 import org.HdrHistogram.Histogram
 
@@ -69,18 +71,33 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
   }
 
   override def compute(metricData: MetricData): HistogramMetric = {
-    if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
+    val metricDataValue = HistogramMetric.getHistogramValueAsPerUnit(metricData.getValue.toLong,
+      AppConfiguration.histogramMetricConfiguration.unit)
+
+    if (metricDataValue <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
-      histogram.recordValue(metricData.getValue.toLong)
+      histogram.recordValue(metricDataValue)
       timerContext.close()
-    } else {
+    }
+    else {
       val timerContext = HistogramMetricComputeTimer.time()
       histogram.recordValue(histogram.getHighestTrackableValue)
       timerContext.close()
     }
     this
   }
+}
 
+object HistogramMetric {
+  def getHistogramValueAsPerUnit(value: Long, histogramUnit: HistogramUnit): Long = {
+    if (histogramUnit.isMillis) {
+      TimeUnit.MICROSECONDS.toMillis(value)
+    } else if (histogramUnit.isSeconds) {
+      TimeUnit.MICROSECONDS.toSeconds(value)
+    } else {
+      value
+    }
+  }
 }
 
 
