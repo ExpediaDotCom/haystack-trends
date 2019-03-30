@@ -66,6 +66,7 @@ module "timeseries-aggregator" {
   jvm_memory_limit = "${var.trends["timeseries_aggregator_jvm_memory_limit"]}"
   env_vars = "${var.trends["timeseries_aggregator_environment_overrides"]}"
   metricpoint_encoder_type = "${var.trends["metricpoint_encoder_type"]}"
-  histogram_max_value = "${var.trends["timeseries_aggregator_histogram_max_value"]}"
+  histogram_max_value_minutes = "${var.trends["timeseries_aggregator_histogram_max_value_minutes"]}"
   histogram_precision = "${var.trends["timeseries_aggregator_histogram_precision"]}"
+  histogram_value_unit = "${var.trends["timeseries_aggregator_histogram_value_unit"]}"
 }
