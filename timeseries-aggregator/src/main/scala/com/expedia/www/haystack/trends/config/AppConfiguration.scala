@@ -18,7 +18,6 @@
 package com.expedia.www.haystack.trends.config
 
 import java.util.Properties
-import java.util.concurrent.TimeUnit
 
 import com.expedia.www.haystack.commons.config.ConfigurationLoader
 import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFactory}
@@ -61,21 +60,8 @@ class AppConfiguration {
   def histogramMetricConfiguration: HistogramMetricConfiguration = {
     val histogramUnit = new HistogramUnit(config.getString("histogram.value.unit"))
 
-    val maxValueInMinutes = config.getInt("histogram.max.value.minutes")
-    val maxValue = {
-      if (histogramUnit.isMillis) {
-        TimeUnit.MINUTES.toMillis(maxValueInMinutes).toInt
-      } else if (histogramUnit.isMicros) {
-        TimeUnit.MINUTES.toMicros(maxValueInMinutes).toInt
-      } else if (histogramUnit.isSeconds){
-        TimeUnit.MINUTES.toSeconds(maxValueInMinutes).toInt
-      } else {
-        maxValueInMinutes
-      }
-    }
-
     HistogramMetricConfiguration(config.getInt("histogram.precision"),
-      maxValue,
+      config.getInt("histogram.max.value"),
       histogramUnit)
   }
 

@@ -16,7 +16,7 @@ data "template_file" "config_data" {
     enable_metrics_sink = "${var.enable_metrics_sink?true:false}"
     external_kafka_producer_endpoint = "${var.external_kafka_producer_endpoint}"
     metricpoint_encoder_type = "${var.metricpoint_encoder_type}"
-    histogram_max_value = "${var.histogram_max_value_minutes}"
+    histogram_max_value = "${var.histogram_max_value}"
     histogram_precision = "${var.histogram_precision}"
     histogram_value_unit = "${var.histogram_value_unit}"
   }
