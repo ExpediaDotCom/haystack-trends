@@ -58,7 +58,11 @@ class AppConfiguration {
     * @return configurations specific to creating HDR histogram objects
     */
   def histogramMetricConfiguration: HistogramMetricConfiguration = {
-    HistogramMetricConfiguration(config.getInt("histogram.precision"), config.getInt("histogram.max.value"))
+    val histogramUnit = new HistogramUnit(config.getString("histogram.value.unit"))
+
+    HistogramMetricConfiguration(config.getInt("histogram.precision"),
+      config.getInt("histogram.max.value"),
+      histogramUnit)
   }
 
   /**

@@ -114,5 +114,17 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       projectConfig.kafkaConfig.producerConfig.kafkaSinkTopics.head.topic shouldBe "metrics"
       projectConfig.kafkaConfig.producerConfig.props.get.getProperty("bootstrap.servers") shouldBe "kafkasvc:9092"
     }
+
+    scenario("should load the histogram configs from base.conf") {
+
+      Given("A config file at base config file containing kafka ")
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new AppConfiguration()
+
+      Then("It should create the write configuration object based on the file contents")
+      projectConfig.histogramMetricConfiguration.maxValue shouldBe 1800000
+      projectConfig.histogramMetricConfiguration.unit.isMillis shouldBe true
+    }
   }
 }
