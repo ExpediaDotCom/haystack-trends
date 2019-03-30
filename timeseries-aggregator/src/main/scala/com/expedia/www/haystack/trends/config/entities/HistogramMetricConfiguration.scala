@@ -22,21 +22,21 @@ package com.expedia.www.haystack.trends.config.entities
   *This configuration helps create the HistogramMetric.
   * @param precision - Decimal precision required for the histogram,allowable precision of histogram must be 0 <= value <= 5
   * @param maxValue - maximum value for the incoming metric (should always be > than the maximum value you're expecting for a metricpoint)
-  * @param unit - unit of the value that will be given to histogram (can be ms, micro, sec)
+  * @param unit - unit of the value that will be given to histogram (can be micros, millis, seconds)
   */
 case class HistogramMetricConfiguration(precision: Int, maxValue: Int, unit: HistogramUnit)
 
 class HistogramUnit (unit: String) {
   def isMillis: Boolean = {
-    unit.equalsIgnoreCase("ms")
+    unit.equalsIgnoreCase("millis")
   }
 
   def isMicros: Boolean = {
-    unit.equalsIgnoreCase("micro")
+    unit.equalsIgnoreCase("micros")
   }
 
   def isSeconds: Boolean = {
-    unit.equalsIgnoreCase("sec")
+    unit.equalsIgnoreCase("seconds")
   }
 }
 
