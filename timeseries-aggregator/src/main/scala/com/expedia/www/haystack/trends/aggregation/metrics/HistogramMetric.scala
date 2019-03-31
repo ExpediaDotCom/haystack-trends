@@ -46,16 +46,17 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
 
   override def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
     import com.expedia.www.haystack.trends.aggregation.entities.StatValue._
+    val histogramUnit = AppConfiguration.histogramMetricConfiguration.unit
     histogram.getTotalCount match {
       case 0 => List()
       case _ => val result = Map(
-        MEAN -> histogram.getMean.toLong,
-        MIN -> histogram.getMinValue,
-        PERCENTILE_95 -> histogram.getValueAtPercentile(95),
-        PERCENTILE_99 -> histogram.getValueAtPercentile(99),
-        STDDEV -> histogram.getStdDeviation.toLong,
-        MEDIAN -> histogram.getValueAtPercentile(50),
-        MAX -> histogram.getMaxValue
+        MEAN -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getMean.toLong, histogramUnit),
+        MIN -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getMinValue,  histogramUnit),
+        PERCENTILE_95 -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getValueAtPercentile(95), histogramUnit),
+        PERCENTILE_99 -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getValueAtPercentile(99), histogramUnit),
+        STDDEV -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getStdDeviation.toLong, histogramUnit),
+        MEDIAN -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getValueAtPercentile(50), histogramUnit),
+        MAX -> HistogramMetric.getHistogramResultAsPerUnit(histogram.getMaxValue, histogramUnit)
       ).map {
         case (stat, value) =>
           val tagCollection = new TagCollection(appendTags(tags, interval, stat))
@@ -94,6 +95,16 @@ object HistogramMetric {
       TimeUnit.MICROSECONDS.toMillis(value)
     } else if (histogramUnit.isSeconds) {
       TimeUnit.MICROSECONDS.toSeconds(value)
+    } else {
+      value
+    }
+  }
+
+  def getHistogramResultAsPerUnit(value: Long, histogramUnit: HistogramUnit): Long = {
+    if (histogramUnit.isMillis) {
+      TimeUnit.MILLISECONDS.toMicros(value)
+    } else if (histogramUnit.isSeconds) {
+      TimeUnit.SECONDS.toMicros(value)
     } else {
       value
     }

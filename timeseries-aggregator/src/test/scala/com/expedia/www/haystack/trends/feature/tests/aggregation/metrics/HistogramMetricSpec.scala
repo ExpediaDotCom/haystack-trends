@@ -25,7 +25,7 @@ import com.expedia.www.haystack.trends.aggregation.entities._
 import com.expedia.www.haystack.trends.aggregation.metrics.HistogramMetric
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
-import org.HdrHistogram.{Histogram, IntHistogram}
+import org.HdrHistogram.Histogram
 
 class HistogramMetricSpec extends FeatureSpec {
 
@@ -34,8 +34,6 @@ class HistogramMetricSpec extends FeatureSpec {
   val INVALID_METRIC_NAME = "invalid_metric"
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
-
-  val appConfig = new AppConfiguration()
 
   val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
     TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
@@ -80,13 +78,11 @@ class HistogramMetricSpec extends FeatureSpec {
       })
 
       Then("should return valid values for all stats types")
-      val expectedHistogram: Histogram = new Histogram(appConfig.histogramMetricConfiguration.maxValue,
-        appConfig.histogramMetricConfiguration.precision)
+      val expectedHistogram: Histogram = new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue,
+        AppConfiguration.histogramMetricConfiguration.precision)
 
-      metricDataList.foreach(metricPoint => {
-        val metricDataValue = HistogramMetric.getHistogramValueAsPerUnit(metricPoint.getValue.toLong, appConfig.histogramMetricConfiguration.unit)
-        expectedHistogram.recordValue(metricDataValue)
-      })
+      metricDataList.foreach(metricPoint => expectedHistogram
+        .recordValue(HistogramMetric.getHistogramValueAsPerUnit(metricPoint.getValue.toLong, AppConfiguration.histogramMetricConfiguration.unit)))
       verifyHistogramMetricValues(histMetricDataList, expectedHistogram)
     }
 
@@ -94,9 +90,9 @@ class HistogramMetricSpec extends FeatureSpec {
 
       Given("some duration Metric points")
 
-      val maxTrackableValueInMillis = appConfig.histogramMetricConfiguration.maxValue.toLong
+      val maxTrackableValueInMillis = AppConfiguration.histogramMetricConfiguration.maxValue.toLong
       val maxTrackableValueInMicros = maxTrackableValueInMillis * 1000
-      val durations = List(10000, maxTrackableValueInMicros + 10000) // in micros
+      val durations = List(10000000, maxTrackableValueInMicros + 10000) // in micros
       val interval: Interval = Interval.ONE_MINUTE
 
       val metricDataList: List[MetricData] = durations.map(duration => getMetricData(DURATION_METRIC_NAME, keys, duration, currentTimeInSecs))
@@ -110,20 +106,22 @@ class HistogramMetricSpec extends FeatureSpec {
 
 
       Then("the max should be the maxTrackableValue that was in the histogram boundaries")
-      histMetricDataList.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 1794048
+      histMetricDataList.filter(m => "min".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 9984000     // ~ 10000000
+      histMetricDataList.filter(m => "max".equals(getTagsFromMetricData(m).get("stat").toString)).head.getValue shouldEqual 1794048000  // ~ maxTrackableValueInMicros
     }
 
     def verifyHistogramMetricValues(resultingMetricPoints: List[MetricData], expectedHistogram: Histogram) = {
       val resultingMetricPointsMap: Map[String, Float] =
         resultingMetricPoints.map(resultingMetricPoint => getTagsFromMetricData(resultingMetricPoint).get(TagKeys.STATS_KEY) -> resultingMetricPoint.getValue.toFloat).toMap
 
-      resultingMetricPointsMap(StatValue.MEAN.toString) shouldEqual expectedHistogram.getMean.toLong
-      resultingMetricPointsMap(StatValue.MAX.toString) shouldEqual expectedHistogram.getMaxValue
-      resultingMetricPointsMap(StatValue.MIN.toString) shouldEqual expectedHistogram.getMinValue
-      resultingMetricPointsMap(StatValue.PERCENTILE_95.toString) shouldEqual expectedHistogram.getValueAtPercentile(95)
-      resultingMetricPointsMap(StatValue.PERCENTILE_99.toString) shouldEqual expectedHistogram.getValueAtPercentile(99)
-      resultingMetricPointsMap(StatValue.STDDEV.toString) shouldEqual expectedHistogram.getStdDeviation.toLong
-      resultingMetricPointsMap(StatValue.MEDIAN.toString) shouldEqual expectedHistogram.getValueAtPercentile(50)
+      val histogramUnit = AppConfiguration.histogramMetricConfiguration.unit
+      resultingMetricPointsMap(StatValue.MEAN.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getMean.toLong, histogramUnit)
+      resultingMetricPointsMap(StatValue.MAX.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getMaxValue, histogramUnit)
+      resultingMetricPointsMap(StatValue.MIN.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getMinValue, histogramUnit)
+      resultingMetricPointsMap(StatValue.PERCENTILE_95.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getValueAtPercentile(95), histogramUnit)
+      resultingMetricPointsMap(StatValue.PERCENTILE_99.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getValueAtPercentile(99), histogramUnit)
+      resultingMetricPointsMap(StatValue.STDDEV.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getStdDeviation.toLong, histogramUnit)
+      resultingMetricPointsMap(StatValue.MEDIAN.toString) shouldEqual HistogramMetric.getHistogramResultAsPerUnit(expectedHistogram.getValueAtPercentile(50), histogramUnit)
     }
   }
 }
