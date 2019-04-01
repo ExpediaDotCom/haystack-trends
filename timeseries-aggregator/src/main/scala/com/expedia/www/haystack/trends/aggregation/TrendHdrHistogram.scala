@@ -21,8 +21,7 @@ package com.expedia.www.haystack.trends.aggregation
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
-import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.HistogramMetricConfiguration
+import com.expedia.www.haystack.trends.config.entities.{HistogramMetricConfiguration, HistogramUnit}
 import org.HdrHistogram.Histogram
 
 /**
@@ -30,29 +29,29 @@ import org.HdrHistogram.Histogram
   *
   * @param hdrHistogram : instance of hdr Histogram
   */
-class TrendHdrHistogram(hdrHistogram: Histogram) {
+class TrendHdrHistogram(hdrHistogram: Histogram, histogramUnit: HistogramUnit) {
 
-  def this(histogramConfig: HistogramMetricConfiguration) = this(new Histogram(histogramConfig.maxValue, histogramConfig.precision))
+  def this(histogramConfig: HistogramMetricConfiguration) = this(new Histogram(histogramConfig.maxValue, histogramConfig.precision), histogramConfig.unit)
 
   def recordValue(value: Long): Unit = {
-    val metricDataValue = TrendHdrHistogram.normalizeValue(value)
+    val metricDataValue = TrendHdrHistogram.normalizeValue(value, histogramUnit)
     hdrHistogram.recordValue(metricDataValue)
   }
 
   def getMinValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMinValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMinValue, histogramUnit)
   }
 
   def getMaxValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMaxValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMaxValue, histogramUnit)
   }
 
   def getMean: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMean.toLong)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMean.toLong, histogramUnit)
   }
 
   def getStdDeviation: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getStdDeviation.toLong)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getStdDeviation.toLong, histogramUnit)
   }
 
   def getTotalCount: Long = {
@@ -60,11 +59,11 @@ class TrendHdrHistogram(hdrHistogram: Histogram) {
   }
 
   def getHighestTrackableValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getHighestTrackableValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getHighestTrackableValue, histogramUnit)
   }
 
   def getValueAtPercentile(percentile: Double): Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getValueAtPercentile(percentile))
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getValueAtPercentile(percentile), histogramUnit)
   }
 
   def getEstimatedFootprintInBytes: Int = {
@@ -77,9 +76,8 @@ class TrendHdrHistogram(hdrHistogram: Histogram) {
 }
 
 object TrendHdrHistogram {
-  private val histogramUnit = AppConfiguration.histogramMetricConfiguration.unit
 
-  def normalizeValue(value: Long): Long = {
+  def normalizeValue(value: Long, histogramUnit: HistogramUnit): Long = {
     if (histogramUnit.isMillis) {
       TimeUnit.MICROSECONDS.toMillis(value)
     } else if (histogramUnit.isSeconds) {
@@ -89,7 +87,7 @@ object TrendHdrHistogram {
     }
   }
 
-  def denormalizeValue(value: Long): Long = {
+  def denormalizeValue(value: Long, histogramUnit: HistogramUnit): Long = {
     if (histogramUnit.isMillis) {
       TimeUnit.MILLISECONDS.toMicros(value.toLong)
     } else if (histogramUnit.isSeconds) {

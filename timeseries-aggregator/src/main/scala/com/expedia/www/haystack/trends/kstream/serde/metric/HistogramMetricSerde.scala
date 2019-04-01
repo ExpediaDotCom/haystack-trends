@@ -43,6 +43,6 @@ object HistogramMetricSerde extends MetricSerde {
     val serializedHistogram = metric.get(ValueFactory.newString(intHistogramKey)).asBinaryValue().asByteArray
     val interval: Interval = Interval.fromName(metric.get(ValueFactory.newString(intervalKey)).asStringValue().toString)
     val hdrHistogram = Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), AppConfiguration.histogramMetricConfiguration.maxValue)
-    new HistogramMetric(interval, new TrendHdrHistogram(hdrHistogram))
+    new HistogramMetric(interval, new TrendHdrHistogram(hdrHistogram, AppConfiguration.histogramMetricConfiguration.unit))
   }
 }
