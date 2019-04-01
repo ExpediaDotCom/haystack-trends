@@ -35,24 +35,24 @@ class TrendHdrHistogram(hdrHistogram: Histogram) {
   def this(histogramConfig: HistogramMetricConfiguration) = this(new Histogram(histogramConfig.maxValue, histogramConfig.precision))
 
   def recordValue(value: Long): Unit = {
-    val metricDataValue = TrendHdrHistogram.normaliseHistogramValue(value)
+    val metricDataValue = TrendHdrHistogram.normalizeValue(value)
     hdrHistogram.recordValue(metricDataValue)
   }
 
   def getMinValue: Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getMinValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMinValue)
   }
 
   def getMaxValue: Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getMaxValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMaxValue)
   }
 
   def getMean: Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getMean.toLong)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMean.toLong)
   }
 
   def getStdDeviation: Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getStdDeviation.toLong)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getStdDeviation.toLong)
   }
 
   def getTotalCount: Long = {
@@ -60,11 +60,11 @@ class TrendHdrHistogram(hdrHistogram: Histogram) {
   }
 
   def getHighestTrackableValue: Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getHighestTrackableValue)
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getHighestTrackableValue)
   }
 
   def getValueAtPercentile(percentile: Double): Long = {
-    TrendHdrHistogram.denormaliseHistogramValue(hdrHistogram.getValueAtPercentile(percentile))
+    TrendHdrHistogram.denormalizeValue(hdrHistogram.getValueAtPercentile(percentile))
   }
 
   def getEstimatedFootprintInBytes: Int = {
@@ -79,7 +79,7 @@ class TrendHdrHistogram(hdrHistogram: Histogram) {
 object TrendHdrHistogram {
   private val histogramUnit = AppConfiguration.histogramMetricConfiguration.unit
 
-  def normaliseHistogramValue(value: Long): Long = {
+  def normalizeValue(value: Long): Long = {
     if (histogramUnit.isMillis) {
       TimeUnit.MICROSECONDS.toMillis(value)
     } else if (histogramUnit.isSeconds) {
@@ -89,7 +89,7 @@ object TrendHdrHistogram {
     }
   }
 
-  def denormaliseHistogramValue(value: Long): Long = {
+  def denormalizeValue(value: Long): Long = {
     if (histogramUnit.isMillis) {
       TimeUnit.MILLISECONDS.toMicros(value.toLong)
     } else if (histogramUnit.isSeconds) {
