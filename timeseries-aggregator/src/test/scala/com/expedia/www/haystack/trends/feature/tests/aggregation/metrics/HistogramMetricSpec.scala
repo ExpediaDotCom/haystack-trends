@@ -77,7 +77,7 @@ class HistogramMetricSpec extends FeatureSpec {
       })
 
       Then("should return valid values for all stats types")
-      val expectedHistogram = new TrendHdrHistogram()
+      val expectedHistogram = new TrendHdrHistogram(AppConfiguration.histogramMetricConfiguration)
 
       metricDataList.foreach(metricPoint => {
         expectedHistogram.recordValue(metricPoint.getValue.toLong)

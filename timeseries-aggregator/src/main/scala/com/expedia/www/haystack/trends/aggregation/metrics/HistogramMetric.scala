@@ -23,6 +23,7 @@ import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.Interval.Interval
 import com.expedia.www.haystack.trends.aggregation.TrendHdrHistogram
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
 
 
@@ -36,7 +37,7 @@ class HistogramMetric(interval: Interval, histogram: TrendHdrHistogram) extends 
 
   private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
 
-  def this(interval: Interval) = this(interval, new TrendHdrHistogram())
+  def this(interval: Interval) = this(interval, new TrendHdrHistogram(AppConfiguration.histogramMetricConfiguration))
 
 
   override def mapToMetricDataList(metricKey: String, tags: java.util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {

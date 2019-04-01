@@ -4,11 +4,12 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
 import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.expedia.www.haystack.trends.config.entities.HistogramMetricConfiguration
 import org.HdrHistogram.Histogram
 
 class TrendHdrHistogram(hdrHistogram: Histogram) {
 
-  def this() = this(new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue, AppConfiguration.histogramMetricConfiguration.precision))
+  def this(histogramConfig: HistogramMetricConfiguration) = this(new Histogram(histogramConfig.maxValue, histogramConfig.precision))
 
   def recordValue(value: Long): Unit = {
     val metricDataValue = TrendHdrHistogram.normaliseHistogramValue(value)
