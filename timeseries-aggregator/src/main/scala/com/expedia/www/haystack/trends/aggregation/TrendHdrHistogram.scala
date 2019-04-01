@@ -21,6 +21,7 @@ package com.expedia.www.haystack.trends.aggregation
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
+import com.expedia.www.haystack.trends.config.entities.HistogramUnit.HistogramUnit
 import com.expedia.www.haystack.trends.config.entities.{HistogramMetricConfiguration, HistogramUnit}
 import org.HdrHistogram.Histogram
 
@@ -28,72 +29,53 @@ import org.HdrHistogram.Histogram
   * Wrapper over hdr Histogram. Takes care of unit mismatch of histogram and the other systems.
   *
   * @param hdrHistogram : instance of hdr Histogram
+  * @param unit : unit of the recorded values, can be millis, micros or seconds
   */
-class TrendHdrHistogram(hdrHistogram: Histogram, histogramUnit: HistogramUnit) {
+case class TrendHdrHistogram(private val hdrHistogram: Histogram, unit: HistogramUnit) {
 
-  def this(histogramConfig: HistogramMetricConfiguration) = this(new Histogram(histogramConfig.maxValue, histogramConfig.precision), histogramConfig.unit)
+  def this(histogramConfig: HistogramMetricConfiguration) = this(
+    new Histogram(histogramConfig.maxValue, histogramConfig.precision), histogramConfig.unit)
 
-  def recordValue(value: Long): Unit = {
-    val metricDataValue = TrendHdrHistogram.normalizeValue(value, histogramUnit)
+  def recordValue(valInMicros: Long): Unit = {
+    val metricDataValue = fromMicros(valInMicros)
     hdrHistogram.recordValue(metricDataValue)
   }
 
-  def getMinValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMinValue, histogramUnit)
-  }
+  def getMinValue: Long = toMicros(hdrHistogram.getMinValue)
 
-  def getMaxValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMaxValue, histogramUnit)
-  }
+  def getMaxValue: Long = toMicros(hdrHistogram.getMaxValue)
 
-  def getMean: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getMean.toLong, histogramUnit)
-  }
+  def getMean: Long = toMicros(hdrHistogram.getMean.toLong)
 
-  def getStdDeviation: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getStdDeviation.toLong, histogramUnit)
-  }
+  def getStdDeviation: Long = toMicros(hdrHistogram.getStdDeviation.toLong)
 
-  def getTotalCount: Long = {
-    hdrHistogram.getTotalCount
-  }
+  def getTotalCount: Long = hdrHistogram.getTotalCount
 
-  def getHighestTrackableValue: Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getHighestTrackableValue, histogramUnit)
-  }
+  def getHighestTrackableValue: Long = hdrHistogram.getHighestTrackableValue
 
-  def getValueAtPercentile(percentile: Double): Long = {
-    TrendHdrHistogram.denormalizeValue(hdrHistogram.getValueAtPercentile(percentile), histogramUnit)
-  }
+  def getHighesTrackableValueInMicros: Long = toMicros(hdrHistogram.getHighestTrackableValue)
 
-  def getEstimatedFootprintInBytes: Int = {
-    hdrHistogram.getEstimatedFootprintInBytes
-  }
+  def getValueAtPercentile(percentile: Double): Long = toMicros(hdrHistogram.getValueAtPercentile(percentile))
+
+  def getEstimatedFootprintInBytes: Int = hdrHistogram.getEstimatedFootprintInBytes
 
   def encodeIntoByteBuffer(buffer: ByteBuffer): Int = {
     hdrHistogram.encodeIntoByteBuffer(buffer)
   }
-}
 
-object TrendHdrHistogram {
-
-  def normalizeValue(value: Long, histogramUnit: HistogramUnit): Long = {
-    if (histogramUnit.isMillis) {
-      TimeUnit.MICROSECONDS.toMillis(value)
-    } else if (histogramUnit.isSeconds) {
-      TimeUnit.MICROSECONDS.toSeconds(value)
-    } else {
-      value
+  private def fromMicros(value: Long): Long = {
+    unit match {
+      case HistogramUnit.MILLIS => TimeUnit.MICROSECONDS.toMillis(value)
+      case HistogramUnit.SECONDS => TimeUnit.MICROSECONDS.toSeconds(value)
+      case _ => value
     }
   }
 
-  def denormalizeValue(value: Long, histogramUnit: HistogramUnit): Long = {
-    if (histogramUnit.isMillis) {
-      TimeUnit.MILLISECONDS.toMicros(value.toLong)
-    } else if (histogramUnit.isSeconds) {
-      TimeUnit.SECONDS.toMicros(value.toLong)
-    } else {
-      value
+  private def toMicros(value: Long): Long = {
+    unit match {
+      case HistogramUnit.MILLIS => TimeUnit.MILLISECONDS.toMicros(value.toLong)
+      case HistogramUnit.SECONDS => TimeUnit.SECONDS.toMicros(value.toLong)
+      case _ => value
     }
   }
 }
