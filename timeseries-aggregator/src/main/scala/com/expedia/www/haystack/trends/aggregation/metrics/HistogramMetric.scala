@@ -18,17 +18,13 @@
 
 package com.expedia.www.haystack.trends.aggregation.metrics
 
-import java._
-import java.util.concurrent.TimeUnit
-
 import com.codahale.metrics.Timer
 import com.expedia.metrics.{MetricData, MetricDefinition, TagCollection}
 import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.trends.aggregation.TrendHdrHistogram
 import com.expedia.www.haystack.trends.aggregation.metrics.AggregationType.AggregationType
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.config.entities.HistogramUnit
 import com.expedia.www.haystack.trends.kstream.serde.metric.{HistogramMetricSerde, MetricSerde}
-import org.HdrHistogram.Histogram
 
 
 /**
@@ -37,23 +33,23 @@ import org.HdrHistogram.Histogram
   * @param interval  : interval for the metric
   * @param histogram : current histogram, the current histogram should be a new histogram object for a new metric but can be passed when we want to restore a given metric after the application crashed
   */
-class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(interval) {
+class HistogramMetric(interval: Interval, histogram: TrendHdrHistogram) extends Metric(interval) {
 
   private val HistogramMetricComputeTimer: Timer = metricRegistry.timer("histogram.metric.compute.time")
 
-  def this(interval: Interval) = this(interval, new Histogram(AppConfiguration.histogramMetricConfiguration.maxValue, AppConfiguration.histogramMetricConfiguration.precision))
+  def this(interval: Interval) = this(interval, new TrendHdrHistogram(AppConfiguration.histogramMetricConfiguration))
 
 
-  override def mapToMetricDataList(metricKey: String, tags: util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
+  override def mapToMetricDataList(metricKey: String, tags: java.util.Map[String, String], publishingTimestamp: Long): List[MetricData] = {
     import com.expedia.www.haystack.trends.aggregation.entities.StatValue._
     histogram.getTotalCount match {
       case 0 => List()
       case _ => val result = Map(
-        MEAN -> histogram.getMean.toLong,
+        MEAN -> histogram.getMean,
         MIN -> histogram.getMinValue,
         PERCENTILE_95 -> histogram.getValueAtPercentile(95),
         PERCENTILE_99 -> histogram.getValueAtPercentile(99),
-        STDDEV -> histogram.getStdDeviation.toLong,
+        STDDEV -> histogram.getStdDeviation,
         MEDIAN -> histogram.getValueAtPercentile(50),
         MAX -> histogram.getMaxValue
       ).map {
@@ -66,17 +62,15 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
     }
   }
 
-  def getRunningHistogram: Histogram = {
+  def getRunningHistogram: TrendHdrHistogram = {
     histogram
   }
 
   override def compute(metricData: MetricData): HistogramMetric = {
-    val metricDataValue = HistogramMetric.getHistogramValueAsPerUnit(metricData.getValue.toLong,
-      AppConfiguration.histogramMetricConfiguration.unit)
 
-    if (metricDataValue <= histogram.getHighestTrackableValue) {
+    if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
       val timerContext = HistogramMetricComputeTimer.time()
-      histogram.recordValue(metricDataValue)
+      histogram.recordValue(metricData.getValue.toLong)
       timerContext.close()
     }
     else {
@@ -87,19 +81,6 @@ class HistogramMetric(interval: Interval, histogram: Histogram) extends Metric(i
     this
   }
 }
-
-object HistogramMetric {
-  def getHistogramValueAsPerUnit(value: Long, histogramUnit: HistogramUnit): Long = {
-    if (histogramUnit.isMillis) {
-      TimeUnit.MICROSECONDS.toMillis(value)
-    } else if (histogramUnit.isSeconds) {
-      TimeUnit.MICROSECONDS.toSeconds(value)
-    } else {
-      value
-    }
-  }
-}
-
 
 object HistogramMetricFactory extends MetricFactory {
 
