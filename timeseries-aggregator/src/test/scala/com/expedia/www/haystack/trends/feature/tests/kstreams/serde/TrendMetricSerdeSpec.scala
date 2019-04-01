@@ -64,7 +64,9 @@ class TrendMetricSerdeSpec extends FeatureSpec {
               val histogram = metric.asInstanceOf[HistogramMetric]
               val deserializedHistogram = deserializedMetric.trendMetricsMap(interval).windowedMetricsMap(timeWindow).asInstanceOf[HistogramMetric]
               histogram.getMetricInterval shouldEqual deserializedHistogram.getMetricInterval
-              histogram.getRunningHistogram shouldEqual deserializedHistogram.getRunningHistogram
+              histogram.getRunningHistogram.getTotalCount shouldEqual deserializedHistogram.getRunningHistogram.getTotalCount
+              histogram.getRunningHistogram.getMaxValue shouldEqual deserializedHistogram.getRunningHistogram.getMaxValue
+              histogram.getRunningHistogram.getValueAtPercentile(50) shouldEqual deserializedHistogram.getRunningHistogram.getValueAtPercentile(50)
           }
       }
     }

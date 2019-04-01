@@ -42,7 +42,10 @@ class WindowedMetricSerdeSpec extends FeatureSpec {
           val histogram = metric.asInstanceOf[HistogramMetric]
           val deserializedHistogram = deserializedMetric.windowedMetricsMap(window).asInstanceOf[HistogramMetric]
           histogram.getMetricInterval shouldEqual deserializedHistogram.getMetricInterval
-          histogram.getRunningHistogram shouldEqual deserializedHistogram.getRunningHistogram
+          histogram.getRunningHistogram.getTotalCount shouldEqual deserializedHistogram.getRunningHistogram.getTotalCount
+          histogram.getRunningHistogram.getMaxValue shouldEqual deserializedHistogram.getRunningHistogram.getMaxValue
+          histogram.getRunningHistogram.getMinValue shouldEqual deserializedHistogram.getRunningHistogram.getMinValue
+          histogram.getRunningHistogram.getValueAtPercentile(99) shouldEqual deserializedHistogram.getRunningHistogram.getValueAtPercentile(99)
       }
     }
 

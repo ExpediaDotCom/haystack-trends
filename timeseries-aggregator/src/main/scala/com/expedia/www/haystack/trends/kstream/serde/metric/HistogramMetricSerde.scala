@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 
 import com.expedia.www.haystack.commons.entities.Interval
 import com.expedia.www.haystack.commons.entities.Interval.Interval
+import com.expedia.www.haystack.trends.aggregation.TrendHdrHistogram
 import com.expedia.www.haystack.trends.aggregation.metrics.{HistogramMetric, Metric}
 import com.expedia.www.haystack.trends.config.AppConfiguration
 import org.HdrHistogram.Histogram
@@ -41,6 +42,7 @@ object HistogramMetricSerde extends MetricSerde {
     val metric = MessagePack.newDefaultUnpacker(data).unpackValue().asMapValue().map()
     val serializedHistogram = metric.get(ValueFactory.newString(intHistogramKey)).asBinaryValue().asByteArray
     val interval: Interval = Interval.fromName(metric.get(ValueFactory.newString(intervalKey)).asStringValue().toString)
-    new HistogramMetric(interval, Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), AppConfiguration.histogramMetricConfiguration.maxValue))
+    val hdrHistogram = Histogram.decodeFromByteBuffer(ByteBuffer.wrap(serializedHistogram), AppConfiguration.histogramMetricConfiguration.maxValue)
+    new HistogramMetric(interval, new TrendHdrHistogram(hdrHistogram))
   }
 }
