@@ -62,20 +62,18 @@ class HistogramMetric(interval: Interval, histogram: TrendHdrHistogram) extends 
     }
   }
 
-  def getRunningHistogram: TrendHdrHistogram = {
-    histogram
-  }
+  def getRunningHistogram: TrendHdrHistogram = histogram
 
   override def compute(metricData: MetricData): HistogramMetric = {
-
-    if (metricData.getValue.toLong <= histogram.getHighestTrackableValue) {
+    //metricdata value is in micro seconds
+    if (metricData.getValue.toLong <= histogram.getHighesTrackableValueInMicros) {
       val timerContext = HistogramMetricComputeTimer.time()
       histogram.recordValue(metricData.getValue.toLong)
       timerContext.close()
     }
     else {
       val timerContext = HistogramMetricComputeTimer.time()
-      histogram.recordValue(histogram.getHighestTrackableValue)
+      histogram.recordValue(histogram.getHighesTrackableValueInMicros)
       timerContext.close()
     }
     this

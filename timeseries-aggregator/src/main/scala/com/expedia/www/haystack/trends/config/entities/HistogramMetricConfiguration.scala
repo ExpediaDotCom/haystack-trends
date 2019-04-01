@@ -17,26 +17,31 @@
  */
 package com.expedia.www.haystack.trends.config.entities
 
+import com.expedia.www.haystack.trends.config.entities.HistogramUnit.HistogramUnit
+
 
 /**
   *This configuration helps create the HistogramMetric.
+  *
   * @param precision - Decimal precision required for the histogram,allowable precision of histogram must be 0 <= value <= 5
   * @param maxValue - maximum value for the incoming metric (should always be > than the maximum value you're expecting for a metricpoint)
   * @param unit - unit of the value that will be given to histogram (can be micros, millis, seconds)
   */
 case class HistogramMetricConfiguration(precision: Int, maxValue: Int, unit: HistogramUnit)
 
-class HistogramUnit (unit: String) {
-  def isMillis: Boolean = {
-    unit.equalsIgnoreCase("millis")
+object HistogramUnit extends Enumeration {
+  type HistogramUnit = Value
+  val MILLIS, MICROS, SECONDS = Value
+
+  def from(unit: String): HistogramUnit = {
+    unit.toLowerCase() match {
+      case "millis" => HistogramUnit.MILLIS
+      case "micros" => HistogramUnit.MICROS
+      case "seconds" => HistogramUnit.SECONDS
+      case _ => throw new RuntimeException(
+        String.format("Fail to understand the histogram unit %s, should be one of [millis, micros or seconds]", unit))
+    }
   }
 
-  def isMicros: Boolean = {
-    unit.equalsIgnoreCase("micros")
-  }
-
-  def isSeconds: Boolean = {
-    unit.equalsIgnoreCase("seconds")
-  }
+  def default: HistogramUnit = HistogramUnit.MICROS
 }
-

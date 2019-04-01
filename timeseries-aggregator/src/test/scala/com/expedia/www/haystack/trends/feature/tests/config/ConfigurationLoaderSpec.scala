@@ -19,6 +19,7 @@ package com.expedia.www.haystack.trends.feature.tests.config
 
 import com.expedia.www.haystack.commons.entities.encoders.PeriodReplacementEncoder
 import com.expedia.www.haystack.trends.config.AppConfiguration
+import com.expedia.www.haystack.trends.config.entities.HistogramUnit
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class ConfigurationLoaderSpec extends FeatureSpec {
@@ -124,7 +125,7 @@ class ConfigurationLoaderSpec extends FeatureSpec {
 
       Then("It should create the write configuration object based on the file contents")
       projectConfig.histogramMetricConfiguration.maxValue shouldBe 1800000
-      projectConfig.histogramMetricConfiguration.unit.isMillis shouldBe true
+      projectConfig.histogramMetricConfiguration.unit == HistogramUnit.MILLIS shouldBe true
     }
   }
 }
