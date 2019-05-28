@@ -62,6 +62,19 @@ class ConfigurationLoaderSpec extends FeatureSpec {
       kafkaConfig.consumeTopic shouldBe "metric-data-points"
     }
 
+    scenario("should load additional tags config from base.conf") {
+      Given("A config file at base config file containing additionalTags ")
+
+      When("When the configuration is loaded in project configuration")
+      val projectConfig = new AppConfiguration()
+
+      Then("It should create the addtionalTags map based on the file contents")
+      val additionalTags = projectConfig.additionalTags
+      additionalTags.keySet.size shouldEqual 2
+      additionalTags("key1") shouldEqual "value1"
+      additionalTags("key2") shouldEqual "value2"
+
+    }
 
     scenario("should override configuration based on environment variable") {
 

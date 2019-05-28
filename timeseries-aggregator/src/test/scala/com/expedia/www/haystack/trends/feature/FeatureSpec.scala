@@ -29,6 +29,7 @@ import org.apache.kafka.streams.processor.WallclockTimestampExtractor
 import org.easymock.EasyMock
 import org.scalatest._
 import org.scalatest.easymock.EasyMockSugar
+import org.mockito.Mockito._
 
 import scala.collection.JavaConverters._
 
@@ -55,6 +56,7 @@ trait FeatureSpec extends FeatureSpecLike with GivenWhenThen with Matchers with 
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
       projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder).anyTimes()
       projectConfiguration.stateStoreConfig.andReturn(StateStoreConfiguration(128, false, 60, Map())).anyTimes()
+      projectConfiguration.additionalTags.andReturn(Map("k1"->"v1", "k2"-> "v2")).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration

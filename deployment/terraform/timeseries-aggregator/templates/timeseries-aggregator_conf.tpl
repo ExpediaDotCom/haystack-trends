@@ -69,3 +69,5 @@ histogram {
   precision = "${histogram_precision}"
   value.unit = "${histogram_value_unit}"  // can be micros / millis / seconds
 }
+
+additionalTags  = "${additionalTags}"

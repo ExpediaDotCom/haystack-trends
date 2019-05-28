@@ -19,6 +19,7 @@ data "template_file" "config_data" {
     histogram_max_value = "${var.histogram_max_value}"
     histogram_precision = "${var.histogram_precision}"
     histogram_value_unit = "${var.histogram_value_unit}"
+    additionalTags = "${var.additionalTags}"
   }
 }
 

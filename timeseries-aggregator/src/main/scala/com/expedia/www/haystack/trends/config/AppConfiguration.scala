@@ -24,7 +24,7 @@ import com.expedia.www.haystack.commons.entities.encoders.{Encoder, EncoderFacto
 import com.expedia.www.haystack.commons.kstreams.MetricDataTimestampExtractor
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.MetricDataSerializer
 import com.expedia.www.haystack.trends.config.entities._
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueType}
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerConfig.{KEY_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG}
 import org.apache.kafka.streams.StreamsConfig
@@ -41,6 +41,7 @@ class AppConfiguration {
   private val producerConfig = kafka.getConfig("producer")
   private val consumerConfig = kafka.getConfig("consumer")
   private val streamsConfig = kafka.getConfig("streams")
+
 
 
   /**
@@ -171,6 +172,14 @@ class AppConfiguration {
       getKafkaAutoReset,
       timestampExtractor,
       kafka.getLong("close.timeout.ms"))
+  }
+
+  def additionalTags: Map[String, String] = {
+    val additionalTagsConfig = config.getValue("additionalTags").valueType() match {
+      case ConfigValueType.OBJECT => config.getConfig("additionalTags")
+      case _ => ConfigFactory.parseString(config.getString("additionalTags"))
+    }
+    additionalTagsConfig.entrySet().asScala.map(entrySet => entrySet.getKey -> entrySet.getValue.unwrapped().toString) toMap
   }
 
 }
