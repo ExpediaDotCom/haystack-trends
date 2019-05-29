@@ -122,6 +122,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
       projectConfiguration.kafkaConfig.andReturn(kafkaConfig).anyTimes()
       projectConfiguration.stateStoreConfig.andReturn(StateStoreConfiguration(128, enableChangeLogging = true, 60, stateStoreConfigs)).anyTimes()
       projectConfiguration.encoder.andReturn(new PeriodReplacementEncoder).anyTimes()
+      projectConfiguration.additionalTags.andReturn(Map("k1"->"v1", "k2"-> "v2")).anyTimes()
     }
     EasyMock.replay(projectConfiguration)
     projectConfiguration
@@ -131,7 +132,7 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
                                                expectedOneMinAggregatedPoints: Int,
                                                expectedFiveMinAggregatedPoints: Int,
                                                expectedFifteenMinAggregatedPoints: Int,
-                                               expectedOneHourAggregatedPoints: Int): Assertion = {
+                                               expectedOneHourAggregatedPoints: Int): Unit = {
 
     val oneMinAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.ONE_MINUTE.toString()))
     val fiveMinAggMetricPoints = producedRecords.filter(record => getTags(record.value).get("interval").equals(Interval.FIVE_MINUTE.toString()))
@@ -142,6 +143,15 @@ class IntegrationTestSpec extends WordSpec with GivenWhenThen with Matchers with
     fiveMinAggMetricPoints.size shouldEqual expectedFiveMinAggregatedPoints
     fifteenMinAggMetricPoints.size shouldEqual expectedFifteenMinAggregatedPoints
     oneHourAggMetricPoints.size shouldEqual expectedOneHourAggregatedPoints
+    validateAdditionalTags(List(oneMinAggMetricPoints, fiveMinAggMetricPoints, fifteenMinAggMetricPoints, oneHourAggMetricPoints).flatten)
+  }
+
+  protected def validateAdditionalTags(kvPair: List[KeyValue[String, MetricData]]): Unit = {
+    val additionalTags = mockAppConfig.additionalTags
+    kvPair.foreach(kv => {
+      val tags = kv.value.getMetricDefinition.getTags.getKv.asScala
+      additionalTags.toSet subsetOf tags.toSet shouldEqual true
+    })
   }
 
   protected def produceMetricPointsAsync(maxMetricPoints: Int,

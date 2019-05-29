@@ -24,7 +24,7 @@ import com.expedia.metrics.MetricData
 import com.expedia.www.haystack.commons.kstreams.serde.metricdata.{MetricDataSerde, MetricTankSerde}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.config.AppConfiguration
-import com.expedia.www.haystack.trends.kstream.processor.{ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
+import com.expedia.www.haystack.trends.kstream.processor.{AdditionalTagsProcessorSupplier, ExternalKafkaProcessorSupplier, MetricAggProcessorSupplier}
 import com.expedia.www.haystack.trends.kstream.store.HaystackStoreBuilder
 import org.apache.kafka.common.serialization.{Serde, StringDeserializer, StringSerializer}
 import org.apache.kafka.streams.Topology
@@ -40,6 +40,7 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
   private val TOPOLOGY_EXTERNAL_SINK_NAME = "metricpoint-aggegated-sink-external"
   private val TOPOLOGY_INTERNAL_SINK_NAME = "metric-data-aggegated-sink-internal"
   private val TOPOLOGY_AGGREGATOR_PROCESSOR_NAME = "metricpoint-aggregator-process"
+  private val TOPOLOGY_ADDITIONAL_TAGS_PROCESSOR_NAME = "additional-tags-process"
   private val TOPOLOGY_AGGREGATOR_TREND_METRIC_STORE_NAME = "trend-metric-store"
   private val kafkaConfig = appConfiguration.kafkaConfig
 
@@ -66,11 +67,15 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
     // which keeps the trend-metrics which are currently being computed in memory
     topology.addStateStore(createTrendMetricStateStore(), TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
 
+    // topology to add additional tags if any
+    topology.addProcessor(TOPOLOGY_ADDITIONAL_TAGS_PROCESSOR_NAME, new AdditionalTagsProcessorSupplier(appConfiguration.additionalTags), TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+
     if (appConfiguration.kafkaConfig.producerConfig.enableExternalKafka) {
       topology.addProcessor(
         TOPOLOGY_EXTERNAL_SINK_NAME,
         new ExternalKafkaProcessorSupplier(appConfiguration.kafkaConfig.producerConfig),
-        TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+        TOPOLOGY_ADDITIONAL_TAGS_PROCESSOR_NAME
+        )
     }
 
     // adding sinks
@@ -82,7 +87,7 @@ class Streams(appConfiguration: AppConfiguration) extends Supplier[Topology] {
           sinkTopic.topic,
           new StringSerializer,
           serde.serializer(),
-          TOPOLOGY_AGGREGATOR_PROCESSOR_NAME)
+          TOPOLOGY_ADDITIONAL_TAGS_PROCESSOR_NAME)
       }
     })
 

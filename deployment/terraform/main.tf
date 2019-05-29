@@ -69,4 +69,5 @@ module "timeseries-aggregator" {
   histogram_max_value = "${var.trends["timeseries_aggregator_histogram_max_value"]}"
   histogram_precision = "${var.trends["timeseries_aggregator_histogram_precision"]}"
   histogram_value_unit = "${var.trends["timeseries_aggregator_histogram_value_unit"]}"
+  additionalTags = "${var.trends["timeseries_aggregator_additional_tags"]}"
 }
