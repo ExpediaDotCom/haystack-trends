@@ -22,7 +22,7 @@
     </appender>
 
 
-    <root level="${HAYSTACK_LOG_LEVEL:-INFO}">
+    <root level="${HAYSTACK_LOG_LEVEL:-WARN}">
         <appender-ref ref="ASYNC"/>
     </root>
 </configuration>
