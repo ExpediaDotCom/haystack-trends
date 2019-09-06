@@ -41,6 +41,8 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
 
   private val trendMetricComputeTimer: Timer = metricRegistry.timer("trendmetric.compute.time")
   private val metricPointComputeFailureMeter: Meter = metricRegistry.meter("metricpoints.compute.failure")
+  private var currentEpochTimeInSec: Long = 0
+  private var shouldLog = true
 
   def getMetricFactory: MetricFactory = {
     metricFactory
@@ -105,8 +107,7 @@ class TrendMetric private(var trendMetricsMap: Map[Interval, WindowedMetric], me
 object TrendMetric {
 
   private val LOGGER = LoggerFactory.getLogger(this.getClass)
-  private var currentEpochTimeInSec: Long = 0
-  private var shouldLog = true
+
 
   // config for watermark windows & tick per interval
   val trendMetricConfig = Map(
@@ -118,8 +119,6 @@ object TrendMetric {
   def createTrendMetric(intervals: List[Interval],
                         firstMetricData: MetricData,
                         metricFactory: MetricFactory): TrendMetric = {
-    currentEpochTimeInSec = 0 // reset for every unique metric point
-    shouldLog = true
     //  this enable to log data to state store for the very first time
     val trendMetricMap = createMetricsForEachInterval(intervals, firstMetricData, metricFactory)
     new TrendMetric(trendMetricMap, metricFactory)
