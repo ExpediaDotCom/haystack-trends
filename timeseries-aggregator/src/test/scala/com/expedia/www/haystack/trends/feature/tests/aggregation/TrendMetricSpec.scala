@@ -24,6 +24,7 @@ import com.expedia.www.haystack.commons.entities.{Interval, TagKeys}
 import com.expedia.www.haystack.trends.aggregation.TrendMetric
 import com.expedia.www.haystack.trends.aggregation.entities.TimeWindow
 import com.expedia.www.haystack.trends.aggregation.metrics.{CountMetric, CountMetricFactory, HistogramMetric, HistogramMetricFactory}
+import com.expedia.www.haystack.trends.config.AppConfiguration
 import com.expedia.www.haystack.trends.feature.FeatureSpec
 
 class TrendMetricSpec extends FeatureSpec {
@@ -31,6 +32,9 @@ class TrendMetricSpec extends FeatureSpec {
   val SERVICE_NAME = "dummy_service"
   val OPERATION_NAME = "dummy_operation"
   val keys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME,
+    TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
+
+  val alternateMetricKeys = Map(TagKeys.OPERATION_NAME_KEY -> OPERATION_NAME.concat("_2"),
     TagKeys.SERVICE_NAME_KEY -> SERVICE_NAME)
 
 
@@ -52,10 +56,12 @@ class TrendMetricSpec extends FeatureSpec {
 
       Then("should return 0 MetricData points if we try to get within (watermark + 1) metrics")
       trendMetric.getComputedMetricPoints(firstMetricData).size shouldBe 0
+      trendMetric.shouldLogToStateStore shouldBe true
       var i = TrendMetric.trendMetricConfig(intervals.head)._1
       while (i > 0) {
         val secondMetricData: MetricData = getMetricData(DURATION_METRIC_NAME, keys, 2, currentTime + intervals.head.timeInSeconds * i)
         trendMetric.compute(secondMetricData)
+        trendMetric.shouldLogToStateStore shouldBe true
         trendMetric.getComputedMetricPoints(secondMetricData).size shouldEqual 0
         i = i - 1
       }
@@ -108,6 +114,37 @@ class TrendMetricSpec extends FeatureSpec {
       Then("values for count should same as expected")
       expectedMetric.getCurrentCount shouldEqual aggMetrics.find(metricData => containsTagInMetricData(metricData, TagKeys.INTERVAL_KEY, "FiveMinute")).get.getValue
     }
+
+    scenario("should log to state store for different metrics based on timestamp") {
+      val COUNT_METRIC_NAME = "span-received"
+
+      Given("multiple metricPoints for different operations")
+      val intervals: List[Interval] = List(Interval.ONE_MINUTE, Interval.FIVE_MINUTE)
+      val currentTime = 1
+
+      val firstMetricData: MetricData = getMetricData(COUNT_METRIC_NAME, keys, 1, currentTime)
+      val anotherMetricData: MetricData = getMetricData(COUNT_METRIC_NAME, alternateMetricKeys, 1, currentTime)
+      val trendMetric = TrendMetric.createTrendMetric(intervals, firstMetricData, CountMetricFactory)
+      val anotherTrendMetric = TrendMetric.createTrendMetric(intervals, anotherMetricData, CountMetricFactory)
+      trendMetric.compute(firstMetricData)
+      trendMetric.shouldLogToStateStore shouldBe true
+
+      anotherTrendMetric.compute(anotherMetricData)
+      anotherTrendMetric.shouldLogToStateStore shouldBe true
+
+      When("metricpoints are added to multiple trend metrics")
+      val secondMetricData: MetricData = getMetricData(COUNT_METRIC_NAME, keys, 1, currentTime + 1 + AppConfiguration.stateStoreConfig.changeLogDelayInSecs)
+      trendMetric.compute(secondMetricData)
+      val secondAnotherMetricData = getMetricData(COUNT_METRIC_NAME, alternateMetricKeys, 1, currentTime + 1 + AppConfiguration.stateStoreConfig.changeLogDelayInSecs)
+      anotherTrendMetric.compute(secondAnotherMetricData)
+
+      Then("trend metric should log to state store")
+      trendMetric.shouldLogToStateStore shouldBe true
+      anotherTrendMetric.shouldLogToStateStore shouldBe true
+
+    }
+
+
   }
 
 
