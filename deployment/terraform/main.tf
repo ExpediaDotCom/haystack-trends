@@ -41,6 +41,7 @@ module "span-timeseries-transformer" {
   memory_request = "${var.trends["span_timeseries_transformer_memory_request"]}"
   jvm_memory_limit = "${var.trends["span_timeseries_transformer_jvm_memory_limit"]}"
   env_vars = "${var.trends["span_timeseries_transformer_environment_overrides"]}"
+  kafka_num_stream_threads = "${var.trends["span_timeseries_transformer_kafka_num_stream_threads"]}"
   metricpoint_encoder_type = "${var.trends["metricpoint_encoder_type"]}"
 }
 module "timeseries-aggregator" {
