@@ -6,7 +6,7 @@ kafka {
   streams {
     application.id = "span-timeseries-transformer-v2"
     bootstrap.servers = "${kafka_endpoint}"
-    num.stream.threads = 3
+    num.stream.threads = "${kafka_num_stream_threads}
     commit.interval.ms = 3000
     auto.offset.reset = latest
     timestamp.extractor = "com.expedia.www.haystack.commons.kstreams.SpanTimestampExtractor"

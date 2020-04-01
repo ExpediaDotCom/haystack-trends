@@ -45,8 +45,6 @@ spec:
           value: "${jvm_memory_limit}m"
         - name: "JAVA_XMX"
           value: "${jvm_memory_limit}m"
-        - name: "HAYSTACK_PROP_KAFKA_NUM_STREAM_THREADS"
-          value: "${kafka_num_stream_threads}"
         ${env_vars}
         livenessProbe:
           exec:
