@@ -18,7 +18,7 @@ to create the metric point and adding an [aggregation-rule](https://github.com/E
 ## Required Reading
  
 In order to understand the haystack-trends one must be familiar with the [haystack](https://github.com/ExpediaDotCom/haystack) project. Its written in kafka-streams(http://docs.confluent.io/current/streams/index.html) 
-and hence some prior knowledge of kafka-streams would be useful.
+and hence some prior knowledge of kafka-streams would be useful. 
  
 ## Technical Details
 ![High Level Block Diagram](documents/diagrams/haystack_trends.png)
