@@ -18,6 +18,9 @@ variable "jvm_memory_limit"{}
 variable "cpu_limit"{}
 variable "cpu_request"{}
 variable "env_vars" {}
+
+variable "kafka_num_stream_threads" {} 
+
 variable "termination_grace_period" {
   default = 30
 }
