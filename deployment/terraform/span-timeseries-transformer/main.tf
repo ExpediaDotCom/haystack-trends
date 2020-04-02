@@ -24,6 +24,7 @@ data "template_file" "config_data" {
   vars {
     kafka_endpoint = "${var.kafka_endpoint}"
     metricpoint_encoder_type = "${var.metricpoint_encoder_type}"
+    kafka_num_stream_threads = "${var.kafka_num_stream_threads}"
   }
 }
 
@@ -46,7 +47,6 @@ data "template_file" "deployment_yaml" {
     cpu_limit = "${var.cpu_limit}"
     cpu_request = "${var.cpu_request}"
     configmap_name = "${local.configmap_name}"
-    kafka_num_stream_threads = "${var.kafka_num_stream_threads}"
     env_vars= "${indent(9,"${var.env_vars}")}"
   }
 }
